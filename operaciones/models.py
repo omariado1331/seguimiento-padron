@@ -91,7 +91,7 @@ class Llave(models.Model):
     contador_c = models.IntegerField(default=0)
 
     def __str__(self):
-        return f"{self.nro_estacion}C{self.contador_c}R{self.contador_r}"
+        return f"{self.nro_estacion}-C:{self.contador_c}:-R:{self.contador_r}"
 
 class Ruta(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -166,16 +166,38 @@ class Proceso(models.Model):
 
 class Estacion(models.Model):
     codigo_equipo = models.CharField(max_length=56, unique=True, blank=True )
-    llave = models.ForeignKey(Llave, on_delete=models.CASCADE, null=True)
-    nro_estacion = models.IntegerField(default=0, unique=True, null=True)
-    asignada = models.BooleanField(default=False)
+    etiqueta_kit = models.CharField(max_length=25, null=True, blank=True)
+    llave = models.ForeignKey(Llave, on_delete=models.CASCADE, null=True, blank=True)
+    nro_estacion = models.IntegerField(default=0, unique=True, null=True, blank=True)
+    ESTACION_CHOICES = [
+        ('FIJA', 'FIJA'),
+        ('MOVIL', 'MOVIL'),
+    ]
+    MODELO_CHOICES = [
+        ('DELL OPTIPLEX 360', 'DELL OPTIPLEX 360'),
+        ('DELL OPTIPLEX 390', 'DELL OPTIPLEX 390'),
+        ('DELL E5500', 'DELL E5500'),
+        ('DELL E5520', 'DELL E5520'),
+    ]
+    tipo_estacion = models.CharField(
+        max_length=255, 
+        choices=ESTACION_CHOICES,
+        blank=True,
+        null=True
+    )
+    modelo = models.CharField(
+        max_length=255, 
+        choices=MODELO_CHOICES,
+        blank=True,
+        null=True
+    )
     FASES_CHOICES = [
         ('Recepcionado', 'Recepcionado'),
-        ('En revision', 'En revision'),
+        ('Revisado', 'Revisado'),
         ('Listo para clonacion', 'Listo para Clonacion'),
-        ('Clonacion', 'Clonacion'),
+        ('Clonado', 'Clonado'),
         ('Listo para masterizacion', 'Listo para masterizacion'),
-        ('Masterizacion', 'Masterizacion'),
+        ('Masterizado', 'Masterizado'),
         ('Listo para asignar', 'Listo para asignar'),
         ('En mantenimiento', 'En mantenimiento'),
     ]
@@ -184,9 +206,10 @@ class Estacion(models.Model):
         choices=FASES_CHOICES,
         default='Recepcionado'
     )
-    kit = models.ForeignKey(Kit, on_delete=models.CASCADE, null=True)
-    marca = models.CharField(max_length=100)
-    modelo = models.CharField(max_length=100)
+    FUNCIONALIDAD_CHOICES = [
+        ('Buena', 'Buena'),
+        ('Mala', 'Mala'),
+    ]
     ESTADO_CHOICES = [
         ('defectuoso', 'Defectuoso'),
         ('contingencia', 'Contingencia'),
@@ -194,15 +217,77 @@ class Estacion(models.Model):
         ('funcional', 'Funcional'),
         ('nuevo', 'Nuevo'),
     ]
-    estado = models.CharField(
+    estado_computadora = models.CharField(
         max_length=32,
         choices=ESTADO_CHOICES,
         default='funcional'
     )
+    estado_monitor = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_escaner  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_impresora  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_pad_firmas  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_camara  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_decadactilar  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_hub_usb  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_estabilizador_energia  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_pila_madre  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_memorias_ram  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_disco_duro  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    cable_extensor = models.BooleanField(default=False)
+    tripode = models.BooleanField(default=False)
+    banner = models.BooleanField(default=False)
+    adaptador_3a2 = models.BooleanField(default=False)
+    monitor_pc =models.BooleanField(default=False)
+    testeo_pila = models.BooleanField(default=False)
+    asignada = models.BooleanField(default=False)
     observacion = models.TextField(blank=True)
-
+     
     def __str__(self):
-        return f"{self.codigo_equipo} - Llave: {self.llave}"
+        return f"{self.codigo_equipo} -Caja: {self.etiqueta_kit} -Llave: {self.llave}"
     
 class MovimientosEstacion(models.Model):
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)

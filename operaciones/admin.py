@@ -10,7 +10,12 @@ admin.site.register(Kit)
 admin.site.register(Llave)
 admin.site.register(Ruta)
 admin.site.register(Proceso)
-admin.site.register(Estacion)
+@admin.register(Estacion)
+class EstacionAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Estacion._meta.fields]
+    search_fields = ['codigo_estacion', 'etiqueta_kit', 'nro_estacion', 'llave', 'fase', 'estado']
+    list_filter = ['estado_computadora', 'fase']
+    
 admin.site.register(MovimientosEstacion)
 admin.site.register(Coordinador)
 admin.site.register(Operador)

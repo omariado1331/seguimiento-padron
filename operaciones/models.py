@@ -148,7 +148,7 @@ class MovimientosEstacion(models.Model):
     descripcion = models.TextField()
 
     def __str__(self):
-        return f"Movimiento de {self.estacion.codigo_estacion} el {self.fecha_movimiento}"
+        return f"Movimiento de {self.estacion.codigo_equipo} el {self.fecha_movimiento}"
     
 class Coordinador(models.Model):
     ESTADO_CHOICES = [

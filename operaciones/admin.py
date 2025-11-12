@@ -11,7 +11,7 @@ admin.site.register(Ruta)
 @admin.register(Estacion)
 class EstacionAdmin(admin.ModelAdmin):
     list_display = [field.name for field in Estacion._meta.fields]
-    search_fields = [ 'nro_estacion', 'llave', 'fase', 'estado']
+    ssearch_fields = ['codigo_equipo', 'nro_estacion', 'llave__nro_estacion', 'fase', 'estado_computadora']
     list_filter = ['estado_computadora', 'fase']
     
 #admin.site.register(MovimientosEstacion)

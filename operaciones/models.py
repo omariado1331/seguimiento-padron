@@ -196,10 +196,10 @@ class Operador(models.Model):
         max_length=20,
         choices=TIPO_OPERADOR_CHOICES
     )
-    user = models.OneToOneField(User)
-    ruta = models.ForeignKey(Ruta, null=True, blank=True)
-    coordinador = models.ForeignKey(Coordinador, null=True, blank=True)
-    estacion = models.ForeignKey(Estacion, null=True, blank=True)    
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    ruta = models.ForeignKey(Ruta, null=True, blank=True, on_delete=models.SET_NULL)
+    coordinador = models.ForeignKey(Coordinador, null=True, blank=True, on_delete=models.SET_NULL)
+    estacion = models.ForeignKey(Estacion, null=True, blank=True, on_delete=models.SET_NULL)  
     nombre = models.CharField(max_length=100, null=True, blank=True)
     apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
     apellido_materno = models.CharField(max_length=100, null=True, blank=True)
@@ -209,6 +209,7 @@ class Operador(models.Model):
 
     def __str__(self):
         return self.user.username
+
 
 class ReporteDiario(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)

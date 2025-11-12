@@ -7,3 +7,5 @@ venv\Scripts\activate
 
 #INSTALAR LAS DEPENDENCIAS
 pip install -r requirements.txt
+
+#

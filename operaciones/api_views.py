@@ -3,12 +3,12 @@ from rest_framework import viewsets, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 from .models import (
-    Kit, Llave, Ruta, Proceso, Estacion, 
+    Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
     ReporteDiario, RegistroDespliegue, Item
 )
 from .serializers import (
-    KitSerializer, LlaveSerializer, RutaSerializer, ProcesoSerializer,
+    LlaveSerializer, RutaSerializer,
     EstacionSerializer, MovimientosEstacionSerializer, 
     CoordinadorSerializer, OperadorSerializer,
     ReporteDiarioSerializer, RegistroDespliegueSerializer, 
@@ -22,10 +22,6 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-class KitViewSet(viewsets.ModelViewSet):
-    queryset = Kit.objects.all()
-    serializer_class = KitSerializer
-
 class LlaveViewSet(viewsets.ModelViewSet):
     queryset = Llave.objects.all()
     serializer_class = LlaveSerializer
@@ -33,10 +29,6 @@ class LlaveViewSet(viewsets.ModelViewSet):
 class RutaViewSet(viewsets.ModelViewSet):
     queryset = Ruta.objects.all()
     serializer_class = RutaSerializer
-
-class ProcesoViewSet(viewsets.ModelViewSet):
-    queryset = Proceso.objects.all()
-    serializer_class = ProcesoSerializer
 
 class EstacionViewSet(viewsets.ModelViewSet):
     queryset = Estacion.objects.all()

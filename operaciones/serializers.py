@@ -19,45 +19,66 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         return token
 
-    def validate(self, atrrs):
-        data = super().validate(atrrs)
+    def validate(self, attrs):
+        data = super().validate(attrs)
         user = self.user
 
         data['user'] = {
-            'id' : user.id,
-            'username' : user.username,
-            'email' : user.email,
-            'groups' : [g.name for g in user.groups.all()],
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'groups': [g.name for g in user.groups.all()],
         }
 
+        # Operador
         try:
-            operador = Operador.objects.select_related("estacion").get(user=user)
+            operador = Operador.objects.select_related("estacion", "ruta").get(user=user)
             if operador.estacion:
                 id_estacion = operador.estacion.id
                 nro_estacion = operador.estacion.nro_estacion
             else:
                 id_estacion = 0
                 nro_estacion = 0
+
+            # ✅ Corregido: convertir 'ruta' a un dict simple
+            ruta_data = None
+            if operador.ruta:
+                ruta_data = {
+                    "id": operador.ruta.id,
+                    "nombre": str(operador.ruta),
+                }
+
             data["user"]['operador'] = {
-                "id_operador" : operador.id,
-                "ruta" : operador.ruta,
-                "id_estacion" : id_estacion,
-                "nro_estacion" : nro_estacion,
+                "id_operador": operador.id,
+                "ruta": ruta_data,
+                "id_estacion": id_estacion,
+                "nro_estacion": nro_estacion,
                 "tipo_operador": operador.tipo_operador,
             }
         except Operador.DoesNotExist:
             data["user"]["operador"] = None
-        
+
+        # Coordinador
         try:
-            coordinador = Coordinador.objects.get(user=user)
+            coordinador = Coordinador.objects.select_related("ruta").get(user=user)
+
+            # ✅ Corregido: convertir 'ruta' a un dict simple
+            ruta_data = None
+            if coordinador.ruta:
+                ruta_data = {
+                    "id": coordinador.ruta.id,
+                    "nombre": str(coordinador.ruta),
+                }
+
             data["user"]["coordinador"] = {
                 "id_coordinador": coordinador.id,
-                "ruta": coordinador.ruta,
+                "ruta": ruta_data,
             }
         except Coordinador.DoesNotExist:
             data["user"]["coordinador"] = None
 
         return data
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

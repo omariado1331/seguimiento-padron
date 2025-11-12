@@ -224,7 +224,7 @@ class ReporteDiario(models.Model):
 
 
     def __str__(self):
-        return f"{self.operador.user.username} Inicio{self.estacion.codigo_estacion}C{self.contador_inicial_c}R{self.contador_inicial_r} - Fin{self.contador_final_c}R{self.contador_final_r} el {self.fecha_reporte}"
+        return f"{self.operador.user.username} Inicio{self.estacion.codigo_equipo}C{self.contador_inicial_c}R{self.contador_inicial_r} - Fin{self.contador_final_c}R{self.contador_final_r} el {self.fecha_reporte}"
 
 class RegistroDespliegue(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)

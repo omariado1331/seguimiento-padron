@@ -214,14 +214,14 @@ class Operador(models.Model):
 class ReporteDiario(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
-    fecha_reporte = models.DateField(auto_now_add=True)
+    fecha_reporte = models.DateTimeField(null=True, blank=True)
     contador_inicial_c = models.IntegerField(default=0)
     contador_final_c = models.IntegerField(default=0)
     contador_inicial_r = models.IntegerField(default=0)
     contador_final_r = models.IntegerField(default=0)
     incidencias = models.TextField(blank=True)
     observaciones = models.TextField(blank=True)
-
+    fecha_registro = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.operador.user.username} Inicio {self.estacion.codigo_equipo} C{self.contador_inicial_c} R{self.contador_inicial_r} - Fin {self.contador_final_c} R{self.contador_final_r} el {self.fecha_reporte}"

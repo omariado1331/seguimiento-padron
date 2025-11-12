@@ -3,7 +3,7 @@ from .views import CustomTokenObtainPairView
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView
 from .api_views import (
-    KitViewSet, LlaveViewSet, RutaViewSet, ProcesoViewSet, 
+    LlaveViewSet, RutaViewSet, 
     EstacionViewSet, MovimientosEstacionViewSet, CoordinadorViewSet, 
     OperadorViewSet, ReporteDiarioViewSet, RegistroDespliegueViewSet,
     UserViewSet, ListarOperadoresListView, ItemViewSet
@@ -12,10 +12,8 @@ from . import views
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
-router.register(r'kits', KitViewSet)
 router.register(r'llaves', LlaveViewSet)
 router.register(r'rutas', RutaViewSet)
-router.register(r'procesos', ProcesoViewSet)
 router.register(r'estaciones', EstacionViewSet)
 router.register(r'movimientos-estacion', MovimientosEstacionViewSet)
 router.register(r'coordinadores', CoordinadorViewSet)

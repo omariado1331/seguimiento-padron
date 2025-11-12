@@ -140,7 +140,7 @@ class Estacion(models.Model):
     observacion = models.TextField(blank=True)
      
     def __str__(self):
-        return f"{self.codigo_equipo} -Caja: {self.etiqueta_kit} -Llave: {self.llave}"
+        return f"{self.codigo_equipo} - Llave: {self.llave}"
     
 class MovimientosEstacion(models.Model):
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)

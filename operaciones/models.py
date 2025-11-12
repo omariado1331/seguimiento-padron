@@ -46,12 +46,12 @@ class Estacion(models.Model):
     )
     FASES_CHOICES = [
         ('Recepcionado', 'Recepcionado'),
-        ('Revisado', 'Revisado'),
-        ('Listo para clonacion', 'Listo para Clonacion'),
-        ('Clonado', 'Clonado'),
-        ('Listo para masterizacion', 'Listo para masterizacion'),
+        ('En Revision', 'En Revision'),
+        ('Revisado funcional', 'Revisado funcional'),
+        ('En Clonacion', 'En Clonacion'),
+        ('En Masterizacion', 'En Masterizacion'),
         ('Masterizado', 'Masterizado'),
-        ('Listo para asignar', 'Listo para asignar'),
+        ('Asignado', 'Asignado'),
         ('En mantenimiento', 'En mantenimiento'),
     ]
     fase = models.CharField(
@@ -138,7 +138,11 @@ class Estacion(models.Model):
     testeo_pila = models.BooleanField(default=False)
     asignada = models.BooleanField(default=False)
     observacion = models.TextField(blank=True)
-     
+    recepcionado = models.BooleanField(default=False)
+    revisado = models.BooleanField(default=False)
+    clonado = models.BooleanField(default=False)
+    masterizado = models.BooleanField(default=False)
+    asignado = models.BooleanField(default=False)
     def __str__(self):
         return f"{self.codigo_equipo} - Llave: {self.llave}"
     

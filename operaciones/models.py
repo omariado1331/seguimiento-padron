@@ -226,7 +226,8 @@ class ReporteDiario(models.Model):
     incidencias = models.TextField(blank=True)
     observaciones = models.TextField(blank=True)
     fecha_registro = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
+    sincronizar = models.BooleanField(default=False)  
+    estado = models.CharField(max_length=25, blank = True)
     def __str__(self):
         return f"{self.operador.user.username} Inicio {self.estacion.codigo_equipo} C{self.contador_inicial_c} R{self.contador_inicial_r} - Fin {self.contador_final_c} R{self.contador_final_r} el {self.fecha_reporte}"
 

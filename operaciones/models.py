@@ -49,9 +49,11 @@ class Estacion(models.Model):
         ('En Revision', 'En Revision'),
         ('Revisado funcional', 'Revisado funcional'),
         ('En Clonacion', 'En Clonacion'),
+        ('Clonado', 'Clonado'),
         ('En Masterizacion', 'En Masterizacion'),
         ('Masterizado', 'Masterizado'),
         ('Asignado', 'Asignado'),
+        ('Desplegado', 'Desplegado'),
         ('En mantenimiento', 'En mantenimiento'),
     ]
     fase = models.CharField(

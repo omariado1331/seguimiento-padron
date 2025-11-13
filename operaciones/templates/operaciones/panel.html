@@ -1,0 +1,31 @@
+{% load static %}
+<!doctype html>
+<title>Panel {{ rol }}</title>
+<h1>Bienvenido {{ user.username }} – {{ rol }}</h1>
+
+<div id="qr-reader" style="width:350px;"></div>
+<div id="result"></div>
+
+<script src="{% static 'operaciones/js/html5-qrcode.min.js' %}"></script>
+<script>
+  const rol = "{{ rol }}";
+  const csrf = "{{ csrf_token }}";
+
+  function onScanSuccess(decodedText, decodedResult) {
+      // decodedText == M-31
+      fetch("{% url 'qr_escanear' %}", {
+          method: "POST",
+          headers: {"X-CSRFToken": csrf},
+          body: new URLSearchParams({codigo: decodedText})
+      })
+      .then(r => r.json())
+      .then(data => {
+          document.getElementById("result").innerText =
+              data.ok ? "Fase nueva: " + data.nueva_fase : "Error: " + data.msg;
+      });
+  }
+
+  const html5QrcodeScanner = new Html5QrcodeScanner(
+      "qr-reader", { fps: 10, qrbox: 250 });
+  html5QrcodeScanner.render(onScanSuccess);
+</script>

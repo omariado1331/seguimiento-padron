@@ -2,6 +2,7 @@ from django.urls import path, include
 from .views import CustomTokenObtainPairView
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView
+from . import views
 from .api_views import (
     LlaveViewSet, RutaViewSet, 
     EstacionViewSet, MovimientosEstacionViewSet, CoordinadorViewSet, 
@@ -29,4 +30,7 @@ urlpatterns = [
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('listar-operadores/', ListarOperadoresListView.as_view(), name='listado-operadores'),
+    path('login/', views.login_view, name='login'),
+    path('panel/<str:rol>/', views.panel_view, name='panel'),
+    path('qr/escanear/', views.qr_escanear, name='qr_escanear'), 
 ]

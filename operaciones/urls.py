@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('listar-operadores/', ListarOperadoresListView.as_view(), name='listado-operadores'),
     path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
     path('panel/<str:rol>/', views.panel_view, name='panel'),
-    path('qr/escanear/', views.qr_escanear, name='qr_escanear'), 
+    path('qr/scan/', views.qr_scan, name='qr_scan'),
 ]

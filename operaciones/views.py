@@ -2,18 +2,19 @@ from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 from django.shortcuts import redirect, get_object_or_404
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import Estacion
-
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 # Create your views here.
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-# ---------- LOGIN ----------
+# ---------- LOGIN / LOGOUT ----------
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -21,7 +22,6 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # 1 sólo grupo por usuario (simplificación)
             grupo = user.groups.first()
             if not grupo:
                 return render(request, 'operaciones/login.html',
@@ -31,88 +31,123 @@ def login_view(request):
                       {'error': 'Credenciales inválidas'})
     return render(request, 'operaciones/login.html')
 
-# ---------- PANEL SEGÚN ROL ----------
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+# ---------- PANEL ----------
 @login_required
 def panel_view(request, rol):
-    # comprobamos que el rol coincida con el grupo real
     if not request.user.groups.filter(name=rol).exists():
         return redirect('login')
-    return render(request, 'operaciones/panel.html', {'rol': rol})
+    # Pasamos la lista de fases para pintar los badges
+    fases = [c[0] for c in Estacion.FASES_CHOICES]
+    return render(request, 'operaciones/panel.html', {'rol': rol, 'fases': fases})
 
-# ---------- LECTURA QR (AJAX) ----------
+# ---------- QR SCAN (AJAX) ----------
 @login_required
-def qr_escanear(request):
+def qr_scan(request):
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'msg': 'Método no permitido'})
 
-    codigo = request.POST.get('codigo', '').strip()
-    if not codigo:
-        return JsonResponse({'ok': False, 'msg': 'Código vacío'})
+    data = json.loads(request.body or '{}')
+    codigo = (data.get('codigo') or '').strip()
+    accion = data.get('accion', '')          # revision / mantenimiento / clonacion / masterizacion / entrega
+    nro_estacion = data.get('nro_estacion')
 
-    estacion = get_object_or_404(Estacion, codigo_equipo=codigo)
+    # ---- Inventarios: crea si no existe ----
+    if request.user.groups.first().name == 'SoporteInventarios':
+        estacion, created = Estacion.objects.get_or_create(
+            codigo_equipo=codigo,
+            defaults={'fase': 'Recepcionado', 'recepcionado': True}
+        )
+        if created:
+            log(request.user, estacion, 'Creó estación', ADDITION)
+        return JsonResponse({'ok': True, 'nueva_fase': estacion.fase, 'created': created})
+
+    # ---- Resto de roles: equipo debe existir ----
+    try:
+        estacion = Estacion.objects.get(codigo_equipo=codigo)
+    except Estacion.DoesNotExist:
+        return JsonResponse({'ok': False, 'msg': 'CÓDIGO NO REGISTRADO, COMUNÍQUESE CON TICs LA PAZ'})
 
     rol = request.user.groups.first().name
     nueva_fase = None
-    campos_bool = {}          # campos adicionales a actualizar
+    campos_bool = {}
 
-    # ---- regla de negocio ----
-    if rol == 'SoporteInventarios':
-        if estacion.fase != 'Recepcionado':
-            return JsonResponse({'ok': False, 'msg': 'Equipo no está en Recepcionado'})
-        nueva_fase = 'En Revision'
-        campos_bool['recepcionado'] = True
+    # ---------- SoporteMantenimiento ----------
+    if rol == 'SoporteMantenimiento':
+        if accion == 'revision':
+            if estacion.fase not in ('Recepcionado', 'Revisado funcional', 'En mantenimiento'):
+                return JsonResponse({'ok': False, 'msg': 'No puede pasar a En Revisión desde esta fase'})
+            nueva_fase = 'En Revision'
+        elif accion == 'mantenimiento':
+            nueva_fase = 'En mantenimiento'
+        elif accion == 'finalizar':
+            # cierra revisión o mantenimiento → Revisado funcional
+            # aquí puedes pedir el checklist vía AJAX si quieres
+            nueva_fase = 'Revisado funcional'
+            campos_bool['revisado'] = True
+        else:
+            return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
 
-    elif rol == 'SoporteMantenimiento':
-        if estacion.fase != 'En Revision':
-            return JsonResponse({'ok': False, 'msg': 'Equipo no está En Revision'})
-        # aquí podrías validar que vengan todos los campos POST
-        # por simplicidad los leemos y grabamos
-        for campo in ['estado_computadora', 'estado_monitor', 'estado_escaner',
-                      'estado_impresora', 'estado_pad_firmas', 'estado_camara',
-                      'estado_decadactilar', 'estado_hub_usb',
-                      'estado_estabilizador_energia', 'estado_pila_madre',
-                      'estado_memorias_ram', 'estado_disco_duro',
-                      'cable_extensor', 'tripode', 'banner',
-                      'adaptador_3a2', 'monitor_pc', 'testeo_pila',
-                      'asignada', 'observacion']:
-            if campo in request.POST:
-                setattr(estacion, campo, request.POST[campo])
-        nueva_fase = 'Revisado funcional'
-        campos_bool['revisado'] = True
-
+    # ---------- SoporteClonacion ----------
     elif rol == 'SoporteClonacion':
-        if estacion.fase != 'Revisado funcional':
-            return JsonResponse({'ok': False, 'msg': 'Equipo no está Revisado funcional'})
-        nueva_fase = 'En Masterizacion'
-        campos_bool['clonado'] = True
+        if accion == 'clonacion':
+            if estacion.fase != 'Revisado funcional':
+                return JsonResponse({'ok': False, 'msg': 'Requisito: Revisado funcional'})
+            nueva_fase = 'En Clonacion'
+        elif accion == 'finalizar':
+            if estacion.fase != 'En Clonacion':
+                return JsonResponse({'ok': False, 'msg': 'El equipo no está En Clonación'})
+            nueva_fase = 'Clonado'
+            campos_bool['clonado'] = True
+        else:
+            return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
 
+    # ---------- SoporteMasterizacion ----------
     elif rol == 'SoporteMasterizacion':
-        if estacion.fase == 'En Masterizacion':
+        if accion == 'masterizacion':
+            if estacion.fase != 'Clonado':
+                return JsonResponse({'ok': False, 'msg': 'Requisito: Clonado'})
+            nueva_fase = 'En Masterizacion'
+        elif accion == 'finalizar':
+            if estacion.fase != 'En Masterizacion':
+                return JsonResponse({'ok': False, 'msg': 'El equipo no está En Masterización'})
             nueva_fase = 'Masterizado'
             campos_bool['masterizado'] = True
-        elif estacion.fase == 'Revisado funcional':
-            nueva_fase = 'En Masterizacion'
         else:
-            return JsonResponse({'ok': False, 'msg': 'Equipo no puede pasar a Masterización'})
+            return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
 
+    # ---------- SoporteEntrega ----------
     elif rol == 'SoporteEntrega':
         if estacion.fase != 'Masterizado':
-            return JsonResponse({'ok': False, 'msg': 'Equipo no está Masterizado'})
-        nro = request.POST.get('nro_estacion')
-        if not nro or not nro.isdigit():
-            return JsonResponse({'ok': False, 'msg': 'Debe enviar nro_estacion numérico'})
-        estacion.nro_estacion = int(nro)
+            return JsonResponse({'ok': False, 'msg': 'Requisito: Masterizado'})
+        if not nro_estacion or not str(nro_estacion).isdigit():
+            return JsonResponse({'ok': False, 'msg': 'Debe ingresar un nro_estacion numérico'})
+        estacion.nro_estacion = int(nro_estacion)
         nueva_fase = 'Asignado'
         campos_bool['asignado'] = True
 
     else:
-        return JsonResponse({'ok': False, 'msg': 'Rol sin acceso a cambio de fase'})
+        return JsonResponse({'ok': False, 'msg': 'Rol sin permisos'})
 
-    # --- aplicar cambios ---
+    # ----- aplicar -----
     if nueva_fase:
         estacion.fase = nueva_fase
     for k, v in campos_bool.items():
         setattr(estacion, k, v)
     estacion.save()
+    log(request.user, estacion, f'Cambió fase a {nueva_fase}', CHANGE)
+    return JsonResponse({'ok': True, 'nueva_fase': nueva_fase})
 
-    return JsonResponse({'ok': True, 'nueva_fase': estacion.fase})
+# ---------- Helper para dejar rastro en Admin ----------
+def log(user, obj, message, flag=CHANGE):
+    LogEntry.objects.log_action(
+        user_id=user.pk,
+        content_type_id=ContentType.objects.get_for_model(obj).pk,
+        object_id=obj.pk,
+        object_repr=str(obj),
+        action_flag=flag,
+        change_message=message
+    )

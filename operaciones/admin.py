@@ -1,16 +1,60 @@
 from django.contrib import admin
+from import_export import resources
+from import_export.admin import ExportActionModelAdmin
+from .models import Estacion
+
+from django.http import HttpResponse
+from openpyxl import Workbook
 from .models import (
     Llave, Ruta, Estacion, MovimientosEstacion,
     Coordinador, Operador, ReporteDiario,
     RegistroDespliegue, Item
 )
 
+def exportar_a_excel(modeladmin, request, queryset):
+    """
+    Acción personalizada: Exportar registros seleccionados a Excel
+    """
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Estaciones"
+
+    # --- cabecera ---
+    campos = [f.verbose_name for f in Estacion._meta.fields]
+    ws.append(campos)
+
+    # --- filas ---
+    for obj in queryset:
+        ws.append([getattr(obj, f.name) for f in Estacion._meta.fields])
+
+    # --- respuesta HTTP con el archivo ---
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="estaciones_seleccionadas.xlsx"'
+    wb.save(response)
+    return response
+
+exportar_a_excel.short_description = "Exportar a Excel"
+
+class EstacionResource(resources.ModelResource):
+    """Resource para elegir qué columnas exportar"""
+    class Meta:
+        model = Estacion
+        # exportar TODOS los campos (o lista los que quieras)
+        fields = '__all__'
+        # exclude = ['observacion']   # si quieres omitir alguno
+
+
 # ---------------- Estacion  ----------------
 @admin.register(Estacion)
 class EstacionAdmin(admin.ModelAdmin):
+    resource_classes = [EstacionResource]
     list_display = [f.name for f in Estacion._meta.fields]
     search_fields = ['codigo_equipo', 'nro_estacion']
     list_filter = ['fase', 'estado_computadora']
+    # registrar la acción
+    actions = [exportar_a_excel]
 
     fieldsets = (
         ('Datos generales', {

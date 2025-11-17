@@ -87,10 +87,31 @@ class Estacion(models.Model):
         choices=FUNCIONALIDAD_CHOICES,
         default='Buena'
     )
+    MODELO_ESCANER_CHOICES = [
+        ('CANON Lide 100', 'CANON Lide 100'),
+        ('CANON Lide 110', 'CANON Lide 110'),
+    ]
+    modelo_escaner  = models.CharField(
+        max_length=50,
+        null = True, blank=True,
+        choices=MODELO_ESCANER_CHOICES
+    )
     estado_impresora  = models.CharField(
         max_length=24,
         choices=FUNCIONALIDAD_CHOICES,
         default='Buena'
+    )
+    MODELO_IMPRESORA_CHOICES = [
+        ('CANON LPB 3000', 'CANON LPB 3000'),
+        ('CANON LPB 6000', 'CANON LPB 6000'),
+        ('CANON IP 1900', 'CANON IP 1900'),
+        ('CANON IP 2700', 'CANON IP 2700'),
+        ('BROTHER 2100', 'BROTHER 2100'),
+    ]
+    modelo_impresora  = models.CharField(
+        max_length=50,
+        null = True, blank=True,
+        choices=MODELO_IMPRESORA_CHOICES
     )
     estado_pad_firmas  = models.CharField(
         max_length=24,
@@ -101,6 +122,15 @@ class Estacion(models.Model):
         max_length=24,
         choices=FUNCIONALIDAD_CHOICES,
         default='Buena'
+    )
+    MODELO_CAMARA_CHOICES = [
+        ('CANON SX 110', 'CANON SX 110'),
+        ('CANON SX 150', 'CANON SX 150'),
+    ]
+    modelo_camara  = models.CharField(
+        max_length=50,
+        null = True, blank=True,
+        choices=MODELO_CAMARA_CHOICES
     )
     estado_decadactilar  = models.CharField(
         max_length=24,

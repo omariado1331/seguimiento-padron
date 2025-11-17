@@ -106,6 +106,7 @@ class Estacion(models.Model):
         ('CANON LPB 6000', 'CANON LPB 6000'),
         ('CANON IP 1900', 'CANON IP 1900'),
         ('CANON IP 2700', 'CANON IP 2700'),
+        ('CANON IP 2702', 'CANON IP 2702'),
         ('BROTHER 2100', 'BROTHER 2100'),
     ]
     modelo_impresora  = models.CharField(

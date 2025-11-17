@@ -204,6 +204,10 @@ class Estacion(models.Model):
     obs_disco_duro = models.TextField(blank=True)
     obs_teclado = models.TextField(blank=True)
     obs_regulador_voltaje = models.TextField(blank=True)
+    obs_cable_extensor = models.TextField(blank=True)
+    obs_tripode        = models.TextField(blank=True)
+    obs_banner         = models.TextField(blank=True)
+    obs_adaptador_3a2  = models.TextField(blank=True)
     def __str__(self):
         return f"{self.codigo_equipo} - Llave: {self.llave}"
     

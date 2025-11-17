@@ -37,8 +37,12 @@ class EstacionAdmin(admin.ModelAdmin):
         }),
         ('Accesorios', {
             'fields': (
-                'cable_extensor', 'tripode', 'banner',
-                'adaptador_3a2', 'monitor_pc', 'testeo_pila'
+                ('cable_extensor', 'obs_cable_extensor'),
+                ('tripode',        'obs_tripode'),
+                ('banner',         'obs_banner'),
+                ('adaptador_3a2',  'obs_adaptador_3a2'),
+                'monitor_pc',
+                'testeo_pila'
             )
         }),
         ('Otros', {

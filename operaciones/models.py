@@ -21,7 +21,7 @@ class Ruta(models.Model):
 class Estacion(models.Model):
     codigo_equipo = models.CharField(max_length=56, unique=True, blank=True )
     llave = models.ForeignKey(Llave, on_delete=models.CASCADE, null=True, blank=True)
-    nro_estacion = models.IntegerField(default=0, unique=True, null=True, blank=True)
+    nro_estacion = models.IntegerField(default=0, null=True, blank=True)
     ESTACION_CHOICES = [
         ('FIJA', 'FIJA'),
         ('MOVIL', 'MOVIL'),

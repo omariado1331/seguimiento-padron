@@ -17,7 +17,7 @@ class EstacionAdmin(admin.ModelAdmin):
     # Campos “estado” y su “obs” en pareja → aparecerán lado a lado
     fieldsets = (
         ('Datos generales', {
-            'fields': ('codigo_equipo', 'nro_estacion', 'fase', 'tipo_estacion', 'modelo')
+            'fields': ('codigo_equipo', 'nro_estacion', 'fase', 'tipo_estacion', 'modelo','llave')
         }),
         ('Hardware', {
             'description': 'Estado del hardware y sus observaciones',

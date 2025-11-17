@@ -25,10 +25,7 @@ class EstacionAdmin(admin.ModelAdmin):
                 # Cada pareja → izquierda: estado, derecha: observación
                 ('estado_computadora', 'obs_computadora'),
                 ('estado_monitor', 'obs_monitor'),
-                ('estado_escaner','modelo_escaner', 'obs_escaner'),
-                ('estado_impresora','modelo_impresora', 'obs_impresora'),
                 ('estado_pad_firmas', 'obs_pad_firmas'),
-                ('estado_camara', 'modelo_camara', 'obs_camara'),
                 ('estado_decadactilar', 'obs_decadactilar'),
                 ('estado_hub_usb', 'obs_hub_usb'),
                 ('estado_estabilizador_energia', 'obs_estabilizador_energia'),
@@ -37,6 +34,9 @@ class EstacionAdmin(admin.ModelAdmin):
                 ('estado_disco_duro', 'obs_disco_duro'),
                 ('estado_teclado', 'obs_teclado'),
                 ('estado_regulador_voltaje', 'obs_regulador_voltaje'),
+                ('estado_escaner','modelo_escaner', 'obs_escaner'),
+                ('estado_impresora','modelo_impresora', 'obs_impresora'),
+                ('estado_camara', 'modelo_camara', 'obs_camara'),
             )
         }),
         ('Accesorios', {

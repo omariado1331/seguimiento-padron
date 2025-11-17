@@ -109,6 +109,10 @@
     document.querySelectorAll('#badges span').forEach(b=>{
       b.classList.toggle('step-done', fase && b.dataset.fase===fase);
     });
+        // 1)  Ocultar el lector
+    document.getElementById('qr-box').classList.add('hidden');
+    // 2)  Parar la cámara
+    html5QrcodeScanner.clear();
   }
 
   /* ---------- envío al backend ---------- */

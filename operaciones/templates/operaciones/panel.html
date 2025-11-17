@@ -7,8 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    #qr-reader{max-width:400px;margin:0 auto}
+    #qr-reader {max-width:400px;margin:0 auto}
     .step-done{background-color:#198754;color:#fff}
+    .hidden{display:none}
   </style>
 </head>
 <body class="bg-light">
@@ -23,10 +24,10 @@
 </nav>
 
 <div class="container">
-  <!-- Menú de acciones por rol -->
+  <!-- TARJETA DE MENÚ -->
   <div class="card mb-4">
     <div class="card-body">
-      <h5 class="card-title">Acciones disponibles</h5>
+      <h5 class="card-title">Seleccione una acción</h5>
       <div class="btn-group flex-wrap" role="group" id="acciones">
         {% if rol == 'SoporteInventarios' %}
           <button class="btn btn-outline-primary" data-accion="inventariar">Inventariar nuevo equipo</button>
@@ -47,20 +48,12 @@
     </div>
   </div>
 
-  <!-- Pasos / badges -->
-  <h5>Progreso del equipo</h5>
-  <div class="mb-3" id="badges">
-    {% for f in fases %}
-      <span class="badge me-1" data-fase="{{ f }}">{{ f }}</span>
-    {% endfor %}
-  </div>
-
-  <!-- Lector QR -->
-  <div class="text-center mb-4">
+  <!-- LECTOR QR (oculto hasta seleccionar acción) -->
+  <div id="qr-box" class="text-center mb-4 hidden">
     <div id="qr-reader"></div>
   </div>
 
-  <!-- Historial local -->
+  <!-- Historial SIEMPRE visible -->
   <h5>Historial de cambios</h5>
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
@@ -70,7 +63,7 @@
   </div>
 </div>
 
-<!-- Modal nro_estacion (SoporteEntrega) -->
+<!-- Modal nro_estacion (solo SoporteEntrega) -->
 <div class="modal fade" id="modalNro" tabindex="-1">
   <div class="modal-dialog"><form class="modal-content" id="formNro">
     <div class="modal-header"><h5 class="modal-title">Asignar número de estación</h5>
@@ -93,6 +86,7 @@
   const rol = "{{ rol }}";
   let accion = '';                // acción seleccionada
   let codigoQR   = '';            // último código leído
+  const qrBox    = document.getElementById('qr-box');
   const modal    = new bootstrap.Modal(document.getElementById('modalNro'));
   const csrf     = '{{ csrf_token }}';
 
@@ -100,6 +94,7 @@
   document.querySelectorAll('#acciones button').forEach(btn=>{
     btn.addEventListener('click', e=>{
       accion = e.target.dataset.accion;
+      qrBox.classList.remove('hidden');           // mostrar cámara
       alert('Acción seleccionada: '+accion+'. Escanee el código QR.');
     });
   });
@@ -110,18 +105,18 @@
     const icon=ok?'✅':'❌', cl=ok?'table-success':'table-danger';
     document.getElementById('hist').insertAdjacentHTML('afterbegin',
      `<tr class="${cl}"><td>${cod}</td><td>${fase||'-'}</td><td>${fe}</td><td>${icon} ${msg}</td></tr>`);
-    // pintar badges
+    // pintar badges de progreso
     document.querySelectorAll('#badges span').forEach(b=>{
       b.classList.toggle('step-done', fase && b.dataset.fase===fase);
     });
   }
 
   /* ---------- envío al backend ---------- */
-  function enviar(data){
+  function enviar(payload){
     fetch("{% url 'qr_scan' %}",{
       method:'POST',
       headers:{'X-CSRFToken':csrf,'Content-Type':'application/json'},
-      body:JSON.stringify(data)
+      body:JSON.stringify(payload)
     }).then(r=>r.json()).then(j=>{
       addRow(codigoQR, j.nueva_fase, j.ok, j.msg||j.nueva_fase);
       if(!j.ok) alert(j.msg);
@@ -134,8 +129,7 @@
     codigoQR = decodedText;
     const payload = {codigo:codigoQR, accion:accion};
     if(accion==='entrega'){
-    /* modal para pedir nro_estacion */
-      modal.show();
+      modal.show();                 // pedir nro_estacion
     }else{
       enviar(payload);
     }
@@ -151,7 +145,7 @@
     e.target.reset();
   });
 
-  /* ---------- iniciar lector ---------- */
+  /* ---------- iniciar lector (permanece oculto hasta seleccionar acción) ---------- */
   const html5QrcodeScanner = new Html5QrcodeScanner("qr-reader",{fps:10,qrbox:250},false);
   html5QrcodeScanner.render(onScanSuccess);
 </script>

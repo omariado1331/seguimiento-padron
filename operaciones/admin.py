@@ -8,7 +8,7 @@ from .models import (
 # ---------------- Estacion  ----------------
 @admin.register(Estacion)
 class EstacionAdmin(admin.ModelAdmin):
-    list_display = ['codigo_equipo', 'nro_estacion', 'fase', 'estado_computadora']
+    list_display = [f.name for f in Estacion._meta.fields]
     search_fields = ['codigo_equipo', 'nro_estacion']
     list_filter = ['fase', 'estado_computadora']
 

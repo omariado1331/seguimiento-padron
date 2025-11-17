@@ -145,6 +145,34 @@ class Estacion(models.Model):
     clonado = models.BooleanField(default=False)
     masterizado = models.BooleanField(default=False)
     asignado = models.BooleanField(default=False)
+
+        # =======  NUEVOS ESTADOS  =======
+    estado_teclado = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_regulador_voltaje = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+
+    # =======  OBSERVACIONES POR COMPONENTE  =======
+    obs_computadora = models.TextField(blank=True)
+    obs_monitor = models.TextField(blank=True)
+    obs_escaner = models.TextField(blank=True)
+    obs_impresora = models.TextField(blank=True)
+    obs_pad_firmas = models.TextField(blank=True)
+    obs_camara = models.TextField(blank=True)
+    obs_decadactilar = models.TextField(blank=True)
+    obs_hub_usb = models.TextField(blank=True)
+    obs_estabilizador_energia = models.TextField(blank=True)
+    obs_pila_madre = models.TextField(blank=True)
+    obs_memorias_ram = models.TextField(blank=True)
+    obs_disco_duro = models.TextField(blank=True)
+    obs_teclado = models.TextField(blank=True)
+    obs_regulador_voltaje = models.TextField(blank=True)
     def __str__(self):
         return f"{self.codigo_equipo} - Llave: {self.llave}"
     

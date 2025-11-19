@@ -1,0 +1,1579 @@
+# ==============================================================================
+#  PROYECTO DJANGO – EXTRACTO DE ARCHIVOS
+#  Raíz: /home/flavioabdon25/SERECI/seguimiento-padron
+#  Generado: 2025-11-18T21:20:35-04:00
+# ==============================================================================
+
+
+# ------------------------------------------------------------------------------
+#  manage.py
+# ------------------------------------------------------------------------------
+
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seguimiento_padron.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+
+# ------------------------------------------------------------------------------
+#  operaciones/admin.py
+# ------------------------------------------------------------------------------
+
+from django.contrib import admin
+from import_export import resources
+from import_export.admin import ExportActionModelAdmin
+from .models import Estacion
+
+from django.http import HttpResponse
+from openpyxl import Workbook
+from .models import (
+    Llave, Ruta, Estacion, MovimientosEstacion,
+    Coordinador, Operador, ReporteDiario,
+    RegistroDespliegue, Item
+)
+
+def exportar_a_excel(modeladmin, request, queryset):
+    """
+    Acción personalizada: Exportar registros seleccionados a Excel
+    """
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Estaciones"
+
+    # --- cabecera ---
+    campos = [f.verbose_name for f in Estacion._meta.fields]
+    ws.append(campos)
+
+    # --- filas ---
+    for obj in queryset:
+        ws.append([getattr(obj, f.name) for f in Estacion._meta.fields])
+
+    # --- respuesta HTTP con el archivo ---
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="estaciones_seleccionadas.xlsx"'
+    wb.save(response)
+    return response
+
+exportar_a_excel.short_description = "Exportar a Excel"
+
+class EstacionResource(resources.ModelResource):
+    """Resource para elegir qué columnas exportar"""
+    class Meta:
+        model = Estacion
+        # exportar TODOS los campos (o lista los que quieras)
+        fields = '__all__'
+        # exclude = ['observacion']   # si quieres omitir alguno
+
+
+# ---------------- Estacion  ----------------
+@admin.register(Estacion)
+class EstacionAdmin(admin.ModelAdmin):
+    resource_classes = [EstacionResource]
+    list_display = [f.name for f in Estacion._meta.fields]
+    search_fields = ['codigo_equipo', 'nro_estacion']
+    list_filter = ['fase', 'estado_computadora']
+    # registrar la acción
+    actions = [exportar_a_excel]
+
+    fieldsets = (
+        ('Datos generales', {
+            'fields': ('codigo_equipo', 'nro_estacion', 'fase', 'tipo_estacion', 'modelo', 'llave')
+        }),
+        ('Hardware', {
+            'description': 'Estado del hardware y sus observaciones',
+            'fields': (
+                ('estado_computadora', 'obs_computadora'),
+                ('estado_monitor', 'obs_monitor'),
+                ('estado_pad_firmas', 'obs_pad_firmas'),
+                ('estado_decadactilar', 'obs_decadactilar'),
+                ('estado_hub_usb', 'obs_hub_usb'),
+                ('estado_estabilizador_energia', 'obs_estabilizador_energia'),
+                ('estado_pila_madre', 'obs_pila_madre'),
+                ('estado_memorias_ram', 'obs_memorias_ram'),
+                ('estado_disco_duro', 'obs_disco_duro'),
+                ('estado_teclado', 'obs_teclado'),
+                ('estado_regulador_voltaje', 'obs_regulador_voltaje'),
+                ('estado_escaner', 'modelo_escaner', 'obs_escaner'),
+                ('estado_impresora', 'modelo_impresora', 'obs_impresora'),
+                ('estado_camara', 'modelo_camara', 'obs_camara'),
+            )
+        }),
+        ('Accesorios', {
+            'fields': (
+                ('cable_extensor', 'obs_cable_extensor'),
+                ('tripode',        'obs_tripode'),
+                ('banner',         'obs_banner'),
+                ('adaptador_3a2',  'obs_adaptador_3a2'),
+                'monitor_pc',
+                'testeo_pila'
+            )
+        }),
+        ('Otros', {
+            'fields': ('asignada', 'observacion')
+        })
+    )
+
+# ---------------- Llave ----------------
+@admin.register(Llave)
+class LlaveAdmin(admin.ModelAdmin):
+    list_display = ['nro_estacion', 'contador_r', 'contador_c']
+    search_fields = ['nro_estacion']
+    list_filter = ['nro_estacion']
+
+# ---------------- Ruta ----------------
+@admin.register(Ruta)
+class RutaAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'fecha_creacion']
+    search_fields = ['nombre']
+    list_filter = ['fecha_creacion']
+
+# ---------------- MovimientosEstacion ----------------
+@admin.register(MovimientosEstacion)
+class MovimientosEstacionAdmin(admin.ModelAdmin):
+    list_display = ['estacion', 'fecha_movimiento']
+    search_fields = ['estacion__codigo_equipo']
+    list_filter = ['fecha_movimiento']
+
+# ---------------- Coordinador ----------------
+@admin.register(Coordinador)
+class CoordinadorAdmin(admin.ModelAdmin):
+    list_display = ['user', 'estado', 'ruta', 'correo', 'celular']
+    search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
+    list_filter = ['estado', 'ruta']
+
+# ---------------- Operador ----------------
+@admin.register(Operador)
+class OperadorAdmin(admin.ModelAdmin):
+    list_display = ['user', 'tipo_operador', 'estado', 'coordinador', 'estacion']
+    search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
+    list_filter = ['estado', 'tipo_operador', 'coordinador', 'estacion']
+
+# ---------------- ReporteDiario ----------------
+@admin.register(ReporteDiario)
+class ReporteDiarioAdmin(admin.ModelAdmin):
+    list_display = ['operador', 'estacion', 'fecha_reporte', 'registro_c', 'registro_r', 'estado']
+    search_fields = ['operador__user__username', 'estacion__codigo_equipo']
+    list_filter = ['fecha_reporte', 'estado', 'sincronizar']
+
+# ---------------- RegistroDespliegue ----------------
+@admin.register(RegistroDespliegue)
+class RegistroDespliegueAdmin(admin.ModelAdmin):
+    list_display = ['operador', 'destino', 'descripcion_reporte', 'fecha_hora', 'sincronizar']
+    search_fields = ['operador__user__username', 'destino']
+    list_filter = ['descripcion_reporte', 'sincronizar', 'fecha_hora']
+
+# ---------------- Item ----------------
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ['codigo_item', 'serie_item', 'tipo', 'asignado_operador']
+    search_fields = ['codigo_item', 'serie_item']
+    list_filter = ['tipo', 'asignado_operador']
+# ------------------------------------------------------------------------------
+#  operaciones/api_views.py
+# ------------------------------------------------------------------------------
+
+from django.contrib.auth.models import User
+from rest_framework import viewsets, generics
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
+from .models import (
+    Llave, Ruta, Estacion, 
+    MovimientosEstacion, Coordinador, Operador,
+    ReporteDiario, RegistroDespliegue, Item
+)
+from .serializers import (
+    LlaveSerializer, RutaSerializer,
+    EstacionSerializer, MovimientosEstacionSerializer, 
+    CoordinadorSerializer, OperadorSerializer,
+    ReporteDiarioSerializer, RegistroDespliegueSerializer, 
+    UserSerializer, ListarOperadoresSerializer, ItemSerializer
+)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class LlaveViewSet(viewsets.ModelViewSet):
+    queryset = Llave.objects.all()
+    serializer_class = LlaveSerializer
+
+class RutaViewSet(viewsets.ModelViewSet):
+    queryset = Ruta.objects.all()
+    serializer_class = RutaSerializer
+
+class EstacionViewSet(viewsets.ModelViewSet):
+    queryset = Estacion.objects.all()
+    serializer_class = EstacionSerializer
+
+class MovimientosEstacionViewSet(viewsets.ModelViewSet):
+    queryset = MovimientosEstacion.objects.all()
+    serializer_class = MovimientosEstacionSerializer
+
+class CoordinadorViewSet(viewsets.ModelViewSet):
+    queryset = Coordinador.objects.all()
+    serializer_class = CoordinadorSerializer
+
+class OperadorViewSet(viewsets.ModelViewSet):
+    queryset = Operador.objects.all()
+    serializer_class = OperadorSerializer
+
+class ReporteDiarioViewSet(viewsets.ModelViewSet):
+    queryset = ReporteDiario.objects.all()
+    serializer_class = ReporteDiarioSerializer
+
+class RegistroDespliegueViewSet(viewsets.ModelViewSet):
+    queryset = RegistroDespliegue.objects.all()
+    serializer_class = RegistroDespliegueSerializer
+
+class ListarOperadoresListView(generics.ListAPIView):
+    queryset = RegistroDespliegue.objects.select_related('operador').all()
+    serializer_class = ListarOperadoresSerializer
+
+class ItemViewSet(viewsets.ModelViewSet):
+    queryset = Item.objects.all()
+    serializer_class = ItemSerializer
+
+# ------------------------------------------------------------------------------
+#  operaciones/apps.py
+# ------------------------------------------------------------------------------
+
+from django.apps import AppConfig
+
+class OperacionesConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'operaciones'
+
+    def ready(self):
+        import operaciones.signals
+# ------------------------------------------------------------------------------
+#  operaciones/__init__.py
+# ------------------------------------------------------------------------------
+
+default_app_config = 'operaciones.apps.OperacionesConfig'
+# ------------------------------------------------------------------------------
+#  operaciones/models.py
+# ------------------------------------------------------------------------------
+
+from django.db import models
+from django.contrib.auth.models import User
+
+# Create your models here.
+class Llave(models.Model):
+    nro_estacion = models.IntegerField(default=0, unique=True)
+    contador_r = models.IntegerField(default=0)
+    contador_c = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.nro_estacion}-C:{self.contador_c}:-R:{self.contador_r}"
+
+class Ruta(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.TextField(blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.nombre
+
+class Estacion(models.Model):
+    codigo_equipo = models.CharField(max_length=56, unique=True, blank=True )
+    llave = models.ForeignKey(Llave, on_delete=models.CASCADE, null=True, blank=True)
+    nro_estacion = models.IntegerField(default=0, null=True, blank=True)
+    ESTACION_CHOICES = [
+        ('FIJA', 'FIJA'),
+        ('MOVIL', 'MOVIL'),
+    ]
+    MODELO_CHOICES = [
+        ('DELL OPTIPLEX 360', 'DELL OPTIPLEX 360'),
+        ('DELL OPTIPLEX 390', 'DELL OPTIPLEX 390'),
+        ('DELL E5500', 'DELL E5500'),
+        ('DELL E5520', 'DELL E5520'),
+    ]
+    tipo_estacion = models.CharField(
+        max_length=255, 
+        choices=ESTACION_CHOICES,
+        blank=True,
+        null=True
+    )
+    modelo = models.CharField(
+        max_length=255, 
+        choices=MODELO_CHOICES,
+        blank=True,
+        null=True
+    )
+    FASES_CHOICES = [
+        ('Recepcionado', 'Recepcionado'),
+        ('En Revision', 'En Revision'),
+        ('Revisado funcional', 'Revisado funcional'),
+        ('En Clonacion', 'En Clonacion'),
+        ('Clonado', 'Clonado'),
+        ('En Masterizacion', 'En Masterizacion'),
+        ('Masterizado', 'Masterizado'),
+        ('Asignado', 'Asignado'),
+        ('Desplegado', 'Desplegado'),
+        ('En mantenimiento', 'En mantenimiento'),
+    ]
+    fase = models.CharField(
+        max_length=56,
+        choices=FASES_CHOICES,
+        default='Recepcionado'
+    )
+    FUNCIONALIDAD_CHOICES = [
+        ('Buena', 'Buena'),
+        ('Mala', 'Mala'),
+    ]
+    ESTADO_CHOICES = [
+        ('defectuoso', 'Defectuoso'),
+        ('contingencia', 'Contingencia'),
+        ('reparacion', 'En Reparacion'),
+        ('funcional', 'Funcional'),
+        ('nuevo', 'Nuevo'),
+    ]
+    estado_computadora = models.CharField(
+        max_length=32,
+        choices=ESTADO_CHOICES,
+        default='funcional'
+    )
+    estado_monitor = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_escaner  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    MODELO_ESCANER_CHOICES = [
+        ('CANON Lide 100', 'CANON Lide 100'),
+        ('CANON Lide 110', 'CANON Lide 110'),
+    ]
+    modelo_escaner  = models.CharField(
+        max_length=50,
+        null = True, blank=True,
+        choices=MODELO_ESCANER_CHOICES
+    )
+    estado_impresora  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    MODELO_IMPRESORA_CHOICES = [
+        ('CANON LPB 3000', 'CANON LPB 3000'),
+        ('CANON LPB 6000', 'CANON LPB 6000'),
+        ('CANON IP 1900', 'CANON IP 1900'),
+        ('CANON IP 2700', 'CANON IP 2700'),
+        ('CANON IP 2702', 'CANON IP 2702'),
+        ('BROTHER 2100', 'BROTHER 2100'),
+    ]
+    modelo_impresora  = models.CharField(
+        max_length=50,
+        null = True, blank=True,
+        choices=MODELO_IMPRESORA_CHOICES
+    )
+    estado_pad_firmas  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_camara  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    MODELO_CAMARA_CHOICES = [
+        ('CANON SX 110', 'CANON SX 110'),
+        ('CANON SX 150', 'CANON SX 150'),
+    ]
+    modelo_camara  = models.CharField(
+        max_length=50,
+        null = True, blank=True,
+        choices=MODELO_CAMARA_CHOICES
+    )
+    estado_decadactilar  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_hub_usb  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_estabilizador_energia  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_pila_madre  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_memorias_ram  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_disco_duro  = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    cable_extensor = models.BooleanField(default=False)
+    tripode = models.BooleanField(default=False)
+    banner = models.BooleanField(default=False)
+    adaptador_3a2 = models.BooleanField(default=False)
+    monitor_pc =models.BooleanField(default=False)
+    testeo_pila = models.BooleanField(default=False)
+    asignada = models.BooleanField(default=False)
+    observacion = models.TextField(blank=True)
+    recepcionado = models.BooleanField(default=False)
+    revisado = models.BooleanField(default=False)
+    clonado = models.BooleanField(default=False)
+    masterizado = models.BooleanField(default=False)
+    asignado = models.BooleanField(default=False)
+
+        # =======  NUEVOS ESTADOS  =======
+    estado_teclado = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+    estado_regulador_voltaje = models.CharField(
+        max_length=24,
+        choices=FUNCIONALIDAD_CHOICES,
+        default='Buena'
+    )
+
+    # =======  OBSERVACIONES POR COMPONENTE  =======
+    obs_computadora = models.TextField(blank=True)
+    obs_monitor = models.TextField(blank=True)
+    obs_escaner = models.TextField(blank=True)
+    obs_impresora = models.TextField(blank=True)
+    obs_pad_firmas = models.TextField(blank=True)
+    obs_camara = models.TextField(blank=True)
+    obs_decadactilar = models.TextField(blank=True)
+    obs_hub_usb = models.TextField(blank=True)
+    obs_estabilizador_energia = models.TextField(blank=True)
+    obs_pila_madre = models.TextField(blank=True)
+    obs_memorias_ram = models.TextField(blank=True)
+    obs_disco_duro = models.TextField(blank=True)
+    obs_teclado = models.TextField(blank=True)
+    obs_regulador_voltaje = models.TextField(blank=True)
+    obs_cable_extensor = models.TextField(blank=True)
+    obs_tripode        = models.TextField(blank=True)
+    obs_banner         = models.TextField(blank=True)
+    obs_adaptador_3a2  = models.TextField(blank=True)
+    def __str__(self):
+        return f"{self.codigo_equipo} - Llave: {self.llave}"
+    
+class MovimientosEstacion(models.Model):
+    estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
+    fecha_movimiento = models.DateTimeField(auto_now_add=True)
+    descripcion = models.TextField()
+
+    def __str__(self):
+        return f"Movimiento de {self.estacion.codigo_equipo} el {self.fecha_movimiento}"
+    
+class Coordinador(models.Model):
+    ESTADO_CHOICES = [
+        ('postulante', 'Postulante'),
+        ('seleccionado', 'Seleccionado'),
+        ('contratado', 'Contratado'),
+        ('sin_firmar_contrato', 'Sin Firmar Contrato'),
+        ('renuncia', 'Renuncia'),
+    ]
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='postulante'
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, null=True, blank=True)
+    nombre = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    correo = models.EmailField(unique=True, null=True, blank=True)
+    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+class Operador(models.Model):
+    ESTADO_CHOICES = [
+        ('postulante', 'Postulante'),
+        ('seleccionado', 'Seleccionado'),
+        ('contratado', 'Contratado'),
+        ('sin_firmar_contrato', 'Sin Firmar Contrato'),
+        ('renuncia', 'Renuncia'),
+    ]
+    TIPO_OPERADOR_CHOICES = [
+        ('Operador Urbano', 'Operador Urbano'),
+        ('Operador Rural', 'Operador Rural'),
+    ]
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='postulante'
+    )
+    tipo_operador = models.CharField(
+        max_length=20,
+        choices=TIPO_OPERADOR_CHOICES
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    ruta = models.ForeignKey(Ruta, null=True, blank=True, on_delete=models.SET_NULL)
+    coordinador = models.ForeignKey(Coordinador, null=True, blank=True, on_delete=models.SET_NULL)
+    estacion = models.ForeignKey(Estacion, null=True, blank=True, on_delete=models.SET_NULL)  
+    nombre = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    correo = models.EmailField(unique=True, null=True, blank=True)
+    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+
+class ReporteDiario(models.Model):
+    operador = models.ForeignKey(Operador, on_delete=models.CASCADE)
+    estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
+    fecha_reporte = models.DateTimeField(null=True, blank=True)
+    contador_inicial_c = models.TextField(max_length=25, blank = True)
+    contador_final_c = models.TextField(max_length=25, blank = True)
+    registro_c = models.IntegerField(default=0)
+    contador_inicial_r = models.TextField(max_length=25, blank = True)
+    contador_final_r = models.TextField(max_length=25, blank = True)
+    registro_r = models.IntegerField(default=0)
+    incidencias = models.TextField(blank=True)
+    observaciones = models.TextField(blank=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    sincronizar = models.BooleanField(default=False)  
+    estado = models.CharField(max_length=25, blank = True)
+    def __str__(self):
+        return f"{self.operador.user.username} Inicio {self.estacion.codigo_equipo} C{self.contador_inicial_c} R{self.contador_inicial_r} - Fin {self.contador_final_c} R{self.contador_final_r} el {self.fecha_reporte}"
+
+class RegistroDespliegue(models.Model):
+    operador = models.ForeignKey(Operador, on_delete=models.CASCADE)
+    destino = models.CharField(max_length=255, null=True)
+    latitud = models.CharField(max_length=255, null=True)
+    longitud = models.CharField(max_length=255, null=True)
+    DESCRIPCION_REPORTE_CHOICES = [
+        ('Despliegue', 'Despliegue'),
+        ('En camino', 'En camino'),
+        ('Incidencia', 'Incidencia'),
+        ('Llego a destino', 'Llego a destino')
+    ]
+    descripcion_reporte = models.CharField(
+        max_length= 56,
+        choices= DESCRIPCION_REPORTE_CHOICES,
+        null = True
+    )
+    estado = models.CharField(max_length=255, null=True)
+    sincronizar = models.BooleanField(default=False)    
+    observaciones = models.TextField(blank=True)
+    incidencias = models.TextField(blank=True)
+    fecha_hora = models.DateTimeField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.operador.user.username}-{self.destino}--{self.descripcion_reporte}"
+
+class Item(models.Model):
+    TIPO_CHOICES = [
+        ('Periferico', 'Periferico'),
+        ('Herramiento', 'Herramienta'),
+        ('Insumo', 'Insumo'),
+        ('Accesorio', 'Accesorio'),
+    ]
+    tipo = models.CharField(
+        max_length=32,
+        choices= TIPO_CHOICES,
+        null=True,
+        blank=True
+    )
+    codigo_item = models.CharField(max_length=55, blank=True, null=True)
+    serie_item = models.CharField(max_length=55, blank=True, null=True)
+    asignado_operador = models.BooleanField(default=False)
+    operador = models.ForeignKey(Operador, on_delete=models.CASCADE, null=True, blank=True)
+    descripcion = models.TextField(blank=True)
+    observacion = models.TextField(blank=True)
+
+# ------------------------------------------------------------------------------
+#  operaciones/serializers.py
+# ------------------------------------------------------------------------------
+
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import (
+    Llave, Ruta, Estacion, 
+    MovimientosEstacion, Coordinador, Operador,
+    ReporteDiario, RegistroDespliegue, Item)
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        token['username'] = user.username
+        if user.groups.exists():
+            token['group'] = user.groups.first().name
+        else:
+            token['group'] = None
+        
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = self.user
+
+        data['user'] = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'groups': [g.name for g in user.groups.all()],
+        }
+
+        # Operador
+        try:
+            operador = Operador.objects.select_related("estacion", "ruta").get(user=user)
+            if operador.estacion:
+                id_estacion = operador.estacion.id
+                nro_estacion = operador.estacion.nro_estacion
+            else:
+                id_estacion = 0
+                nro_estacion = 0
+
+            # ✅ Corregido: convertir 'ruta' a un dict simple
+            ruta_data = None
+            if operador.ruta:
+                ruta_data = {
+                    "id": operador.ruta.id,
+                    "nombre": str(operador.ruta),
+                }
+
+            data["user"]['operador'] = {
+                "id_operador": operador.id,
+                "ruta": ruta_data,
+                "id_estacion": id_estacion,
+                "nro_estacion": nro_estacion,
+                "tipo_operador": operador.tipo_operador,
+            }
+        except Operador.DoesNotExist:
+            data["user"]["operador"] = None
+
+        # Coordinador
+        try:
+            coordinador = Coordinador.objects.select_related("ruta").get(user=user)
+
+            # ✅ Corregido: convertir 'ruta' a un dict simple
+            ruta_data = None
+            if coordinador.ruta:
+                ruta_data = {
+                    "id": coordinador.ruta.id,
+                    "nombre": str(coordinador.ruta),
+                }
+
+            data["user"]["coordinador"] = {
+                "id_coordinador": coordinador.id,
+                "ruta": ruta_data,
+            }
+        except Coordinador.DoesNotExist:
+            data["user"]["coordinador"] = None
+
+        return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'groups']
+    
+class LlaveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Llave
+        fields = '__all__'
+
+class RutaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ruta
+        fields = '__all__'
+
+class EstacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Estacion
+        fields = '__all__'
+
+class MovimientosEstacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MovimientosEstacion
+        fields = '__all__'     
+
+class CoordinadorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coordinador
+        fields = '__all__'
+
+class OperadorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Operador
+        fields = '__all__'
+
+class ReporteDiarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReporteDiario
+        fields = '__all__'
+
+class RegistroDespliegueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistroDespliegue
+        fields = '__all__'
+
+class ListarOperadoresSerializer(serializers.ModelSerializer):
+    nombre = serializers.CharField(source = 'operador.nombre', read_only=True)
+    apellido_paterno = serializers.CharField(source = 'operador.apellido_paterno', read_only = True)
+    apellido_materno = serializers.CharField(source = 'operador.apellido_materno', read_only = True)
+
+    class Meta:
+        model = RegistroDespliegue
+        fields = ['nombre', 'apellido_paterno', 'apellido_materno']
+
+class ItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Item
+        fields = '__all__'
+
+# ------------------------------------------------------------------------------
+#  operaciones/signals.py
+# ------------------------------------------------------------------------------
+
+from django.db.models.signals import post_save, m2m_changed
+from django.dispatch import receiver
+from django.contrib.auth.models import User, Group
+from .models import Coordinador, Operador
+
+COORDINADOR_GROUP = 'Coordinador'
+OPERADOR_GROUP = 'Operador'
+
+def crear_registro_por_rol(user):
+
+    if user.groups.filter(name=COORDINADOR_GROUP).exists():
+        Coordinador.objects.get_or_create(
+            user = user,
+            defaults={
+                'nombre': user.first_name,
+                'apellido_paterno': user.last_name,
+                'correo': user.email,
+            }
+        )
+
+    if user.groups.filter(name=OPERADOR_GROUP).exists():
+        Operador.objects.get_or_create(
+            user = user,
+            defaults= {
+                'nombre': user.first_name,
+                'apellido_paterno': user.last_name,
+                'correo': user.email,
+            }
+        )
+
+@receiver(post_save, sender= User)
+def crear_registro_al_crear_usuario(sender, instance, created, **kwargs):
+    if created:
+        crear_registro_por_rol(instance)
+
+@receiver(m2m_changed, sender=User.groups.through)
+def crear_registro_al_asignar_grupo(sender, instance, action, pk_set, **kwargs):
+    if action == 'post_add':
+        crear_registro_por_rol(instance)
+# ------------------------------------------------------------------------------
+#  operaciones/templates/operaciones/login.html
+# ------------------------------------------------------------------------------
+
+<!doctype html>
+<title>Login</title>
+<h2>Login</h2>
+{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+<form method="post">
+  {% csrf_token %}
+  <label>Usuario: <input name="username"></label><br>
+  <label>Contraseña: <input type="password" name="password"></label><br>
+  <button type="submit">Entrar</button>
+</form>
+# ------------------------------------------------------------------------------
+#  operaciones/templates/operaciones/panel.html
+# ------------------------------------------------------------------------------
+
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Panel {{ rol }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #qr-reader{max-width:400px;margin:0 auto}
+    .step-done{background-color:#198754;color:#fff}
+    .hidden{display:none}
+  </style>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-4">
+  <div class="container-fluid">
+    <span class="navbar-brand mb-0 h1">Panel {{ rol }}</span>
+    <div class="ms-auto">
+      <span class="text-white me-3">{{ user.username }}</span>
+      <a class="btn btn-sm btn-outline-light" href="{% url 'logout' %}">Cerrar sesión</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- MENÚ DE ACCIONES -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Seleccione una acción</h5>
+      <div class="btn-group flex-wrap" role="group" id="acciones">
+        {% if rol == 'SoporteInventarios' %}
+          <button class="btn btn-outline-primary" data-accion="inventariar">Inventariar nuevo equipo</button>
+        {% elif rol == 'SoporteMantenimiento' %}
+          <button class="btn btn-outline-primary" data-accion="revision">Pasar a Revisión</button>
+          <button class="btn btn-outline-primary" data-accion="mantenimiento">Pasar a Mantenimiento</button>
+          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Revisión/Mantenimiento</button>
+        {% elif rol == 'SoporteClonacion' %}
+          <button class="btn btn-outline-primary" data-accion="clonacion">Iniciar Clonación</button>
+          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Clonación</button>
+        {% elif rol == 'SoporteMasterizacion' %}
+          <button class="btn btn-outline-primary" data-accion="masterizacion">Iniciar Masterización</button>
+          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Masterización</button>
+        {% elif rol == 'SoporteEntrega' %}
+          <button class="btn btn-outline-success" data-accion="entrega">Entregar equipo</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- LECTOR QR (oculto hasta seleccionar acción) -->
+  <div id="qr-box" class="text-center mb-4 hidden">
+    <div id="qr-reader"></div>
+  </div>
+
+  <!-- Historial SIEMPRE visible -->
+  <h5>Historial de cambios</h5>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped align-middle">
+      <thead class="table-dark"><tr><th>Código</th><th>Fase nueva</th><th>Fecha/hora</th><th>Estado</th></tr></thead>
+      <tbody id="hist"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal nro_estacion (solo SoporteEntrega) -->
+<div class="modal fade" id="modalNro" tabindex="-1">
+  <div class="modal-dialog"><form class="modal-content" id="formNro">
+    <div class="modal-header"><h5 class="modal-title">Asignar número de estación</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <label>Número de estación (numérico)</label>
+      <input type="number" class="form-control" id="nro_estacion" required>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+  </form></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+  const rol = "{{ rol }}";
+  let accion = '';
+  let codigoQR = '';
+  let procesando = false;
+  const qrBox = document.getElementById('qr-box');
+  const modal = new bootstrap.Modal(document.getElementById('modalNro'));
+  const csrf = '{{ csrf_token }}';
+
+  /* ---------- mostrar / ocultar cámara ---------- */
+  function mostrarCamara(mostrar) {
+    if (mostrar) {
+      procesando = false;
+      qrBox.classList.remove('hidden');
+      html5QrcodeScanner.clear();
+      html5QrcodeScanner.render(onScanSuccess);
+    } else {
+      qrBox.classList.add('hidden');
+      html5QrcodeScanner.clear();
+    }
+  }
+
+  /* ---------- selección de acción ---------- */
+  document.querySelectorAll('#acciones button').forEach(btn => {
+    btn.addEventListener('click', e => {
+      accion = e.target.dataset.accion;
+      mostrarCamara(true);
+    });
+  });
+
+  /* ---------- historial ---------- */
+  function addRow(cod, fase, ok, msg) {
+    const fe = new Date().toLocaleString('es-BO');
+    const icon = ok ? '✅' : '❌';
+    const cl = ok ? 'table-success' : 'table-danger';
+    document.getElementById('hist').insertAdjacentHTML('afterbegin',
+      `<tr class="${cl}"><td>${cod}</td><td>${fase || '-'}</td><td>${fe}</td><td>${icon} ${msg}</td></tr>`);
+  }
+
+  /* ---------- envío al backend ---------- */
+  function enviar(payload) {
+    fetch("{% url 'qr_scan' %}", {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    })
+      .then(r => r.json())
+      .then(j => {
+        addRow(codigoQR, j.nueva_fase, j.ok, j.msg || j.nueva_fase);
+        if (!j.ok) alert(j.msg);
+        mostrarCamara(false);
+      })
+      .catch(err => alert('Error red'));
+  }
+
+  /* ---------- QR callback ---------- */
+  function onScanSuccess(decodedText) {
+    if (!accion || procesando) return;
+    procesando = true;                   // bloqueo temporal
+    codigoQR = decodedText;
+
+    /* ======  NUEVO: CONFIRMACIÓN  ====== */
+    // preguntamos al backend cuál sería la nueva fase
+    fetch("{% url 'qr_scan' %}", {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
+      body: JSON.stringify({codigo: codigoQR, accion: accion, preview: true})
+    })
+      .then(r => r.json())
+      .then(j => {
+        if (!j.ok) { alert(j.msg); procesando = false; return; }
+
+        const anterior = j.fase_anterior || '—';
+        const nuevo    = j.nueva_fase;
+        const msg = `¿Confirma el cambio de fase?\n\nEstado anterior: ${anterior}\nNuevo estado: ${nuevo}`;
+        if (confirm(msg)) {
+          // usuario confirma → enviamos definitivamente
+          if (accion === 'entrega') {
+            modal.show();
+          } else {
+            enviar({codigo: codigoQR, accion: accion});
+          }
+        } else {
+          // cancelado
+          procesando = false;
+        }
+      })
+      .catch(err => { alert('Error red'); procesando = false; });
+  }
+
+  /* ---------- modal guardar ---------- */
+  document.getElementById('formNro').addEventListener('submit', e => {
+    e.preventDefault();
+    const nro = document.getElementById('nro_estacion').value;
+    if (!nro) { alert('Ingrese número'); return; }
+    enviar({codigo: codigoQR, accion: 'entrega', nro_estacion: nro});
+    modal.hide();
+    e.target.reset();
+  });
+
+  /* ---------- crear lector UNA vez ---------- */
+  const html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {fps: 10, qrbox: 250}, false);
+</script>
+</body>
+</html>
+# ------------------------------------------------------------------------------
+#  operaciones/tests.py
+# ------------------------------------------------------------------------------
+
+from django.test import TestCase
+
+# Create your tests here.
+
+# ------------------------------------------------------------------------------
+#  operaciones/urls.py
+# ------------------------------------------------------------------------------
+
+from django.urls import path, include
+from .views import CustomTokenObtainPairView
+from rest_framework import routers
+from rest_framework_simplejwt.views import TokenRefreshView
+from . import views
+from .api_views import (
+    LlaveViewSet, RutaViewSet, 
+    EstacionViewSet, MovimientosEstacionViewSet, CoordinadorViewSet, 
+    OperadorViewSet, ReporteDiarioViewSet, RegistroDespliegueViewSet,
+    UserViewSet, ListarOperadoresListView, ItemViewSet
+)
+from . import views
+
+router = routers.DefaultRouter()
+router.register(r'users', UserViewSet)
+router.register(r'llaves', LlaveViewSet)
+router.register(r'rutas', RutaViewSet)
+router.register(r'estaciones', EstacionViewSet)
+router.register(r'movimientos-estacion', MovimientosEstacionViewSet)
+router.register(r'coordinadores', CoordinadorViewSet)
+router.register(r'operadores', OperadorViewSet)
+router.register(r'reportesdiarios', ReporteDiarioViewSet)
+router.register(r'registrosdespliegue', RegistroDespliegueViewSet)
+router.register(r'items', ItemViewSet)
+
+urlpatterns = [
+    #path('', views.index, name='index'),
+    #path para apis
+    path('api/', include(router.urls)),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('listar-operadores/', ListarOperadoresListView.as_view(), name='listado-operadores'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('panel/<str:rol>/', views.panel_view, name='panel'),
+    path('qr/scan/', views.qr_scan, name='qr_scan'),
+]
+
+# ------------------------------------------------------------------------------
+#  operaciones/views.py
+# ------------------------------------------------------------------------------
+
+import json
+from django.shortcuts import render
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import Estacion
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+# Create your views here.
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+# ---------- LOGIN / LOGOUT ----------
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            grupo = user.groups.first()
+            if not grupo:
+                return render(request, 'operaciones/login.html',
+                              {'error': 'Usuario sin grupo asignado'})
+            return redirect('panel', rol=grupo.name)
+        return render(request, 'operaciones/login.html',
+                      {'error': 'Credenciales inválidas'})
+    return render(request, 'operaciones/login.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+# ---------- PANEL ----------
+@login_required
+def panel_view(request, rol):
+    if not request.user.groups.filter(name=rol).exists():
+        return redirect('login')
+    # Pasamos la lista de fases para pintar los badges
+    fases = [c[0] for c in Estacion.FASES_CHOICES]
+    return render(request, 'operaciones/panel.html', {'rol': rol, 'fases': fases})
+
+# ---------- QR SCAN (AJAX) ----------
+@login_required
+def qr_scan(request):
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'msg': 'Método no permitido'})
+
+    data = json.loads(request.body or '{}')
+    codigo = (data.get('codigo') or '').strip()
+    accion = data.get('accion', '')          # revision / mantenimiento / clonacion / masterizacion / entrega
+    nro_estacion = data.get('nro_estacion')
+
+    # ---- Inventarios: crea si no existe ----
+    if request.user.groups.first().name == 'SoporteInventarios':
+        estacion, created = Estacion.objects.get_or_create(
+            codigo_equipo=codigo,
+            defaults={'fase': 'Recepcionado', 'recepcionado': True}
+        )
+        if created:
+            log(request.user, estacion, 'Creó estación', ADDITION)
+        return JsonResponse({'ok': True, 'nueva_fase': estacion.fase, 'created': created})
+
+    # ---- Resto de roles: equipo debe existir ----
+    try:
+        estacion = Estacion.objects.get(codigo_equipo=codigo)
+    except Estacion.DoesNotExist:
+        return JsonResponse({'ok': False, 'msg': 'CÓDIGO NO REGISTRADO, COMUNÍQUESE CON TICs LA PAZ'})
+
+    rol = request.user.groups.first().name
+    nueva_fase = None
+    campos_bool = {}
+
+    if data.get('preview'):
+        # calculamos la fase nueva SIN grabar
+        nueva_fase_prev = None
+        rol_prev = request.user.groups.first().name
+
+        if rol_prev == 'SoporteInventarios':
+            nueva_fase_prev = 'Recepcionado'
+        elif rol_prev == 'SoporteMantenimiento':
+            if accion == 'revision':
+                nueva_fase_prev = 'En Revision'
+            elif accion == 'finalizar':
+                nueva_fase_prev = 'Revisado funcional'
+        elif rol_prev == 'SoporteClonacion':
+            if accion == 'clonacion':
+                nueva_fase_prev = 'En Clonacion'
+            elif accion == 'finalizar':
+                nueva_fase_prev = 'Clonado'
+        elif rol_prev == 'SoporteMasterizacion':
+            if accion == 'masterizacion':
+                nueva_fase_prev = 'En Masterizacion'
+            elif accion == 'finalizar':
+                nueva_fase_prev = 'Masterizado'
+        elif rol_prev == 'SoporteEntrega':
+            if estacion.fase == 'Masterizado':
+                nueva_fase_prev = 'Asignado'
+            else:
+                return JsonResponse({'ok': False, 'msg': 'Requisito: Masterizado'})
+
+        return JsonResponse({
+            'ok': True,
+            'fase_anterior': estacion.fase,
+            'nueva_fase': nueva_fase_prev
+        })
+
+    # ---------- SoporteMantenimiento ----------
+    if rol == 'SoporteMantenimiento':
+        if accion == 'revision':
+            if estacion.fase not in ('Recepcionado', 'Revisado funcional', 'En mantenimiento'):
+                return JsonResponse({'ok': False, 'msg': 'No puede pasar a En Revisión desde esta fase'})
+            nueva_fase = 'En Revision'
+        elif accion == 'mantenimiento':
+            nueva_fase = 'En mantenimiento'
+        elif accion == 'finalizar':
+            # cierra revisión o mantenimiento → Revisado funcional
+            # aquí puedes pedir el checklist vía AJAX si quieres
+            nueva_fase = 'Revisado funcional'
+            campos_bool['revisado'] = True
+        else:
+            return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
+
+    # ---------- SoporteClonacion ----------
+    elif rol == 'SoporteClonacion':
+        if accion == 'clonacion':
+            if estacion.fase != 'Revisado funcional':
+                return JsonResponse({'ok': False, 'msg': 'Requisito: Revisado funcional'})
+            nueva_fase = 'En Clonacion'
+        elif accion == 'finalizar':
+            if estacion.fase != 'En Clonacion':
+                return JsonResponse({'ok': False, 'msg': 'El equipo no está En Clonación'})
+            nueva_fase = 'Clonado'
+            campos_bool['clonado'] = True
+        else:
+            return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
+
+    # ---------- SoporteMasterizacion ----------
+    elif rol == 'SoporteMasterizacion':
+        if accion == 'masterizacion':
+            if estacion.fase != 'Clonado':
+                return JsonResponse({'ok': False, 'msg': 'Requisito: Clonado'})
+            nueva_fase = 'En Masterizacion'
+        elif accion == 'finalizar':
+            if estacion.fase != 'En Masterizacion':
+                return JsonResponse({'ok': False, 'msg': 'El equipo no está En Masterización'})
+            nueva_fase = 'Masterizado'
+            campos_bool['masterizado'] = True
+        else:
+            return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
+
+    # ---------- SoporteEntrega ----------
+    elif rol == 'SoporteEntrega':
+        if estacion.fase != 'Masterizado':
+            return JsonResponse({'ok': False, 'msg': 'Requisito: Masterizado'})
+        if not nro_estacion or not str(nro_estacion).isdigit():
+            return JsonResponse({'ok': False, 'msg': 'Debe ingresar un nro_estacion numérico'})
+        estacion.nro_estacion = int(nro_estacion)
+        nueva_fase = 'Asignado'
+        campos_bool['asignado'] = True
+
+    else:
+        return JsonResponse({'ok': False, 'msg': 'Rol sin permisos'})
+
+    # ----- aplicar -----
+    if nueva_fase:
+        estacion.fase = nueva_fase
+    for k, v in campos_bool.items():
+        setattr(estacion, k, v)
+    estacion.save()
+    log(request.user, estacion, f'Cambió fase a {nueva_fase}', CHANGE)
+    return JsonResponse({'ok': True, 'nueva_fase': nueva_fase})
+
+# ---------- Helper para dejar rastro en Admin ----------
+def log(user, obj, message, flag=CHANGE):
+    LogEntry.objects.log_action(
+        user_id=user.pk,
+        content_type_id=ContentType.objects.get_for_model(obj).pk,
+        object_id=obj.pk,
+        object_repr=str(obj),
+        action_flag=flag,
+        change_message=message
+    )
+# ------------------------------------------------------------------------------
+#  README.md
+# ------------------------------------------------------------------------------
+
+# seguimiento-padron
+#CREAR EL ENTORNO VIRTUAL PARA LA APLICACION
+python -m venv venv
+
+#ACTIVAR EL ENTORNO VIRTUAL
+venv\Scripts\activate
+
+#INSTALAR LAS DEPENDENCIAS
+pip install -r requirements.txt
+
+#
+
+# ------------------------------------------------------------------------------
+#  requirements.txt
+# ------------------------------------------------------------------------------
+
+acme==4.0.0
+apt-listchanges==4.8
+asgiref==3.9.1
+bcrypt==4.2.0
+certbot==4.0.0
+certbot-nginx==4.0.0
+certifi==2025.1.31
+chardet==5.2.0
+charset-normalizer==3.4.2
+ConfigArgParse==1.7
+configobj==5.0.9
+cryptography==43.0.0
+dbus-python==1.4.0
+distro==1.9.0
+distro-info==1.13
+Django==5.2.4
+django-cors-headers==4.9.0
+django-environ==0.12.0
+django-extensions==4.1
+django-grappelli==4.0.2
+django-sslserver==0.22
+django-suit==0.2.28
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+environ==1.0
+gyp-next==0.16.2
+idna==3.10
+josepy==2.0.0
+MarkupSafe==3.0.3
+packaging==25.0
+parsedatetime==2.6
+psycopg2-binary==2.9.10
+PyGObject==3.50.0
+PyICU==2.14
+PyJWT==2.10.1
+pyOpenSSL==25.0.0
+pyparsing==3.1.2
+pyRFC3339==2.0.1
+python-apt==3.0.0
+python-debian==1.0.1
+python-debianbts==4.1.1
+pytz==2025.2
+PyYAML==6.0.2
+reportbug==13.2.0
+requests==2.32.3
+sqlparse==0.5.3
+ssh-import-id==5.10
+tzdata==2025.2
+ufw==0.36.2
+unattended-upgrades==0.1
+urllib3==2.3.0
+Werkzeug==3.1.3
+wheel==0.46.1
+# ------------------------------------------------------------------------------
+#  seguimiento_padron/asgi.py
+# ------------------------------------------------------------------------------
+
+"""
+ASGI config for seguimiento_padron project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seguimiento_padron.settings')
+
+application = get_asgi_application()
+
+# ------------------------------------------------------------------------------
+#  seguimiento_padron/__init__.py
+# ------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
+#  seguimiento_padron/settings.py
+# ------------------------------------------------------------------------------
+
+"""
+Django settings for seguimiento_padron project.
+
+Generated by 'django-admin startproject' using Django 5.2.4.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/topics/settings/
+
+For the full list of settings and their values, see
+https://docs.djangoproject.com/en/5.2/ref/settings/
+"""
+
+from pathlib import Path
+import environ
+import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATICFILES_DIRS = [BASE_DIR / "operaciones/static"]
+
+env = environ.Env(
+    DEBUG = (bool, False)
+)
+
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = env('SECRET_KEY')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = env('DEBUG')
+
+ALLOWED_HOSTS = ['*']
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'sslserver',
+    'import_export',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django_extensions',
+    #'operaciones',
+    'operaciones.apps.OperacionesConfig',
+    'rest_framework',
+    #cors
+    'corsheaders',
+]
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_HEADERS = [
+    'authorization',
+    'content-type',
+    'x-csrftoken',
+]
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+
+MIDDLEWARE = [
+    #CORS
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = 'seguimiento_padron.urls'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = 'seguimiento_padron.wsgi.application'
+
+
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
+    }
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}
+
+# Password validation
+# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+USE_I18N = True
+
+USE_TZ = True
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Para que Django reconozca la cabecera de HTTPS a través de Nginx
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
+
+# Forzar redirección de HTTP a HTTPS en Django (solo si lo deseas, pero como mencionaste que solo usas HTTP, esto puede no ser necesario)
+SECURE_SSL_REDIRECT = False
+
+# ------------------------------------------------------------------------------
+#  seguimiento_padron/urls.py
+# ------------------------------------------------------------------------------
+
+"""
+URL configuration for seguimiento_padron project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('operaciones.urls')),
+]
+
+# ------------------------------------------------------------------------------
+#  seguimiento_padron/wsgi.py
+# ------------------------------------------------------------------------------
+
+"""
+WSGI config for seguimiento_padron project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seguimiento_padron.settings')
+
+application = get_wsgi_application()

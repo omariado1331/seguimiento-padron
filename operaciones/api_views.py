@@ -2,6 +2,11 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import status
+from .models import RegistroDespliegue
+from .serializers import UltimoRegistroDespliegueSerializer
 from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
@@ -71,3 +76,21 @@ class CentroEmpadronamientoViewSet(viewsets.ModelViewSet):
 class UbicacionesOperadorViewSet(viewsets.ModelViewSet):
     queryset = UbicacionesOperador.objects.all()
     serializer_class = UbicacionesOperadorSerializer
+class UltimoRegistroDespliegueView(generics.RetrieveAPIView):
+    """
+    GET /api/ultimo-registro-despliegue/<id_operador>/
+    Devuelve el último RegistroDespliegue del operador indicado.
+    """
+    serializer_class = UltimoRegistroDespliegueSerializer
+
+    def get_object(self):
+        id_operador = self.kwargs['id_operador']
+        try:
+            # último por fecha/hora descendente
+            return RegistroDespliegue.objects.filter(
+                operador_id=id_operador
+            ).latest('fecha_hora')
+        except RegistroDespliegue.DoesNotExist:
+            # puedes lanzar 404 o devolver un payload vacío
+            from django.http import Http404
+            raise Http404("El operador no tiene registros de despliegue.")

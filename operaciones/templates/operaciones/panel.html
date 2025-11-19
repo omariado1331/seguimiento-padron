@@ -86,7 +86,7 @@
   const rol = "{{ rol }}";
   let accion = '';
   let codigoQR = '';
-  let procesando = false;       // <-- evita duplicados
+  let procesando = false;
   const qrBox = document.getElementById('qr-box');
   const modal = new bootstrap.Modal(document.getElementById('modalNro'));
   const csrf = '{{ csrf_token }}';
@@ -94,7 +94,7 @@
   /* ---------- mostrar / ocultar cámara ---------- */
   function mostrarCamara(mostrar) {
     if (mostrar) {
-      procesando = false;       // permitimos nuevo escaneo
+      procesando = false;
       qrBox.classList.remove('hidden');
       html5QrcodeScanner.clear();
       html5QrcodeScanner.render(onScanSuccess);
@@ -132,22 +132,44 @@
       .then(j => {
         addRow(codigoQR, j.nueva_fase, j.ok, j.msg || j.nueva_fase);
         if (!j.ok) alert(j.msg);
-        mostrarCamara(false);   // ocultamos cámara
+        mostrarCamara(false);
       })
       .catch(err => alert('Error red'));
   }
 
   /* ---------- QR callback ---------- */
   function onScanSuccess(decodedText) {
-    if (!accion || procesando) return;   // evita múltiples lecturas
-    procesando = true;                   // marcamos como procesado
+    if (!accion || procesando) return;
+    procesando = true;                   // bloqueo temporal
     codigoQR = decodedText;
-    const payload = {codigo: codigoQR, accion: accion};
-    if (accion === 'entrega') {
-      modal.show();
-    } else {
-      enviar(payload);
-    }
+
+    /* ======  NUEVO: CONFIRMACIÓN  ====== */
+    // preguntamos al backend cuál sería la nueva fase
+    fetch("{% url 'qr_scan' %}", {
+      method: 'POST',
+      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
+      body: JSON.stringify({codigo: codigoQR, accion: accion, preview: true})
+    })
+      .then(r => r.json())
+      .then(j => {
+        if (!j.ok) { alert(j.msg); procesando = false; return; }
+
+        const anterior = j.fase_anterior || '—';
+        const nuevo    = j.nueva_fase;
+        const msg = `¿Confirma el cambio de fase?\n\nEstado anterior: ${anterior}\nNuevo estado: ${nuevo}`;
+        if (confirm(msg)) {
+          // usuario confirma → enviamos definitivamente
+          if (accion === 'entrega') {
+            modal.show();
+          } else {
+            enviar({codigo: codigoQR, accion: accion});
+          }
+        } else {
+          // cancelado
+          procesando = false;
+        }
+      })
+      .catch(err => { alert('Error red'); procesando = false; });
   }
 
   /* ---------- modal guardar ---------- */

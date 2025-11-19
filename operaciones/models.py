@@ -75,6 +75,7 @@ class Estacion(models.Model):
     FUNCIONALIDAD_CHOICES = [
         ('Buena', 'Buena'),
         ('Mala', 'Mala'),
+        ('No tiene', 'No Tiene'),
     ]
     ESTADO_CHOICES = [
         ('defectuoso', 'Defectuoso'),

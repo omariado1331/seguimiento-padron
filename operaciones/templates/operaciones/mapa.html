@@ -2,17 +2,45 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Mapa de ubicaciones</title>
-  <style>body{font-family:sans-serif;background:#f5f5f5;margin:0;padding:2rem}</style>
+  <title>Mapa de ubicaciones – Auxiliar Técnico</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    html,body{margin:0;padding:0;height:100%}
+    #map{height:90%;width:100%}
+    .header{background:#0b74b9;color:#fff;padding:.5rem 1rem}
+  </style>
 </head>
 <body>
-  <h1>Mapa de ubicaciones – Auxiliar Técnico</h1>
-  <!-- Aquí tu iframe, Leaflet, Google Maps, etc. -->
-  <iframe
-    src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3824.123..."
-    width="100%" height="600" style="border:0;" allowfullscreen="" loading="lazy">
-  </iframe>
-  <br><br>
+  <div class="header">
+    <h2 style="margin:0">Mapa de ubicaciones de operadores</h2>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // 1.  Inicializar mapa centrado en Bolivia
+    const map = L.map('map').setView([-16.5, -68.1], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 2.  Obtener ubicaciones vía AJAX
+    fetch('/api/ubicaciones-operador/')
+      .then(r => r.json())
+      .then(data => {
+        data.forEach(p => {
+          if (p.latitud && p.longitud) {
+            const marker = L.marker([p.latitud, p.longitud]).addTo(map);
+            marker.bindPopup(
+              `Operador: <b>${p.operador.nombre ?? 'Sin nombre'}</b><br>
+               Fecha: ${new Date(p.fecha).toLocaleString()}`
+            );
+          }
+        });
+      })
+      .catch(console.error);
+  </script>
+  <br>
   <a href="{% url 'logout' %}">Cerrar sesión</a>
 </body>
 </html>

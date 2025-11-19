@@ -9,10 +9,10 @@ from .api_views import (
     EstacionViewSet, MovimientosEstacionViewSet, CoordinadorViewSet, 
     OperadorViewSet, ReporteDiarioViewSet, RegistroDespliegueViewSet,
     UserViewSet, ListarOperadoresListView, ItemViewSet, 
-    CentroEmpadronamientoViewSet, UbicacionesOperadorViewSet
+    CentroEmpadronamientoViewSet, UbicacionesOperadorViewSet,
+    ListarPuntosEmpadronamientoView
 )
 from . import views
-
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'llaves', LlaveViewSet)
@@ -41,4 +41,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('panel/<str:rol>/', views.panel_view, name='panel'),
     path('qr/scan/', views.qr_scan, name='qr_scan'),
+    path('api/listar-puntos-empadronamiento/',
+         ListarPuntosEmpadronamientoView.as_view(),
+         name='listar-puntos-empadronamiento'),
 ]

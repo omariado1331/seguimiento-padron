@@ -19,7 +19,8 @@ from .serializers import (
     CoordinadorSerializer, OperadorSerializer,
     ReporteDiarioSerializer, RegistroDespliegueSerializer, 
     UserSerializer, ListarOperadoresSerializer, ItemSerializer, 
-    CentroEmpadronamientoSerializer, UbicacionesOperadorSerializer
+    CentroEmpadronamientoSerializer, UbicacionesOperadorSerializer, 
+    PuntoEmpadronamientoSerializer
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -94,3 +95,8 @@ class UltimoRegistroDespliegueView(generics.RetrieveAPIView):
             # puedes lanzar 404 o devolver un payload vacío
             from django.http import Http404
             raise Http404("El operador no tiene registros de despliegue.")
+        
+class ListarPuntosEmpadronamientoView(generics.ListAPIView):
+    queryset           = CentroEmpadronamiento.objects.all()
+    serializer_class   = PuntoEmpadronamientoSerializer
+    pagination_class   = None

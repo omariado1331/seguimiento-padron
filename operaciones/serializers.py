@@ -159,3 +159,8 @@ class UltimoRegistroDespliegueSerializer(serializers.ModelSerializer):
     class Meta:
         model  = RegistroDespliegue
         fields = '__all__'
+class PuntoEmpadronamientoSerializer(serializers.ModelSerializer):
+    """Listar: id, provincia, punto_de_empadronamiento"""
+    class Meta:
+        model  = CentroEmpadronamiento
+        fields = ['id', 'provincia', 'punto_de_empadronamiento']

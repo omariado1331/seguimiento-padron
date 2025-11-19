@@ -37,7 +37,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             operador = Operador.objects.select_related("estacion", "ruta").get(user=user)
             if operador.estacion:
                 id_estacion = operador.estacion.id
-                nro_estacion = operador.estacion.nro_estacion
+                nro_estacion = (
+                        operador.estacion.llave.nro_estacion
+                        if operador.estacion.llave
+                        else 0
+                    )
             else:
                 id_estacion = 0
                 nro_estacion = 0

@@ -367,4 +367,6 @@ class UbicacionesOperador(models.Model):
     fecha = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.operador.nombre} {self.operador.apellido_paterno} {self.operador.apellido_materno} - {self.fecha}"
+        if self.operador:  
+            return f"{self.operador.nombre} {self.operador.apellido_paterno} {self.operador.apellido_materno} - {self.fecha}"
+        return f"Sin operador - {self.fecha}"

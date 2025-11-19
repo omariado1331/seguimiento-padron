@@ -1,7 +1,7 @@
 # ==============================================================================
 #  PROYECTO DJANGO – EXTRACTO DE ARCHIVOS
 #  Raíz: /home/flavioabdon25/SERECI/seguimiento-padron
-#  Generado: 2025-11-18T21:20:35-04:00
+#  Generado: 2025-11-19T19:53:36-04:00
 # ==============================================================================
 
 
@@ -36,18 +36,187 @@ if __name__ == '__main__':
 #  operaciones/admin.py
 # ------------------------------------------------------------------------------
 
-from django.contrib import admin
-from import_export import resources
-from import_export.admin import ExportActionModelAdmin
-from .models import Estacion
+# ------------------------------------------------------------------
+#  Django
+# ------------------------------------------------------------------
+from django.contrib               import admin
+from django.contrib.admin         import SimpleListFilter
+from django.contrib.admin.models  import LogEntry
+from django.contrib.contenttypes.models import ContentType
+from django.db.models             import OuterRef, Subquery, F, CharField
+from django.db.models.functions   import Cast
+from django.http                  import HttpResponse
 
-from django.http import HttpResponse
-from openpyxl import Workbook
+# ------------------------------------------------------------------
+#  Import-Export
+# ------------------------------------------------------------------
+from import_export                import resources
+from import_export.admin          import ExportActionModelAdmin
+
+# ------------------------------------------------------------------
+#  OpenPyXL
+# ------------------------------------------------------------------
+from openpyxl                     import Workbook
+from openpyxl.styles              import Font, PatternFill, Alignment
+from openpyxl.utils               import get_column_letter
+
+# ------------------------------------------------------------------
+#  Modelos locales
+# ------------------------------------------------------------------
 from .models import (
-    Llave, Ruta, Estacion, MovimientosEstacion,
-    Coordinador, Operador, ReporteDiario,
-    RegistroDespliegue, Item
-)
+    CentroEmpadronamiento, Coordinador, Estacion, Item,
+    Llave, MovimientosEstacion, Operador, RegistroDespliegue,
+    ReporteDiario, Ruta, UbicacionesOperador
+)      
+def _primer_que(modelo, obj_id):
+    log = LogEntry.objects.filter(
+        content_type=ContentType.objects.get_for_model(modelo),
+        object_id=str(obj_id)
+    ).order_by('action_time').first()
+    return log.user.username if log else '-'
+
+def _ultimo_que(modelo, obj_id):
+    log = LogEntry.objects.filter(
+        content_type=ContentType.objects.get_for_model(modelo),
+        object_id=str(obj_id)
+    ).order_by('-action_time').first()
+    return log.user.username if log else '-'
+
+def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
+    """
+    Opcion para exportar los registros seleccionados a excel
+    """
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Registros Diarios'
+
+    # --- cabecera ---
+    columnas = [
+        "Departamento",
+        "Provincia",
+        "Municipio",
+        "Localidad",
+        "Punto de Empadronamiento",
+        "Direccion",
+        "Fecha",
+        "Estación",
+        "Modalidad",
+        "Cant. de registros C",
+        "Cant. de registros R",
+        "Tipo de estación",
+        "Área",
+        "Operador",
+        "Observación"
+    ]
+    #columnas = [f.verbose_name for f in ReporteDiario._meta.fields]
+    ws.append(columnas)
+
+    for col_num, col_name in enumerate(columnas, 1):
+        col_letter = get_column_letter(col_num)
+
+        #color de fondo
+        ws[f"{col_letter}1"].fill = PatternFill(
+            start_color='ADD8E6', #Azul claro,
+            end_color='ADD8E6',
+            fill_type="solid"
+        )
+
+        #Fuente negrita
+        ws[f"{col_letter}1"].font= Font(bold=True)
+
+        #Centrado
+        ws[f"{col_letter}1"].alignment= Alignment(horizontal='center')
+
+        ws.column_dimensions[col_letter].width = max(15 , len(col_name) + 3)
+
+    # --- filas ---
+    for r in queryset:
+        # fila = []
+        # for f in ReporteDiario._meta.fields:
+        #     valor = getattr(obj, f.name)   
+
+        #     if f.many_to_one:
+        #         valor = str(valor)
+            
+        #     from datetime import datetime
+        #     if isinstance(valor, datetime):
+        #         valor = valor.strftime("%Y-%m-%d")
+            
+        #     fila.append(valor)
+        # ws.append(fila)
+        ws.append([
+            r.centro_empadronamiento.departamento if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.provincia if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.municipio if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.localidad if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.punto_de_empadronamiento if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.direccion if r.centro_empadronamiento else "",
+            r.fecha_reporte.strftime("%Y-%m-%d"),
+            r.estacion.nro_estacion if r.estacion else "",
+            "Desconectado",
+            r.registro_c,
+            r.registro_r,
+            r.estacion.tipo_estacion if r.estacion else "",
+            r.operador.tipo_operador if r.operador else "",
+            f"{r.operador.nombre} {r.operador.apellido_paterno} {r.operador.apellido_materno}",
+            r.observaciones
+        ])
+    
+    response = HttpResponse(
+        content_type= 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_diario.xlsx"'
+    wb.save(response)
+    return response
+
+exportar_a_excel_reportes_diarios.short_description = "Exportar registros diarios a Excel"
+
+class registroDiarioResource(resources.ModelResource):
+    class Meta:
+        # modelo de donde se exportan los datos
+        model = ReporteDiario
+        # exportar todos los modelos
+        fields = '__all__'
+
+class EstacionAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        ct = ContentType.objects.get_for_model(Estacion)
+        ultimo_qs = LogEntry.objects.filter(
+            content_type=ct,
+            object_id=OuterRef('pk')
+        ).order_by('-action_time').values('user__username')[:1]
+
+        return super().get_queryset(request).annotate(
+            _ultimo_user=Subquery(ultimo_qs),
+        )
+
+class UltimoUsuarioFilter(SimpleListFilter):
+    title          = 'último usuario'
+    parameter_name = 'ultimo_user'
+
+    def lookups(self, request, model_admin):
+        # usuarios que aparecen en LogEntry sobre Estacion
+        ct = ContentType.objects.get_for_model(model_admin.model)
+        users = (LogEntry.objects
+                 .filter(content_type=ct)
+                 .values_list('user__username', flat=True)
+                 .distinct()
+                 .order_by('user__username'))
+        return [(u, u) for u in users]
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+        ct = ContentType.objects.get_for_model(queryset.model)
+        # TEXT = TEXT
+        ultimo_qs = (LogEntry.objects
+                     .filter(content_type=ct,
+                             object_id=Cast(OuterRef('pk'), output_field=CharField()))  # ← cast
+                     .order_by('-action_time')
+                     .values('user__username')[:1])
+        return queryset.annotate(_ultimo_user=Subquery(ultimo_qs)).filter(
+            _ultimo_user=self.value()
+        )
 
 def exportar_a_excel(modeladmin, request, queryset):
     """
@@ -87,11 +256,36 @@ class EstacionResource(resources.ModelResource):
 # ---------------- Estacion  ----------------
 @admin.register(Estacion)
 class EstacionAdmin(admin.ModelAdmin):
-    resource_classes = [EstacionResource]
-    list_display = [f.name for f in Estacion._meta.fields]
-    search_fields = ['codigo_equipo', 'nro_estacion']
-    list_filter = ['fase', 'estado_computadora']
-    # registrar la acción
+    list_display = [
+        'codigo_equipo',
+        'nro_estacion',
+        'fase',
+        'ultimo_por',
+    ]
+    search_fields = [
+        'codigo_equipo',
+        'nro_estacion',
+        'fase',
+        'estado_computadora',
+        'llave__nro_estacion',   # búsqueda por número de llave
+    ]
+    list_filter  = [UltimoUsuarioFilter] 
+    def primer_por(self, obj):
+        return _primer_que(Estacion, obj.pk)
+    primer_por.short_description = 'Primero por'
+
+    def ultimo_por(self, obj):
+        ct = ContentType.objects.get_for_model(obj)
+        log = (LogEntry.objects
+            .filter(content_type=ct,
+                    object_id=str(obj.pk))        # str() basta aquí
+            .order_by('-action_time')
+            .first())
+        return log.user.username if log else '-'
+    ultimo_por.short_description = 'Último por'
+
+
+
     actions = [exportar_a_excel]
 
     fieldsets = (
@@ -132,6 +326,7 @@ class EstacionAdmin(admin.ModelAdmin):
         })
     )
 
+
 # ---------------- Llave ----------------
 @admin.register(Llave)
 class LlaveAdmin(admin.ModelAdmin):
@@ -163,16 +358,18 @@ class CoordinadorAdmin(admin.ModelAdmin):
 # ---------------- Operador ----------------
 @admin.register(Operador)
 class OperadorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'tipo_operador', 'estado', 'coordinador', 'estacion']
+    list_display = ['user__first_name','user__last_name', 'tipo_operador', 'estado', 'coordinador', 'estacion']
     search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
     list_filter = ['estado', 'tipo_operador', 'coordinador', 'estacion']
 
 # ---------------- ReporteDiario ----------------
 @admin.register(ReporteDiario)
 class ReporteDiarioAdmin(admin.ModelAdmin):
-    list_display = ['operador', 'estacion', 'fecha_reporte', 'registro_c', 'registro_r', 'estado']
-    search_fields = ['operador__user__username', 'estacion__codigo_equipo']
-    list_filter = ['fecha_reporte', 'estado', 'sincronizar']
+    #resource_classes = [registroDiarioResource]
+    list_display = ['estacion', 'fecha_reporte', 'operador__tipo_operador', 'operador', 'registro_c', 'registro_r', 'estado']
+    search_fields = ['operador__user__username', 'estacion__codigo_equipo', 'estacion__nro_estacion']
+    list_filter = ['fecha_reporte', 'estado', 'sincronizar', 'operador__tipo_operador']
+    actions = [exportar_a_excel_reportes_diarios]
 
 # ---------------- RegistroDespliegue ----------------
 @admin.register(RegistroDespliegue)
@@ -187,6 +384,20 @@ class ItemAdmin(admin.ModelAdmin):
     list_display = ['codigo_item', 'serie_item', 'tipo', 'asignado_operador']
     search_fields = ['codigo_item', 'serie_item']
     list_filter = ['tipo', 'asignado_operador']
+
+#--------------- Centro de empadronamiento ---------------------
+@admin.register(CentroEmpadronamiento)
+class CentroEmpadronamientoAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in CentroEmpadronamiento._meta.fields]
+    search_fields = ['nombre', 'provincia']
+    list_filter = ['provincia']
+
+@admin.register(UbicacionesOperador)
+class UbicacionesOperadorAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in UbicacionesOperador._meta.fields]
+    search_fields = ['operador', 'operador__carnet']
+    list_filter = ['fecha', 'operador']
+
 # ------------------------------------------------------------------------------
 #  operaciones/api_views.py
 # ------------------------------------------------------------------------------
@@ -195,17 +406,25 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework import status
+from .models import RegistroDespliegue
+from .serializers import UltimoRegistroDespliegueSerializer
 from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
-    ReporteDiario, RegistroDespliegue, Item
+    ReporteDiario, RegistroDespliegue, Item, CentroEmpadronamiento,
+    UbicacionesOperador
 )
 from .serializers import (
     LlaveSerializer, RutaSerializer,
     EstacionSerializer, MovimientosEstacionSerializer, 
     CoordinadorSerializer, OperadorSerializer,
     ReporteDiarioSerializer, RegistroDespliegueSerializer, 
-    UserSerializer, ListarOperadoresSerializer, ItemSerializer
+    UserSerializer, ListarOperadoresSerializer, ItemSerializer, 
+    CentroEmpadronamientoSerializer, UbicacionesOperadorSerializer, 
+    PuntoEmpadronamientoSerializer
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -255,6 +474,36 @@ class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
 
+class CentroEmpadronamientoViewSet(viewsets.ModelViewSet):
+    queryset = CentroEmpadronamiento.objects.all()
+    serializer_class = CentroEmpadronamientoSerializer
+
+class UbicacionesOperadorViewSet(viewsets.ModelViewSet):
+    queryset = UbicacionesOperador.objects.all()
+    serializer_class = UbicacionesOperadorSerializer
+class UltimoRegistroDespliegueView(generics.RetrieveAPIView):
+    """
+    GET /api/ultimo-registro-despliegue/<id_operador>/
+    Devuelve el último RegistroDespliegue del operador indicado.
+    """
+    serializer_class = UltimoRegistroDespliegueSerializer
+
+    def get_object(self):
+        id_operador = self.kwargs['id_operador']
+        try:
+            # último por fecha/hora descendente
+            return RegistroDespliegue.objects.filter(
+                operador_id=id_operador
+            ).latest('fecha_hora')
+        except RegistroDespliegue.DoesNotExist:
+            # puedes lanzar 404 o devolver un payload vacío
+            from django.http import Http404
+            raise Http404("El operador no tiene registros de despliegue.")
+        
+class ListarPuntosEmpadronamientoView(generics.ListAPIView):
+    queryset           = CentroEmpadronamiento.objects.all()
+    serializer_class   = PuntoEmpadronamientoSerializer
+    pagination_class   = None
 # ------------------------------------------------------------------------------
 #  operaciones/apps.py
 # ------------------------------------------------------------------------------
@@ -280,6 +529,17 @@ from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
+class CentroEmpadronamiento(models.Model):
+    punto_de_empadronamiento = models.CharField(max_length=100, blank=True, null=True)
+    direccion = models.CharField(max_length=512, blank=True, null=True)
+    localidad = models.CharField(max_length=100, blank=True, null=True)
+    municipio = models.CharField(max_length=100, blank=True, null=True)
+    provincia = models.CharField(max_length=50, blank=True, null=True)
+    departamento = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return self.punto_de_empadronamiento
+
 class Llave(models.Model):
     nro_estacion = models.IntegerField(default=0, unique=True)
     contador_r = models.IntegerField(default=0)
@@ -342,6 +602,7 @@ class Estacion(models.Model):
     FUNCIONALIDAD_CHOICES = [
         ('Buena', 'Buena'),
         ('Mala', 'Mala'),
+        ('No tiene', 'No Tiene'),
     ]
     ESTADO_CHOICES = [
         ('defectuoso', 'Defectuoso'),
@@ -487,7 +748,7 @@ class Estacion(models.Model):
     obs_banner         = models.TextField(blank=True)
     obs_adaptador_3a2  = models.TextField(blank=True)
     def __str__(self):
-        return f"{self.codigo_equipo} - Llave: {self.llave}"
+        return f"{self.nro_estacion} - Cod: {self.codigo_equipo}"
     
 class MovimientosEstacion(models.Model):
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
@@ -531,8 +792,8 @@ class Operador(models.Model):
         ('renuncia', 'Renuncia'),
     ]
     TIPO_OPERADOR_CHOICES = [
-        ('Operador Urbano', 'Operador Urbano'),
-        ('Operador Rural', 'Operador Rural'),
+        ('URBANO', 'OPERADOR URBANO'),
+        ('RURAL', 'OPERADOR RURAL'),
     ]
     estado = models.CharField(
         max_length=20,
@@ -550,17 +811,19 @@ class Operador(models.Model):
     nombre = models.CharField(max_length=100, null=True, blank=True)
     apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
     apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    carnet = models.CharField(max_length=20, unique=True, null=True, blank=True)
     direccion = models.CharField(max_length=200, blank=True, null=True)
     correo = models.EmailField(unique=True, null=True, blank=True)
     celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
 
 
 class ReporteDiario(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
+    centro_empadronamiento = models.ForeignKey(CentroEmpadronamiento, on_delete=models.CASCADE, blank=True, null=True)
     fecha_reporte = models.DateTimeField(null=True, blank=True)
     contador_inicial_c = models.TextField(max_length=25, blank = True)
     contador_final_c = models.TextField(max_length=25, blank = True)
@@ -621,6 +884,19 @@ class Item(models.Model):
     descripcion = models.TextField(blank=True)
     observacion = models.TextField(blank=True)
 
+    def __str__(self):
+        return self.codigo_item
+
+class UbicacionesOperador(models.Model):
+    operador = models.ForeignKey(Operador, on_delete=models.CASCADE, null=True, blank=True)
+    latitud = models.CharField(max_length=255, blank=True, null= True)
+    longitud = models.CharField(max_length=255, blank=True, null= True)
+    fecha = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        if self.operador:  
+            return f"{self.operador.nombre} {self.operador.apellido_paterno} {self.operador.apellido_materno} - {self.fecha}"
+        return f"Sin operador - {self.fecha}"
 # ------------------------------------------------------------------------------
 #  operaciones/serializers.py
 # ------------------------------------------------------------------------------
@@ -631,7 +907,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
-    ReporteDiario, RegistroDespliegue, Item)
+    ReporteDiario, RegistroDespliegue, Item, CentroEmpadronamiento,
+    UbicacionesOperador    
+)
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -662,7 +940,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             operador = Operador.objects.select_related("estacion", "ruta").get(user=user)
             if operador.estacion:
                 id_estacion = operador.estacion.id
-                nro_estacion = operador.estacion.nro_estacion
+                nro_estacion = (
+                        operador.estacion.llave.nro_estacion
+                        if operador.estacion.llave
+                        else 0
+                    )
             else:
                 id_estacion = 0
                 nro_estacion = 0
@@ -766,6 +1048,26 @@ class ItemSerializer(serializers.ModelSerializer):
         model = Item
         fields = '__all__'
 
+class CentroEmpadronamientoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= CentroEmpadronamiento
+        fields = '__all__'
+
+class UbicacionesOperadorSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='operador.user', read_only=True)
+    class Meta:
+        model  = UbicacionesOperador
+        fields = ['id','latitud','longitud','fecha','operador','user']
+class UltimoRegistroDespliegueSerializer(serializers.ModelSerializer):
+    """Serializer para devolver el último registro de despliegue de un operador."""
+    class Meta:
+        model  = RegistroDespliegue
+        fields = '__all__'
+class PuntoEmpadronamientoSerializer(serializers.ModelSerializer):
+    """Listar: id, provincia, punto_de_empadronamiento"""
+    class Meta:
+        model  = CentroEmpadronamiento
+        fields = ['id', 'provincia', 'punto_de_empadronamiento']
 # ------------------------------------------------------------------------------
 #  operaciones/signals.py
 # ------------------------------------------------------------------------------
@@ -823,6 +1125,56 @@ def crear_registro_al_asignar_grupo(sender, instance, action, pk_set, **kwargs):
   <label>Contraseña: <input type="password" name="password"></label><br>
   <button type="submit">Entrar</button>
 </form>
+# ------------------------------------------------------------------------------
+#  operaciones/templates/operaciones/mapa.html
+# ------------------------------------------------------------------------------
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Mapa de ubicaciones – Auxiliar Técnico</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    html,body{margin:0;padding:0;height:100%}
+    #map{height:90%;width:100%}
+    .header{background:#0b74b9;color:#fff;padding:.5rem 1rem}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2 style="margin:0">Mapa de ubicaciones de operadores</h2>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // 1.  Inicializar mapa centrado en Bolivia
+    const map = L.map('map').setView([-16.5, -68.1], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 2.  Obtener ubicaciones vía AJAX
+    fetch('/api/ubicaciones-operador/')
+      .then(r => r.json())
+      .then(data => {
+        data.forEach(p => {
+          if (p.latitud && p.longitud) {
+            const marker = L.marker([p.latitud, p.longitud]).addTo(map);
+            marker.bindPopup(
+              `Operador: <b>${p.operador.nombre ?? 'Sin nombre'}</b><br>
+               Fecha: ${new Date(p.fecha).toLocaleString()}`
+            );
+          }
+        });
+      })
+      .catch(console.error);
+  </script>
+  <br>
+  <a href="{% url 'logout' %}">Cerrar sesión</a>
+</body>
+</html>
 # ------------------------------------------------------------------------------
 #  operaciones/templates/operaciones/panel.html
 # ------------------------------------------------------------------------------
@@ -1032,15 +1384,17 @@ from django.urls import path, include
 from .views import CustomTokenObtainPairView
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenRefreshView
+from .api_views import UltimoRegistroDespliegueView 
 from . import views
 from .api_views import (
     LlaveViewSet, RutaViewSet, 
     EstacionViewSet, MovimientosEstacionViewSet, CoordinadorViewSet, 
     OperadorViewSet, ReporteDiarioViewSet, RegistroDespliegueViewSet,
-    UserViewSet, ListarOperadoresListView, ItemViewSet
+    UserViewSet, ListarOperadoresListView, ItemViewSet, 
+    CentroEmpadronamientoViewSet, UbicacionesOperadorViewSet,
+    ListarPuntosEmpadronamientoView
 )
 from . import views
-
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'llaves', LlaveViewSet)
@@ -1052,6 +1406,8 @@ router.register(r'operadores', OperadorViewSet)
 router.register(r'reportesdiarios', ReporteDiarioViewSet)
 router.register(r'registrosdespliegue', RegistroDespliegueViewSet)
 router.register(r'items', ItemViewSet)
+router.register(r'centros-empadronamiento', CentroEmpadronamientoViewSet)
+router.register(r'ubicaciones-operador', UbicacionesOperadorViewSet)
 
 urlpatterns = [
     #path('', views.index, name='index'),
@@ -1060,10 +1416,16 @@ urlpatterns = [
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('listar-operadores/', ListarOperadoresListView.as_view(), name='listado-operadores'),
+    path('api/ultimo-registro-despliegue/<int:id_operador>/',
+         UltimoRegistroDespliegueView.as_view(),
+         name='ultimo-registro-despliegue'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('panel/<str:rol>/', views.panel_view, name='panel'),
     path('qr/scan/', views.qr_scan, name='qr_scan'),
+    path('api/listar-puntos-empadronamiento/',
+         ListarPuntosEmpadronamientoView.as_view(),
+         name='listar-puntos-empadronamiento'),
 ]
 
 # ------------------------------------------------------------------------------
@@ -1099,6 +1461,8 @@ def login_view(request):
             if not grupo:
                 return render(request, 'operaciones/login.html',
                               {'error': 'Usuario sin grupo asignado'})
+            if grupo.name == 'AuxiliarTecnico':
+                return render(request, 'operaciones/mapa.html')
             return redirect('panel', rol=grupo.name)
         return render(request, 'operaciones/login.html',
                       {'error': 'Credenciales inválidas'})
@@ -1331,6 +1695,12 @@ unattended-upgrades==0.1
 urllib3==2.3.0
 Werkzeug==3.1.3
 wheel==0.46.1
+
+pip install django_extensions # For additional Django management commands
+pip install django-import-export # For data import/export functionality
+pip install django-sslserver # For development server with SSL support
+pip install openpyxl # For Excel file support in Django admin
+
 # ------------------------------------------------------------------------------
 #  seguimiento_padron/asgi.py
 # ------------------------------------------------------------------------------
@@ -1376,6 +1746,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import environ
 import os
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATICFILES_DIRS = [BASE_DIR / "operaciones/static"]
@@ -1480,6 +1851,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
+}
+
+SIMPLE_JWT = {
+    # Access-token válido 24 h
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
+    # Refresh-token, opcional, puedes dejarlo más largo
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # Rotación opcional
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # Password validation

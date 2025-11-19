@@ -1,23 +1,35 @@
-from django.contrib import admin
-from import_export import resources
-from import_export.admin import ExportActionModelAdmin
-from .models import Estacion
-
-from django.http import HttpResponse
-from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.utils import get_column_letter
-from .models import (
-    Llave, Ruta, Estacion, MovimientosEstacion,
-    Coordinador, Operador, ReporteDiario,
-    RegistroDespliegue, Item, CentroEmpadronamiento, UbicacionesOperador
-)
-from django.contrib.admin.models import LogEntry
+# ------------------------------------------------------------------
+#  Django
+# ------------------------------------------------------------------
+from django.contrib               import admin
+from django.contrib.admin         import SimpleListFilter
+from django.contrib.admin.models  import LogEntry
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import OuterRef, Subquery, F
-from django.contrib.admin import SimpleListFilter
+from django.db.models             import OuterRef, Subquery, F, CharField
+from django.db.models.functions   import Cast
+from django.http                  import HttpResponse
 
+# ------------------------------------------------------------------
+#  Import-Export
+# ------------------------------------------------------------------
+from import_export                import resources
+from import_export.admin          import ExportActionModelAdmin
 
+# ------------------------------------------------------------------
+#  OpenPyXL
+# ------------------------------------------------------------------
+from openpyxl                     import Workbook
+from openpyxl.styles              import Font, PatternFill, Alignment
+from openpyxl.utils               import get_column_letter
+
+# ------------------------------------------------------------------
+#  Modelos locales
+# ------------------------------------------------------------------
+from .models import (
+    CentroEmpadronamiento, Coordinador, Estacion, Item,
+    Llave, MovimientosEstacion, Operador, RegistroDespliegue,
+    ReporteDiario, Ruta, UbicacionesOperador
+)      
 def _primer_que(modelo, obj_id):
     log = LogEntry.objects.filter(
         content_type=ContentType.objects.get_for_model(modelo),
@@ -142,24 +154,31 @@ class EstacionAdmin(admin.ModelAdmin):
 
 class UltimoUsuarioFilter(SimpleListFilter):
     title          = 'último usuario'
-    parameter_name = '_ultimo_user'
+    parameter_name = 'ultimo_user'
 
     def lookups(self, request, model_admin):
-        # Opciones: usuarios que aparecen en LogEntry sobre Estacion
-        ct = ContentType.objects.get_for_model(Estacion)
-        users = (
-            LogEntry.objects
-            .filter(content_type=ct)
-            .values_list('user__username', flat=True)
-            .distinct()
-            .order_by('user__username')
-        )
+        # usuarios que aparecen en LogEntry sobre Estacion
+        ct = ContentType.objects.get_for_model(model_admin.model)
+        users = (LogEntry.objects
+                 .filter(content_type=ct)
+                 .values_list('user__username', flat=True)
+                 .distinct()
+                 .order_by('user__username'))
         return [(u, u) for u in users]
 
     def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(_ultimo_user=self.value())
-        return queryset
+        if not self.value():
+            return queryset
+        ct = ContentType.objects.get_for_model(queryset.model)
+        # TEXT = TEXT
+        ultimo_qs = (LogEntry.objects
+                     .filter(content_type=ct,
+                             object_id=Cast(OuterRef('pk'), output_field=CharField()))  # ← cast
+                     .order_by('-action_time')
+                     .values('user__username')[:1])
+        return queryset.annotate(_ultimo_user=Subquery(ultimo_qs)).filter(
+            _ultimo_user=self.value()
+        )
 
 def exportar_a_excel(modeladmin, request, queryset):
     """
@@ -203,7 +222,6 @@ class EstacionAdmin(admin.ModelAdmin):
         'codigo_equipo',
         'nro_estacion',
         'fase',
-        'primer_por',
         'ultimo_por',
     ]
     list_filter  = [UltimoUsuarioFilter] 
@@ -212,7 +230,13 @@ class EstacionAdmin(admin.ModelAdmin):
     primer_por.short_description = 'Primero por'
 
     def ultimo_por(self, obj):
-        return _ultimo_que(Estacion, obj.pk)
+        ct = ContentType.objects.get_for_model(obj)
+        log = (LogEntry.objects
+            .filter(content_type=ct,
+                    object_id=str(obj.pk))        # str() basta aquí
+            .order_by('-action_time')
+            .first())
+        return log.user.username if log else '-'
     ultimo_por.short_description = 'Último por'
 
 # ---------------- Llave ----------------

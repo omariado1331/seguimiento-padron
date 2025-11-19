@@ -76,6 +76,40 @@ def qr_scan(request):
     nueva_fase = None
     campos_bool = {}
 
+    if data.get('preview'):
+        # calculamos la fase nueva SIN grabar
+        nueva_fase_prev = None
+        rol_prev = request.user.groups.first().name
+
+        if rol_prev == 'SoporteInventarios':
+            nueva_fase_prev = 'Recepcionado'
+        elif rol_prev == 'SoporteMantenimiento':
+            if accion == 'revision':
+                nueva_fase_prev = 'En Revision'
+            elif accion == 'finalizar':
+                nueva_fase_prev = 'Revisado funcional'
+        elif rol_prev == 'SoporteClonacion':
+            if accion == 'clonacion':
+                nueva_fase_prev = 'En Clonacion'
+            elif accion == 'finalizar':
+                nueva_fase_prev = 'Clonado'
+        elif rol_prev == 'SoporteMasterizacion':
+            if accion == 'masterizacion':
+                nueva_fase_prev = 'En Masterizacion'
+            elif accion == 'finalizar':
+                nueva_fase_prev = 'Masterizado'
+        elif rol_prev == 'SoporteEntrega':
+            if estacion.fase == 'Masterizado':
+                nueva_fase_prev = 'Asignado'
+            else:
+                return JsonResponse({'ok': False, 'msg': 'Requisito: Masterizado'})
+
+        return JsonResponse({
+            'ok': True,
+            'fase_anterior': estacion.fase,
+            'nueva_fase': nueva_fase_prev
+        })
+
     # ---------- SoporteMantenimiento ----------
     if rol == 'SoporteMantenimiento':
         if accion == 'revision':

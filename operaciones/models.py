@@ -11,7 +11,7 @@ class CentroEmpadronamiento(models.Model):
     departamento = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.punto_de_empadronamiento
 
 class Llave(models.Model):
     nro_estacion = models.IntegerField(default=0, unique=True)

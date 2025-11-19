@@ -12,6 +12,25 @@ from .models import (
     Coordinador, Operador, ReporteDiario,
     RegistroDespliegue, Item, CentroEmpadronamiento, UbicacionesOperador
 )
+from django.contrib.admin.models import LogEntry
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import OuterRef, Subquery, F
+from django.contrib.admin import SimpleListFilter
+
+
+def _primer_que(modelo, obj_id):
+    log = LogEntry.objects.filter(
+        content_type=ContentType.objects.get_for_model(modelo),
+        object_id=str(obj_id)
+    ).order_by('action_time').first()
+    return log.user.username if log else '-'
+
+def _ultimo_que(modelo, obj_id):
+    log = LogEntry.objects.filter(
+        content_type=ContentType.objects.get_for_model(modelo),
+        object_id=str(obj_id)
+    ).order_by('-action_time').first()
+    return log.user.username if log else '-'
 
 def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
     """
@@ -109,6 +128,38 @@ class registroDiarioResource(resources.ModelResource):
         # exportar todos los modelos
         fields = '__all__'
 
+class EstacionAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        ct = ContentType.objects.get_for_model(Estacion)
+        ultimo_qs = LogEntry.objects.filter(
+            content_type=ct,
+            object_id=OuterRef('pk')
+        ).order_by('-action_time').values('user__username')[:1]
+
+        return super().get_queryset(request).annotate(
+            _ultimo_user=Subquery(ultimo_qs),
+        )
+
+class UltimoUsuarioFilter(SimpleListFilter):
+    title          = 'último usuario'
+    parameter_name = '_ultimo_user'
+
+    def lookups(self, request, model_admin):
+        # Opciones: usuarios que aparecen en LogEntry sobre Estacion
+        ct = ContentType.objects.get_for_model(Estacion)
+        users = (
+            LogEntry.objects
+            .filter(content_type=ct)
+            .values_list('user__username', flat=True)
+            .distinct()
+            .order_by('user__username')
+        )
+        return [(u, u) for u in users]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(_ultimo_user=self.value())
+        return queryset
 
 def exportar_a_excel(modeladmin, request, queryset):
     """
@@ -148,50 +199,21 @@ class EstacionResource(resources.ModelResource):
 # ---------------- Estacion  ----------------
 @admin.register(Estacion)
 class EstacionAdmin(admin.ModelAdmin):
-    resource_classes = [EstacionResource]
-    list_display = [f.name for f in Estacion._meta.fields]
-    search_fields = ['codigo_equipo', 'nro_estacion']
-    list_filter = ['fase', 'estado_computadora']
-    # registrar la acción
-    actions = [exportar_a_excel]
+    list_display = [
+        'codigo_equipo',
+        'nro_estacion',
+        'fase',
+        'primer_por',
+        'ultimo_por',
+    ]
+    list_filter  = [UltimoUsuarioFilter] 
+    def primer_por(self, obj):
+        return _primer_que(Estacion, obj.pk)
+    primer_por.short_description = 'Primero por'
 
-    fieldsets = (
-        ('Datos generales', {
-            'fields': ('codigo_equipo', 'nro_estacion', 'fase', 'tipo_estacion', 'modelo', 'llave')
-        }),
-        ('Hardware', {
-            'description': 'Estado del hardware y sus observaciones',
-            'fields': (
-                ('estado_computadora', 'obs_computadora'),
-                ('estado_monitor', 'obs_monitor'),
-                ('estado_pad_firmas', 'obs_pad_firmas'),
-                ('estado_decadactilar', 'obs_decadactilar'),
-                ('estado_hub_usb', 'obs_hub_usb'),
-                ('estado_estabilizador_energia', 'obs_estabilizador_energia'),
-                ('estado_pila_madre', 'obs_pila_madre'),
-                ('estado_memorias_ram', 'obs_memorias_ram'),
-                ('estado_disco_duro', 'obs_disco_duro'),
-                ('estado_teclado', 'obs_teclado'),
-                ('estado_regulador_voltaje', 'obs_regulador_voltaje'),
-                ('estado_escaner', 'modelo_escaner', 'obs_escaner'),
-                ('estado_impresora', 'modelo_impresora', 'obs_impresora'),
-                ('estado_camara', 'modelo_camara', 'obs_camara'),
-            )
-        }),
-        ('Accesorios', {
-            'fields': (
-                ('cable_extensor', 'obs_cable_extensor'),
-                ('tripode',        'obs_tripode'),
-                ('banner',         'obs_banner'),
-                ('adaptador_3a2',  'obs_adaptador_3a2'),
-                'monitor_pc',
-                'testeo_pila'
-            )
-        }),
-        ('Otros', {
-            'fields': ('asignada', 'observacion')
-        })
-    )
+    def ultimo_por(self, obj):
+        return _ultimo_que(Estacion, obj.pk)
+    ultimo_por.short_description = 'Último por'
 
 # ---------------- Llave ----------------
 @admin.register(Llave)

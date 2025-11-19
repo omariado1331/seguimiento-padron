@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import environ
 import os
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATICFILES_DIRS = [BASE_DIR / "operaciones/static"]
@@ -117,6 +118,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
+}
+
+SIMPLE_JWT = {
+    # Access-token válido 24 h
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
+    # Refresh-token, opcional, puedes dejarlo más largo
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # Rotación opcional
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # Password validation

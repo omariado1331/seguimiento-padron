@@ -32,7 +32,7 @@
           if (p.latitud && p.longitud) {
             const marker = L.marker([p.latitud, p.longitud]).addTo(map);
             marker.bindPopup(
-              `Operador: <b>${p.operador.nombre ?? 'Sin nombre'}</b><br>
+              `Operador: <b>${p.user ?? 'Sin Usuario'}</b><br>
                Fecha: ${new Date(p.fecha).toLocaleString()}`
             );
           }

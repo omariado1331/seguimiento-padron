@@ -22,7 +22,24 @@ def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
     ws.title = 'Registros Diarios'
 
     # --- cabecera ---
-    columnas = [f.verbose_name for f in ReporteDiario._meta.fields]
+    columnas = [
+        "Departamento",
+        "Provincia",
+        "Municipio",
+        "Localidad",
+        "Punto de Empadronamiento",
+        "Direccion",
+        "Fecha",
+        "Estación",
+        "Modalidad",
+        "Cant. de registros C",
+        "Cant. de registros R",
+        "Tipo de estación",
+        "Área",
+        "Operador",
+        "Observación"
+    ]
+    #columnas = [f.verbose_name for f in ReporteDiario._meta.fields]
     ws.append(columnas)
 
     for col_num, col_name in enumerate(columnas, 1):
@@ -44,20 +61,37 @@ def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
         ws.column_dimensions[col_letter].width = max(15 , len(col_name) + 3)
 
     # --- filas ---
-    for obj in queryset:
-        fila = []
-        for f in ReporteDiario._meta.fields:
-            valor = getattr(obj, f.name)   
+    for r in queryset:
+        # fila = []
+        # for f in ReporteDiario._meta.fields:
+        #     valor = getattr(obj, f.name)   
 
-            if f.many_to_one:
-                valor = str(valor)
+        #     if f.many_to_one:
+        #         valor = str(valor)
             
-            from datetime import datetime
-            if isinstance(valor, datetime):
-                valor = valor.strftime("%Y-%m-%d")
+        #     from datetime import datetime
+        #     if isinstance(valor, datetime):
+        #         valor = valor.strftime("%Y-%m-%d")
             
-            fila.append(valor)
-        ws.append(fila)
+        #     fila.append(valor)
+        # ws.append(fila)
+        ws.append([
+            r.centro_empadronamiento.departamento if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.provincia if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.municipio if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.localidad if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.punto_de_empadronamiento if r.centro_empadronamiento else "",
+            r.centro_empadronamiento.direccion if r.centro_empadronamiento else "",
+            r.fecha_reporte.strftime("%Y-%m-%d"),
+            r.estacion.nro_estacion if r.estacion else "",
+            "Desconectado",
+            r.registro_c,
+            r.registro_r,
+            r.estacion.tipo_estacion if r.estacion else "",
+            r.operador.tipo_operador if r.operador else "",
+            f"{r.operador.nombre} {r.operador.apellido_paterno} {r.operador.apellido_materno}",
+            r.observaciones
+        ])
     
     response = HttpResponse(
         content_type= 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

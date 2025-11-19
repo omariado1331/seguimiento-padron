@@ -2,6 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
+class CentroEmpadronamiento(models.Model):
+    nombre = models.CharField(max_length=100, blank=True, null=True)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
+    localidad = models.CharField(max_length=50, blank=True, null=True)
+    municipio = models.CharField(max_length=50, blank=True, null=True)
+    provincia = models.CharField(max_length=50, blank=True, null=True)
+    departamento = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+
 class Llave(models.Model):
     nro_estacion = models.IntegerField(default=0, unique=True)
     contador_r = models.IntegerField(default=0)
@@ -209,7 +220,7 @@ class Estacion(models.Model):
     obs_banner         = models.TextField(blank=True)
     obs_adaptador_3a2  = models.TextField(blank=True)
     def __str__(self):
-        return f"{self.codigo_equipo} - Llave: {self.llave}"
+        return f"{self.nro_estacion} - Cod: {self.codigo_equipo}"
     
 class MovimientosEstacion(models.Model):
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
@@ -253,8 +264,8 @@ class Operador(models.Model):
         ('renuncia', 'Renuncia'),
     ]
     TIPO_OPERADOR_CHOICES = [
-        ('Operador Urbano', 'Operador Urbano'),
-        ('Operador Rural', 'Operador Rural'),
+        ('URBANO', 'OPERADOR URBANO'),
+        ('RURAL', 'OPERADOR RURAL'),
     ]
     estado = models.CharField(
         max_length=20,
@@ -272,17 +283,19 @@ class Operador(models.Model):
     nombre = models.CharField(max_length=100, null=True, blank=True)
     apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
     apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    carnet = models.CharField(max_length=20, unique=True, null=True, blank=True)
     direccion = models.CharField(max_length=200, blank=True, null=True)
     correo = models.EmailField(unique=True, null=True, blank=True)
     celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
 
 
 class ReporteDiario(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE)
+    centro_empadronamiento = models.ForeignKey(CentroEmpadronamiento, on_delete=models.CASCADE, blank=True, null=True)
     fecha_reporte = models.DateTimeField(null=True, blank=True)
     contador_inicial_c = models.TextField(max_length=25, blank = True)
     contador_final_c = models.TextField(max_length=25, blank = True)
@@ -342,3 +355,15 @@ class Item(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE, null=True, blank=True)
     descripcion = models.TextField(blank=True)
     observacion = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.codigo_item
+
+class UbicacionesOperador(models.Model):
+    operador = models.ForeignKey(Operador, on_delete=models.CASCADE, null=True, blank=True)
+    latitud = models.CharField(max_length=255, blank=True, null= True)
+    longitud = models.CharField(max_length=255, blank=True, null= True)
+    fecha = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.operador.nombre} {self.operador.apellido_paterno} {self.operador.apellido_materno} - {self.fecha}"

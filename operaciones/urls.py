@@ -7,7 +7,8 @@ from .api_views import (
     LlaveViewSet, RutaViewSet, 
     EstacionViewSet, MovimientosEstacionViewSet, CoordinadorViewSet, 
     OperadorViewSet, ReporteDiarioViewSet, RegistroDespliegueViewSet,
-    UserViewSet, ListarOperadoresListView, ItemViewSet
+    UserViewSet, ListarOperadoresListView, ItemViewSet, 
+    CentroEmpadronamientoViewSet, UbicacionesOperadorViewSet
 )
 from . import views
 
@@ -22,6 +23,8 @@ router.register(r'operadores', OperadorViewSet)
 router.register(r'reportesdiarios', ReporteDiarioViewSet)
 router.register(r'registrosdespliegue', RegistroDespliegueViewSet)
 router.register(r'items', ItemViewSet)
+router.register(r'centros-empadronamiento', CentroEmpadronamientoViewSet)
+router.register(r'ubicaciones-operador', UbicacionesOperadorViewSet)
 
 urlpatterns = [
     #path('', views.index, name='index'),

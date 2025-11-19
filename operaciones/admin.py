@@ -5,11 +5,76 @@ from .models import Estacion
 
 from django.http import HttpResponse
 from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 from .models import (
     Llave, Ruta, Estacion, MovimientosEstacion,
     Coordinador, Operador, ReporteDiario,
-    RegistroDespliegue, Item
+    RegistroDespliegue, Item, CentroEmpadronamiento, UbicacionesOperador
 )
+
+def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
+    """
+    Opcion para exportar los registros seleccionados a excel
+    """
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Registros Diarios'
+
+    # --- cabecera ---
+    columnas = [f.verbose_name for f in ReporteDiario._meta.fields]
+    ws.append(columnas)
+
+    for col_num, col_name in enumerate(columnas, 1):
+        col_letter = get_column_letter(col_num)
+
+        #color de fondo
+        ws[f"{col_letter}1"].fill = PatternFill(
+            start_color='ADD8E6', #Azul claro,
+            end_color='ADD8E6',
+            fill_type="solid"
+        )
+
+        #Fuente negrita
+        ws[f"{col_letter}1"].font= Font(bold=True)
+
+        #Centrado
+        ws[f"{col_letter}1"].alignment= Alignment(horizontal='center')
+
+        ws.column_dimensions[col_letter].width = max(15 , len(col_name) + 3)
+
+    # --- filas ---
+    for obj in queryset:
+        fila = []
+        for f in ReporteDiario._meta.fields:
+            valor = getattr(obj, f.name)   
+
+            if f.many_to_one:
+                valor = str(valor)
+            
+            from datetime import datetime
+            if isinstance(valor, datetime):
+                valor = valor.strftime("%Y-%m-%d")
+            
+            fila.append(valor)
+        ws.append(fila)
+    
+    response = HttpResponse(
+        content_type= 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_diario.xlsx"'
+    wb.save(response)
+    return response
+
+exportar_a_excel_reportes_diarios.short_description = "Exportar registros diarios a Excel"
+
+class registroDiarioResource(resources.ModelResource):
+    class Meta:
+        # modelo de donde se exportan los datos
+        model = ReporteDiario
+        # exportar todos los modelos
+        fields = '__all__'
+
 
 def exportar_a_excel(modeladmin, request, queryset):
     """
@@ -125,16 +190,18 @@ class CoordinadorAdmin(admin.ModelAdmin):
 # ---------------- Operador ----------------
 @admin.register(Operador)
 class OperadorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'tipo_operador', 'estado', 'coordinador', 'estacion']
+    list_display = ['user__first_name','user__last_name', 'tipo_operador', 'estado', 'coordinador', 'estacion']
     search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
     list_filter = ['estado', 'tipo_operador', 'coordinador', 'estacion']
 
 # ---------------- ReporteDiario ----------------
 @admin.register(ReporteDiario)
 class ReporteDiarioAdmin(admin.ModelAdmin):
-    list_display = ['operador', 'estacion', 'fecha_reporte', 'registro_c', 'registro_r', 'estado']
-    search_fields = ['operador__user__username', 'estacion__codigo_equipo']
-    list_filter = ['fecha_reporte', 'estado', 'sincronizar']
+    #resource_classes = [registroDiarioResource]
+    list_display = ['estacion', 'fecha_reporte', 'operador__tipo_operador', 'operador', 'registro_c', 'registro_r', 'estado']
+    search_fields = ['operador__user__username', 'estacion__codigo_equipo', 'estacion__nro_estacion']
+    list_filter = ['fecha_reporte', 'estado', 'sincronizar', 'operador__tipo_operador']
+    actions = [exportar_a_excel_reportes_diarios]
 
 # ---------------- RegistroDespliegue ----------------
 @admin.register(RegistroDespliegue)
@@ -149,3 +216,16 @@ class ItemAdmin(admin.ModelAdmin):
     list_display = ['codigo_item', 'serie_item', 'tipo', 'asignado_operador']
     search_fields = ['codigo_item', 'serie_item']
     list_filter = ['tipo', 'asignado_operador']
+
+#--------------- Centro de empadronamiento ---------------------
+@admin.register(CentroEmpadronamiento)
+class CentroEmpadronamientoAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in CentroEmpadronamiento._meta.fields]
+    search_fields = ['nombre', 'provincia']
+    list_filter = ['provincia']
+
+@admin.register(UbicacionesOperador)
+class UbicacionesOperadorAdmin(admin.ModelAdmin):
+    list_display = [f.name for f in UbicacionesOperador._meta.fields]
+    search_fields = ['operador', 'operador__carnet']
+    list_filter = ['fecha', 'operador']

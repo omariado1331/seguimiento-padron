@@ -224,6 +224,13 @@ class EstacionAdmin(admin.ModelAdmin):
         'fase',
         'ultimo_por',
     ]
+    search_fields = [
+        'codigo_equipo',
+        'nro_estacion',
+        'fase',
+        'estado_computadora',
+        'llave__nro_estacion',   # búsqueda por número de llave
+    ]
     list_filter  = [UltimoUsuarioFilter] 
     def primer_por(self, obj):
         return _primer_que(Estacion, obj.pk)
@@ -238,6 +245,49 @@ class EstacionAdmin(admin.ModelAdmin):
             .first())
         return log.user.username if log else '-'
     ultimo_por.short_description = 'Último por'
+
+
+
+    actions = [exportar_a_excel]
+
+    fieldsets = (
+        ('Datos generales', {
+            'fields': ('codigo_equipo', 'nro_estacion', 'fase', 'tipo_estacion', 'modelo', 'llave')
+        }),
+        ('Hardware', {
+            'description': 'Estado del hardware y sus observaciones',
+            'fields': (
+                ('estado_computadora', 'obs_computadora'),
+                ('estado_monitor', 'obs_monitor'),
+                ('estado_pad_firmas', 'obs_pad_firmas'),
+                ('estado_decadactilar', 'obs_decadactilar'),
+                ('estado_hub_usb', 'obs_hub_usb'),
+                ('estado_estabilizador_energia', 'obs_estabilizador_energia'),
+                ('estado_pila_madre', 'obs_pila_madre'),
+                ('estado_memorias_ram', 'obs_memorias_ram'),
+                ('estado_disco_duro', 'obs_disco_duro'),
+                ('estado_teclado', 'obs_teclado'),
+                ('estado_regulador_voltaje', 'obs_regulador_voltaje'),
+                ('estado_escaner', 'modelo_escaner', 'obs_escaner'),
+                ('estado_impresora', 'modelo_impresora', 'obs_impresora'),
+                ('estado_camara', 'modelo_camara', 'obs_camara'),
+            )
+        }),
+        ('Accesorios', {
+            'fields': (
+                ('cable_extensor', 'obs_cable_extensor'),
+                ('tripode',        'obs_tripode'),
+                ('banner',         'obs_banner'),
+                ('adaptador_3a2',  'obs_adaptador_3a2'),
+                'monitor_pc',
+                'testeo_pila'
+            )
+        }),
+        ('Otros', {
+            'fields': ('asignada', 'observacion')
+        })
+    )
+
 
 # ---------------- Llave ----------------
 @admin.register(Llave)

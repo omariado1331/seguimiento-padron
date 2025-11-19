@@ -3,10 +3,10 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class CentroEmpadronamiento(models.Model):
-    nombre = models.CharField(max_length=100, blank=True, null=True)
-    direccion = models.CharField(max_length=255, blank=True, null=True)
-    localidad = models.CharField(max_length=50, blank=True, null=True)
-    municipio = models.CharField(max_length=50, blank=True, null=True)
+    punto_de_empadronamiento = models.CharField(max_length=100, blank=True, null=True)
+    direccion = models.CharField(max_length=512, blank=True, null=True)
+    localidad = models.CharField(max_length=100, blank=True, null=True)
+    municipio = models.CharField(max_length=100, blank=True, null=True)
     provincia = models.CharField(max_length=50, blank=True, null=True)
     departamento = models.CharField(max_length=50, blank=True, null=True)
 

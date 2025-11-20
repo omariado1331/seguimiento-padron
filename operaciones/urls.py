@@ -13,6 +13,8 @@ from .api_views import (
     ListarPuntosEmpadronamientoView
 )
 from . import views
+
+from .views import mapa_dashboard
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'llaves', LlaveViewSet)
@@ -44,4 +46,5 @@ urlpatterns = [
     path('api/listar-puntos-empadronamiento/',
          ListarPuntosEmpadronamientoView.as_view(),
          name='listar-puntos-empadronamiento'),
+    path('mapa/', mapa_dashboard, name='mapa_dashboard'), 
 ]

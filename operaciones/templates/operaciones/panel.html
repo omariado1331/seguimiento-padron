@@ -1,189 +1,1162 @@
-{% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Panel {{ rol }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Dashboard de Estadísticas – Sistema de Seguimiento</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.css">
   <style>
-    #qr-reader{max-width:400px;margin:0 auto}
-    .step-done{background-color:#198754;color:#fff}
-    .hidden{display:none}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f8f9fa;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, #0b74b9 0%, #085a93 100%);
+      color: white;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+    
+    .sidebar-header p {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+    
+    .menu {
+      flex: 1;
+      padding: 20px 0;
+    }
+    
+    .menu-item {
+      padding: 15px 25px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+    
+    .menu-item:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    
+    .menu-item.active {
+      background-color: rgba(255,255,255,0.15);
+      border-left: 4px solid #ffc107;
+    }
+    
+    .menu-item i {
+      margin-right: 12px;
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+    
+    .menu-item span {
+      font-weight: 500;
+    }
+    
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+    }
+    
+    .logout-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: rgba(255,255,255,0.1);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      text-align: center;
+    }
+    
+    .logout-btn:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+    
+    .content-header {
+      background-color: white;
+      padding: 15px 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    
+    .content-header h2 {
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .content-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #0b74b9;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #085a93;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid #ddd;
+      color: #555;
+    }
+    
+    .btn-outline:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .content-body {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Stats Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 1.8rem;
+    }
+    
+    .stat-info h3 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    
+    .stat-info p {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .stat-progress {
+      margin-top: 8px;
+      height: 4px;
+      background-color: #e9ecef;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .stat-progress-bar {
+      height: 100%;
+      background-color: #0b74b9;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    
+    /* Charts Container */
+    .charts-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .chart-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .chart-header h3 {
+      color: #333;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+    
+    /* Phase Progress */
+    .phase-progress-container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    
+    .phase-item {
+      margin-bottom: 15px;
+    }
+    
+    .phase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .phase-name {
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .phase-count {
+      font-weight: 600;
+      color: #0b74b9;
+    }
+    
+    .phase-bar {
+      height: 8px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .phase-progress {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    /* Timeline */
+    .timeline-container {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: #e9ecef;
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .timeline-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .timeline-marker {
+      position: absolute;
+      left: -25px;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #0b74b9;
+      border: 2px solid white;
+      box-shadow: 0 0 0 3px #0b74b9;
+    }
+    
+    .timeline-content h4 {
+      color: #333;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    .timeline-content p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    /* Hidden content */
+    .content-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+    
+    .content-panel.active {
+      display: flex;
+    }
+
+    /* Loading indicator */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0b74b9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .charts-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 70px;
+      }
+      
+      .sidebar-header h1,
+      .sidebar-header p,
+      .menu-item span,
+      .user-info div:last-child,
+      .logout-btn span {
+        display: none;
+      }
+      
+      .menu-item {
+        justify-content: center;
+        padding: 15px;
+      }
+      
+      .menu-item i {
+        margin-right: 0;
+      }
+    }
   </style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-4">
-  <div class="container-fluid">
-    <span class="navbar-brand mb-0 h1">Panel {{ rol }}</span>
-    <div class="ms-auto">
-      <span class="text-white me-3">{{ user.username }}</span>
-      <a class="btn btn-sm btn-outline-light" href="{% url 'logout' %}">Cerrar sesión</a>
+<body>
+  <!-- Sidebar Menu -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>Sistema de Seguimiento</h1>
+      <p>Panel de Estadísticas</p>
+    </div>
+    
+    <div class="menu">
+      <div class="menu-item active" data-target="dashboard">
+        <i class="fas fa-chart-bar"></i>
+        <span>Dashboard General</span>
+      </div>
+      <div class="menu-item" data-target="estaciones">
+        <i class="fas fa-desktop"></i>
+        <span>Estadísticas Estaciones</span>
+      </div>
+      <div class="menu-item" data-target="operadores">
+        <i class="fas fa-users"></i>
+        <span>Estadísticas Operadores</span>
+      </div>
+      <div class="menu-item" data-target="reportes">
+        <i class="fas fa-file-alt"></i>
+        <span>Reportes Avanzados</span>
+      </div>
+    </div>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div>
+          <div style="font-weight: 500;" id="username">{{ user.username }}</div>
+          <div style="font-size: 0.8rem; opacity: 0.8;">{{ user.groups.first.name }}</div>
+        </div>
+      </div>
+      <a href="/logout/" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span>
+      </a>
     </div>
   </div>
-</nav>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="content-header">
+      <h2 id="content-title">Dashboard de Estadísticas Generales</h2>
+      <div class="content-actions">
+        <button class="btn btn-outline" id="export-btn">
+          <i class="fas fa-download"></i> Exportar
+        </button>
+        <button class="btn btn-primary" id="refresh-data">
+          <i class="fas fa-sync-alt"></i> <span id="refresh-text">Actualizar</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="content-body">
+      <!-- Panel Dashboard General -->
+      <div id="dashboard" class="content-panel active">
+        <!-- Estadísticas Principales -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+              <i class="fas fa-desktop"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="total-estaciones">0</h3>
+              <p>Total de Estaciones</p>
+              <div class="stat-progress">
+                <div class="stat-progress-bar" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e8f5e9; color: #4caf50;">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="estaciones-operativas">0</h3>
+              <p>Estaciones Operativas</p>
+              <div class="stat-progress">
+                <div class="stat-progress-bar" id="operativas-progress" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fff3e0; color: #ff9800;">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="en-proceso">0</h3>
+              <p>En Proceso</p>
+              <div class="stat-progress">
+                <div class="stat-progress-bar" id="proceso-progress" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #ffebee; color: #f44336;">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="en-mantenimiento">0</h3>
+              <p>En Mantenimiento</p>
+              <div class="stat-progress">
+                <div class="stat-progress-bar" id="mantenimiento-progress" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<div class="container">
-  <!-- MENÚ DE ACCIONES -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="card-title">Seleccione una acción</h5>
-      <div class="btn-group flex-wrap" role="group" id="acciones">
-        {% if rol == 'SoporteInventarios' %}
-          <button class="btn btn-outline-primary" data-accion="inventariar">Inventariar nuevo equipo</button>
-        {% elif rol == 'SoporteMantenimiento' %}
-          <button class="btn btn-outline-primary" data-accion="revision">Pasar a Revisión</button>
-          <button class="btn btn-outline-primary" data-accion="mantenimiento">Pasar a Mantenimiento</button>
-          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Revisión/Mantenimiento</button>
-        {% elif rol == 'SoporteClonacion' %}
-          <button class="btn btn-outline-primary" data-accion="clonacion">Iniciar Clonación</button>
-          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Clonación</button>
-        {% elif rol == 'SoporteMasterizacion' %}
-          <button class="btn btn-outline-primary" data-accion="masterizacion">Iniciar Masterización</button>
-          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Masterización</button>
-        {% elif rol == 'SoporteEntrega' %}
-          <button class="btn btn-outline-success" data-accion="entrega">Entregar equipo</button>
-        {% endif %}
+        <!-- Gráficas Principales -->
+        <div class="charts-container">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-pie"></i> Distribución por Fase</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="fasesChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-bar"></i> Tipos de Estación</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="tiposChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progreso por Fases -->
+        <div class="phase-progress-container">
+          <h3 style="margin-bottom: 20px; color: #333;"><i class="fas fa-project-diagram"></i> Progreso del Flujo de Trabajo</h3>
+          
+          <div class="phase-item">
+            <div class="phase-header">
+              <span class="phase-name">Recepcionado → En Revisión</span>
+              <span class="phase-count" id="count-revision">0/0</span>
+            </div>
+            <div class="phase-bar">
+              <div class="phase-progress" id="progress-revision" style="width: 0%; background-color: #ff9800;"></div>
+            </div>
+          </div>
+          
+          <div class="phase-item">
+            <div class="phase-header">
+              <span class="phase-name">Revisado → En Clonación</span>
+              <span class="phase-count" id="count-clonacion">0/0</span>
+            </div>
+            <div class="phase-bar">
+              <div class="phase-progress" id="progress-clonacion" style="width: 0%; background-color: #2196f3;"></div>
+            </div>
+          </div>
+          
+          <div class="phase-item">
+            <div class="phase-header">
+              <span class="phase-name">Clonado → En Masterización</span>
+              <span class="phase-count" id="count-masterizacion">0/0</span>
+            </div>
+            <div class="phase-bar">
+              <div class="phase-progress" id="progress-masterizacion" style="width: 0%; background-color: #9c27b0;"></div>
+            </div>
+          </div>
+          
+          <div class="phase-item">
+            <div class="phase-header">
+              <span class="phase-name">Masterizado → Asignado</span>
+              <span class="phase-count" id="count-asignado">0/0</span>
+            </div>
+            <div class="phase-bar">
+              <div class="phase-progress" id="progress-asignado" style="width: 0%; background-color: #4caf50;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel Estadísticas Detalladas de Estaciones -->
+      <div id="estaciones" class="content-panel">
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+              <i class="fas fa-laptop"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="estaciones-fijas">0</h3>
+              <p>Estaciones Fijas</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e8f5e9; color: #4caf50;">
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="estaciones-moviles">0</h3>
+              <p>Estaciones Móviles</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fff3e0; color: #ff9800;">
+              <i class="fas fa-wrench"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="estaciones-defectuosas">0</h3>
+              <p>Con Defectos</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #f3e5f5; color: #9c27b0;">
+              <i class="fas fa-rocket"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="estaciones-desplegadas">0</h3>
+              <p>Desplegadas</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-container">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-line"></i> Evolución Temporal</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="evolucionChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3><i class="fas fa-chart-pie"></i> Estado de Hardware</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="hardwareChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Otros paneles -->
+      <div id="operadores" class="content-panel">
+        <h3>Estadísticas de Operadores</h3>
+        <p>Contenido en desarrollo...</p>
+      </div>
+      
+      <div id="reportes" class="content-panel">
+        <h3>Reportes Avanzados</h3>
+        <p>Contenido en desarrollo...</p>
       </div>
     </div>
   </div>
 
-  <!-- LECTOR QR (oculto hasta seleccionar acción) -->
-  <div id="qr-box" class="text-center mb-4 hidden">
-    <div id="qr-reader"></div>
-  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script>
+    // Variables globales
+    let estacionesData = [];
+    let charts = {};
+    let isRefreshing = false;
 
-  <!-- Historial SIEMPRE visible -->
-  <h5>Historial de cambios</h5>
-  <div class="table-responsive">
-    <table class="table table-sm table-striped align-middle">
-      <thead class="table-dark"><tr><th>Código</th><th>Fase nueva</th><th>Fecha/hora</th><th>Estado</th></tr></thead>
-      <tbody id="hist"></tbody>
-    </table>
-  </div>
-</div>
+    // Colores para las gráficas
+    const chartColors = {
+      primary: '#0b74b9',
+      success: '#4caf50',
+      warning: '#ff9800',
+      danger: '#f44336',
+      info: '#2196f3',
+      purple: '#9c27b0',
+      teal: '#009688',
+      orange: '#ff5722',
+      pink: '#e91e63',
+      indigo: '#3f51b5'
+    };
 
-<!-- Modal nro_estacion (solo SoporteEntrega) -->
-<div class="modal fade" id="modalNro" tabindex="-1">
-  <div class="modal-dialog"><form class="modal-content" id="formNro">
-    <div class="modal-header"><h5 class="modal-title">Asignar número de estación</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-    </div>
-    <div class="modal-body">
-      <label>Número de estación (numérico)</label>
-      <input type="number" class="form-control" id="nro_estacion" required>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-      <button type="submit" class="btn btn-primary">Guardar</button>
-    </div>
-  </form></div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
-  const rol = "{{ rol }}";
-  let accion = '';
-  let codigoQR = '';
-  let procesando = false;
-  const qrBox = document.getElementById('qr-box');
-  const modal = new bootstrap.Modal(document.getElementById('modalNro'));
-  const csrf = '{{ csrf_token }}';
-
-  /* ---------- mostrar / ocultar cámara ---------- */
-  function mostrarCamara(mostrar) {
-    if (mostrar) {
-      procesando = false;
-      qrBox.classList.remove('hidden');
-      html5QrcodeScanner.clear();
-      html5QrcodeScanner.render(onScanSuccess);
-    } else {
-      qrBox.classList.add('hidden');
-      html5QrcodeScanner.clear();
+    // Inicializar la aplicación
+    function initDashboard() {
+      console.log('Inicializando dashboard...');
+      loadEstacionesData();
+      
+      // Configurar botones
+      document.getElementById('refresh-data').addEventListener('click', loadEstacionesData);
+      document.getElementById('export-btn').addEventListener('click', exportData);
     }
-  }
 
-  /* ---------- selección de acción ---------- */
-  document.querySelectorAll('#acciones button').forEach(btn => {
-    btn.addEventListener('click', e => {
-      accion = e.target.dataset.accion;
-      mostrarCamara(true);
-    });
-  });
+    // Cargar datos de estaciones desde la API
+    async function loadEstacionesData() {
+      if (isRefreshing) return;
+      
+      isRefreshing = true;
+      const refreshBtn = document.getElementById('refresh-data');
+      const refreshText = document.getElementById('refresh-text');
+      refreshText.innerHTML = '<div class="loading"></div>';
+      refreshBtn.disabled = true;
 
-  /* ---------- historial ---------- */
-  function addRow(cod, fase, ok, msg) {
-    const fe = new Date().toLocaleString('es-BO');
-    const icon = ok ? '✅' : '❌';
-    const cl = ok ? 'table-success' : 'table-danger';
-    document.getElementById('hist').insertAdjacentHTML('afterbegin',
-      `<tr class="${cl}"><td>${cod}</td><td>${fase || '-'}</td><td>${fe}</td><td>${icon} ${msg}</td></tr>`);
-  }
+      try {
+        console.log('Cargando datos de estaciones...');
+        
+        const response = await fetch('/api/estaciones/', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin'
+        });
 
-  /* ---------- envío al backend ---------- */
-  function enviar(payload) {
-    fetch("{% url 'qr_scan' %}", {
-      method: 'POST',
-      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    })
-      .then(r => r.json())
-      .then(j => {
-        addRow(codigoQR, j.nueva_fase, j.ok, j.msg || j.nueva_fase);
-        if (!j.ok) alert(j.msg);
-        mostrarCamara(false);
-      })
-      .catch(err => alert('Error red'));
-  }
-
-  /* ---------- QR callback ---------- */
-  function onScanSuccess(decodedText) {
-    if (!accion || procesando) return;
-    procesando = true;                   // bloqueo temporal
-    codigoQR = decodedText;
-
-    /* ======  NUEVO: CONFIRMACIÓN  ====== */
-    // preguntamos al backend cuál sería la nueva fase
-    fetch("{% url 'qr_scan' %}", {
-      method: 'POST',
-      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
-      body: JSON.stringify({codigo: codigoQR, accion: accion, preview: true})
-    })
-      .then(r => r.json())
-      .then(j => {
-        if (!j.ok) { alert(j.msg); procesando = false; return; }
-
-        const anterior = j.fase_anterior || '—';
-        const nuevo    = j.nueva_fase;
-        const msg = `¿Confirma el cambio de fase?\n\nEstado anterior: ${anterior}\nNuevo estado: ${nuevo}`;
-        if (confirm(msg)) {
-          // usuario confirma → enviamos definitivamente
-          if (accion === 'entrega') {
-            modal.show();
-          } else {
-            enviar({codigo: codigoQR, accion: accion});
-          }
-        } else {
-          // cancelado
-          procesando = false;
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
         }
-      })
-      .catch(err => { alert('Error red'); procesando = false; });
-  }
 
-  /* ---------- modal guardar ---------- */
-  document.getElementById('formNro').addEventListener('submit', e => {
-    e.preventDefault();
-    const nro = document.getElementById('nro_estacion').value;
-    if (!nro) { alert('Ingrese número'); return; }
-    enviar({codigo: codigoQR, accion: 'entrega', nro_estacion: nro});
-    modal.hide();
-    e.target.reset();
-  });
+        const data = await response.json();
+        console.log('Datos de estaciones recibidos:', data.length, 'registros');
+        
+        estacionesData = data;
+        updateDashboard(data);
+        createCharts(data);
 
-  /* ---------- crear lector UNA vez ---------- */
-  const html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {fps: 10, qrbox: 250}, false);
-</script>
+      } catch (error) {
+        console.error('Error cargando datos de estaciones:', error);
+        alert('Error al cargar los datos: ' + error.message);
+      } finally {
+        isRefreshing = false;
+        refreshText.textContent = 'Actualizar';
+        refreshBtn.disabled = false;
+      }
+    }
+
+    // Actualizar el dashboard con los datos
+    function updateDashboard(data) {
+      const totalEstaciones = data.length;
+      
+      // Contar por fases
+      const fasesCount = {};
+      data.forEach(estacion => {
+        const fase = estacion.fase || 'Sin fase';
+        fasesCount[fase] = (fasesCount[fase] || 0) + 1;
+      });
+
+      // Contar por tipo de estación
+      const tiposCount = {};
+      data.forEach(estacion => {
+        const tipo = estacion.tipo_estacion || 'Sin tipo';
+        tiposCount[tipo] = (tiposCount[tipo] || 0) + 1;
+      });
+
+      // Calcular estadísticas
+      const estacionesOperativas = data.filter(e => 
+        e.fase === 'Asignado' || e.fase === 'Desplegado'
+      ).length;
+      
+      const enProceso = data.filter(e => 
+        e.fase === 'En Revision' || e.fase === 'En Clonacion' || 
+        e.fase === 'En Masterizacion' || e.fase === 'Revisado funcional'
+      ).length;
+      
+      const enMantenimiento = data.filter(e => 
+        e.fase === 'En mantenimiento'
+      ).length;
+
+      const estacionesFijas = data.filter(e => e.tipo_estacion === 'FIJA').length;
+      const estacionesMoviles = data.filter(e => e.tipo_estacion === 'MOVIL').length;
+      const estacionesDefectuosas = data.filter(e => e.estado_computadora === 'defectuoso').length;
+      const estacionesDesplegadas = data.filter(e => e.fase === 'Desplegado').length;
+
+      // Actualizar estadísticas principales
+      document.getElementById('total-estaciones').textContent = totalEstaciones;
+      document.getElementById('estaciones-operativas').textContent = estacionesOperativas;
+      document.getElementById('en-proceso').textContent = enProceso;
+      document.getElementById('en-mantenimiento').textContent = enMantenimiento;
+      
+      // Actualizar barras de progreso
+      document.getElementById('operativas-progress').style.width = `${(estacionesOperativas / totalEstaciones) * 100}%`;
+      document.getElementById('proceso-progress').style.width = `${(enProceso / totalEstaciones) * 100}%`;
+      document.getElementById('mantenimiento-progress').style.width = `${(enMantenimiento / totalEstaciones) * 100}%`;
+
+      // Actualizar estadísticas detalladas
+      document.getElementById('estaciones-fijas').textContent = estacionesFijas;
+      document.getElementById('estaciones-moviles').textContent = estacionesMoviles;
+      document.getElementById('estaciones-defectuosas').textContent = estacionesDefectuosas;
+      document.getElementById('estaciones-desplegadas').textContent = estacionesDesplegadas;
+
+      // Actualizar progreso del flujo de trabajo
+      updateWorkflowProgress(data);
+    }
+
+    // Actualizar el progreso del flujo de trabajo
+    function updateWorkflowProgress(data) {
+      const recepcionado = data.filter(e => e.fase === 'Recepcionado').length;
+      const enRevision = data.filter(e => e.fase === 'En Revision').length;
+      const revisado = data.filter(e => e.fase === 'Revisado funcional').length;
+      const enClonacion = data.filter(e => e.fase === 'En Clonacion').length;
+      const clonado = data.filter(e => e.fase === 'Clonado').length;
+      const enMasterizacion = data.filter(e => e.fase === 'En Masterizacion').length;
+      const masterizado = data.filter(e => e.fase === 'Masterizado').length;
+      const asignado = data.filter(e => e.fase === 'Asignado').length;
+
+      // Recepcionado → En Revisión
+      const totalRevision = recepcionado + enRevision;
+      const progresoRevision = totalRevision > 0 ? (enRevision / totalRevision) * 100 : 0;
+      document.getElementById('count-revision').textContent = `${enRevision}/${totalRevision}`;
+      document.getElementById('progress-revision').style.width = `${progresoRevision}%`;
+
+      // Revisado → En Clonación
+      const totalClonacion = revisado + enClonacion;
+      const progresoClonacion = totalClonacion > 0 ? (enClonacion / totalClonacion) * 100 : 0;
+      document.getElementById('count-clonacion').textContent = `${enClonacion}/${totalClonacion}`;
+      document.getElementById('progress-clonacion').style.width = `${progresoClonacion}%`;
+
+      // Clonado → En Masterización
+      const totalMasterizacion = clonado + enMasterizacion;
+      const progresoMasterizacion = totalMasterizacion > 0 ? (enMasterizacion / totalMasterizacion) * 100 : 0;
+      document.getElementById('count-masterizacion').textContent = `${enMasterizacion}/${totalMasterizacion}`;
+      document.getElementById('progress-masterizacion').style.width = `${progresoMasterizacion}%`;
+
+      // Masterizado → Asignado
+      const totalAsignado = masterizado + asignado;
+      const progresoAsignado = totalAsignado > 0 ? (asignado / totalAsignado) * 100 : 0;
+      document.getElementById('count-asignado').textContent = `${asignado}/${totalAsignado}`;
+      document.getElementById('progress-asignado').style.width = `${progresoAsignado}%`;
+    }
+
+    // Crear gráficas
+    function createCharts(data) {
+      createFasesChart(data);
+      createTiposChart(data);
+      createEvolucionChart(data);
+      createHardwareChart(data);
+    }
+
+    // Gráfica de distribución por fases
+    function createFasesChart(data) {
+      const ctx = document.getElementById('fasesChart').getContext('2d');
+      
+      // Contar estaciones por fase
+      const fases = {};
+      data.forEach(estacion => {
+        const fase = estacion.fase || 'Sin fase';
+        fases[fase] = (fases[fase] || 0) + 1;
+      });
+
+      const labels = Object.keys(fases);
+      const valores = Object.values(fases);
+      
+      // Colores para las fases
+      const coloresFases = {
+        'Recepcionado': chartColors.warning,
+        'En Revision': chartColors.orange,
+        'Revisado funcional': chartColors.info,
+        'En Clonacion': chartColors.purple,
+        'Clonado': chartColors.indigo,
+        'En Masterizacion': chartColors.pink,
+        'Masterizado': chartColors.primary,
+        'Asignado': chartColors.success,
+        'Desplegado': chartColors.teal,
+        'En mantenimiento': chartColors.danger,
+        'Sin fase': '#6c757d'
+      };
+
+      const backgroundColors = labels.map(fase => coloresFases[fase] || '#6c757d');
+
+      if (charts.fases) {
+        charts.fases.destroy();
+      }
+
+      charts.fases = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: valores,
+            backgroundColor: backgroundColors,
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                boxWidth: 12,
+                padding: 15
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Gráfica de tipos de estación
+    function createTiposChart(data) {
+      const ctx = document.getElementById('tiposChart').getContext('2d');
+      
+      const tipos = {};
+      data.forEach(estacion => {
+        const tipo = estacion.tipo_estacion || 'Sin tipo';
+        tipos[tipo] = (tipos[tipo] || 0) + 1;
+      });
+
+      const labels = Object.keys(tipos);
+      const valores = Object.values(tipos);
+
+      if (charts.tipos) {
+        charts.tipos.destroy();
+      }
+
+      charts.tipos = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Cantidad de Estaciones',
+            data: valores,
+            backgroundColor: [chartColors.primary, chartColors.success, chartColors.warning],
+            borderColor: [chartColors.primary, chartColors.success, chartColors.warning],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Gráfica de evolución temporal (simulada)
+    function createEvolucionChart(data) {
+      const ctx = document.getElementById('evolucionChart').getContext('2d');
+      
+      // Simular datos de evolución (en una implementación real, esto vendría de la API)
+      const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
+      const recepcionados = [5, 8, 12, 15, 20, data.filter(e => e.fase === 'Recepcionado').length];
+      const masterizados = [2, 5, 8, 10, 15, data.filter(e => e.fase === 'Masterizado').length];
+      const asignados = [1, 3, 5, 7, 10, data.filter(e => e.fase === 'Asignado').length];
+
+      if (charts.evolucion) {
+        charts.evolucion.destroy();
+      }
+
+      charts.evolucion = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: meses,
+          datasets: [
+            {
+              label: 'Recepcionados',
+              data: recepcionados,
+              borderColor: chartColors.warning,
+              backgroundColor: chartColors.warning + '20',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Masterizados',
+              data: masterizados,
+              borderColor: chartColors.primary,
+              backgroundColor: chartColors.primary + '20',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'Asignados',
+              data: asignados,
+              borderColor: chartColors.success,
+              backgroundColor: chartColors.success + '20',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Gráfica de estado de hardware
+    function createHardwareChart(data) {
+      const ctx = document.getElementById('hardwareChart').getContext('2d');
+      
+      // Contar estados de hardware
+      const estados = {
+        'Funcional': data.filter(e => e.estado_computadora === 'funcional').length,
+        'Defectuoso': data.filter(e => e.estado_computadora === 'defectuoso').length,
+        'En Reparación': data.filter(e => e.estado_computadora === 'reparacion').length,
+        'Contingencia': data.filter(e => e.estado_computadora === 'contingencia').length,
+        'Nuevo': data.filter(e => e.estado_computadora === 'nuevo').length
+      };
+
+      const labels = Object.keys(estados);
+      const valores = Object.values(estados);
+
+      if (charts.hardware) {
+        charts.hardware.destroy();
+      }
+
+      charts.hardware = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: valores,
+            backgroundColor: [
+              chartColors.success,
+              chartColors.danger,
+              chartColors.warning,
+              chartColors.info,
+              chartColors.purple
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right'
+            }
+          }
+        }
+      });
+    }
+
+    // Exportar datos
+    function exportData() {
+      alert('Funcionalidad de exportación en desarrollo...');
+    }
+
+    // Navegación del menú
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const target = this.getAttribute('data-target');
+        
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+        
+        const titleMap = {
+          'dashboard': 'Dashboard de Estadísticas Generales',
+          'estaciones': 'Estadísticas Detalladas de Estaciones',
+          'operadores': 'Estadísticas de Operadores',
+          'reportes': 'Reportes Avanzados'
+        };
+        document.getElementById('content-title').textContent = titleMap[target] || 'Panel';
+      });
+    });
+
+    // Inicializar la aplicación cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM cargado, inicializando dashboard...');
+      initDashboard();
+    });
+
+    // Manejar errores no capturados
+    window.addEventListener('error', function(e) {
+      console.error('Error global:', e.error);
+    });
+  </script>
 </body>
 </html>

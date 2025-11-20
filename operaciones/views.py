@@ -9,8 +9,9 @@ from .models import Estacion
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
-# Create your views here.
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -28,12 +29,12 @@ def login_view(request):
                 return render(request, 'operaciones/login.html',
                               {'error': 'Usuario sin grupo asignado'})
             if grupo.name == 'AuxiliarTecnico':
-                return render(request, 'operaciones/mapa.html')
-            return redirect('panel', rol=grupo.name)
+                return redirect('mapa_dashboard')
+            else:
+                return redirect('panel', rol=grupo.name)
         return render(request, 'operaciones/login.html',
                       {'error': 'Credenciales inválidas'})
     return render(request, 'operaciones/login.html')
-
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -188,3 +189,8 @@ def log(user, obj, message, flag=CHANGE):
         action_flag=flag,
         change_message=message
     )
+@login_required
+def mapa_dashboard(request):
+    if not request.user.groups.filter(name='AuxiliarTecnico').exists():
+        return redirect('login')
+    return render(request, 'operaciones/mapa.html')

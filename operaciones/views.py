@@ -27,6 +27,8 @@ def login_view(request):
             if not grupo:
                 return render(request, 'operaciones/login.html',
                               {'error': 'Usuario sin grupo asignado'})
+            if grupo.name == 'AuxiliarTecnico':
+                return render(request, 'operaciones/mapa.html')
             return redirect('panel', rol=grupo.name)
         return render(request, 'operaciones/login.html',
                       {'error': 'Credenciales inválidas'})

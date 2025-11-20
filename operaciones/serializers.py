@@ -151,9 +151,10 @@ class CentroEmpadronamientoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UbicacionesOperadorSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source='operador.user', read_only=True)
     class Meta:
-        model= UbicacionesOperador
-        fields = '__all__'
+        model  = UbicacionesOperador
+        fields = ['id','latitud','longitud','fecha','operador','user']
 class UltimoRegistroDespliegueSerializer(serializers.ModelSerializer):
     """Serializer para devolver el último registro de despliegue de un operador."""
     class Meta:

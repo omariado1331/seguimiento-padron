@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'rest_framework',
     #cors
     'corsheaders',
+    #rangefilter
+    'rangefilter'
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 

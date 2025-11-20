@@ -1,4 +1,5 @@
 from django.contrib import admin
+from rangefilter.filters import DateRangeFilter
 from import_export import resources
 from import_export.admin import ExportActionModelAdmin
 from .models import Estacion
@@ -234,7 +235,11 @@ class ReporteDiarioAdmin(admin.ModelAdmin):
     #resource_classes = [registroDiarioResource]
     list_display = ['estacion', 'fecha_reporte', 'operador__tipo_operador', 'operador', 'registro_c', 'registro_r', 'estado']
     search_fields = ['operador__user__username', 'estacion__codigo_equipo', 'estacion__nro_estacion']
-    list_filter = ['fecha_reporte', 'estado', 'sincronizar', 'operador__tipo_operador']
+    list_filter = [
+        ('fecha_reporte', DateRangeFilter),
+        'estado', 
+        'operador__tipo_operador']
+    date_hierarchy = 'fecha_reporte'
     actions = [exportar_a_excel_reportes_diarios]
 
 # ---------------- RegistroDespliegue ----------------

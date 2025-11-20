@@ -1,10 +1,420 @@
-<!doctype html>
-<title>Login</title>
-<h2>Login</h2>
-{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
-<form method="post">
-  {% csrf_token %}
-  <label>Usuario: <input name="username"></label><br>
-  <label>Contraseña: <input type="password" name="password"></label><br>
-  <button type="submit">Entrar</button>
-</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Iniciar Sesión – Sistema de Seguimiento Equipos</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0b74b9 0%, #085a93 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .login-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+    }
+    
+    .login-header {
+      background: linear-gradient(135deg, #0b74b9 0%, #085a93 100%);
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .login-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 2rem;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .login-header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .login-header p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .login-body {
+      padding: 40px 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+      font-size: 0.9rem;
+    }
+    
+    .input-with-icon {
+      position: relative;
+    }
+    
+    .input-with-icon i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      font-size: 1.1rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 12px 15px 12px 45px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      background-color: #f8f9fa;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #0b74b9;
+      background-color: white;
+      box-shadow: 0 0 0 3px rgba(11, 116, 185, 0.1);
+    }
+    
+    .form-control::placeholder {
+      color: #999;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #0b74b9 0%, #085a93 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(11, 116, 185, 0.3);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid #f5c6cb;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+    
+    .error-message i {
+      font-size: 1.1rem;
+    }
+    
+    .login-footer {
+      text-align: center;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #e9ecef;
+    }
+    
+    .login-footer p {
+      color: #666;
+      font-size: 0.85rem;
+    }
+    
+    .security-notice {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+      color: #28a745;
+      font-size: 0.8rem;
+    }
+    
+    .security-notice i {
+      font-size: 0.9rem;
+    }
+    
+    /* Animaciones */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .login-container {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    /* Efectos de carga */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 480px) {
+      .login-container {
+        margin: 10px;
+      }
+      
+      .login-header {
+        padding: 30px 20px;
+      }
+      
+      .login-body {
+        padding: 30px 20px;
+      }
+      
+      .login-header h1 {
+        font-size: 1.5rem;
+      }
+    }
+    
+    /* Estados de interacción */
+    .form-control:invalid {
+      border-color: #dc3545;
+    }
+    
+    .form-control:valid {
+      border-color: #28a745;
+    }
+    
+    /* Mejora de accesibilidad */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h1>Sistema de Seguimiento</h1>
+      <p>Ingrese sus credenciales para continuar</p>
+    </div>
+    
+    <div class="login-body">
+      {% if error %}
+      <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+      
+      <form method="post" id="loginForm">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="username">
+            <i class="fas fa-user"></i> Nombre de Usuario
+          </label>
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="form-control" 
+              placeholder="Ingrese su usuario"
+              required
+              autocomplete="username"
+            >
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">
+            <i class="fas fa-lock"></i> Contraseña
+          </label>
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-control" 
+              placeholder="Ingrese su contraseña"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Iniciar Sesión</span>
+        </button>
+      </form>
+      
+      <div class="login-footer">
+        <p>Sistema seguro de autenticación</p>
+        <div class="security-notice">
+          <i class="fas fa-shield-check"></i>
+          <span>Conexión segura SSL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mejoras de UX
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.getElementById('loginForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const submitText = submitBtn.querySelector('span');
+      
+      loginForm.addEventListener('submit', function(e) {
+        // Validación básica del formulario
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+          e.preventDefault();
+          return;
+        }
+        
+        // Mostrar estado de carga
+        submitBtn.disabled = true;
+        submitText.innerHTML = '<div class="loading"></div> Procesando...';
+        
+        // Simular delay de red (opcional)
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+        }, 2000);
+      });
+      
+      // Mejorar focus para accesibilidad
+      const inputs = document.querySelectorAll('.form-control');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.parentElement.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+          this.parentElement.parentElement.classList.remove('focused');
+        });
+      });
+      
+      // Prevenir envío múltiple
+      let isSubmitting = false;
+      loginForm.addEventListener('submit', function(e) {
+        if (isSubmitting) {
+          e.preventDefault();
+          return;
+        }
+        isSubmitting = true;
+        
+        // Resetear después de 3 segundos por si hay error
+        setTimeout(() => {
+          isSubmitting = false;
+        }, 3000);
+      });
+    });
+    
+    // Efectos visuales adicionales
+    document.querySelectorAll('.form-control').forEach(input => {
+      input.addEventListener('input', function() {
+        if (this.value) {
+          this.classList.add('has-value');
+        } else {
+          this.classList.remove('has-value');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

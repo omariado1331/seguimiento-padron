@@ -1,46 +1,1105 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Mapa de ubicaciones – Auxiliar Técnico</title>
+  <title>Dashboard de Mapas – Sistema de Seguimiento</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    html,body{margin:0;padding:0;height:100%}
-    #map{height:90%;width:100%}
-    .header{background:#0b74b9;color:#fff;padding:.5rem 1rem}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      height: 100vh;
+      background-color: #f8f9fa;
+    }
+    
+    /* Sidebar Styles */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, #0b74b9 0%, #085a93 100%);
+      color: white;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      flex-shrink: 0;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-header h1 {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+    
+    .sidebar-header p {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+    
+    .menu {
+      flex: 1;
+      padding: 20px 0;
+    }
+    
+    .menu-item {
+      padding: 15px 25px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-left: 4px solid transparent;
+    }
+    
+    .menu-item:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    
+    .menu-item.active {
+      background-color: rgba(255,255,255,0.15);
+      border-left: 4px solid #ffc107;
+    }
+    
+    .menu-item i {
+      margin-right: 12px;
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+    
+    .menu-item span {
+      font-weight: 500;
+    }
+    
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+    }
+    
+    .logout-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: rgba(255,255,255,0.1);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      text-align: center;
+    }
+    
+    .logout-btn:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+    
+    /* Main Content Styles */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+    
+    .content-header {
+      background-color: white;
+      padding: 15px 25px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    
+    .content-header h2 {
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .content-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #0b74b9;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #085a93;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid #ddd;
+      color: #555;
+    }
+    
+    .btn-outline:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #218838;
+    }
+    
+    .content-body {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Filtros Styles */
+    .filters-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .filters-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .filters-header h3 {
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .filters-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .filter-group label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    
+    .filter-control {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      background-color: white;
+    }
+    
+    .filter-control:focus {
+      outline: none;
+      border-color: #0b74b9;
+      box-shadow: 0 0 0 2px rgba(11, 116, 185, 0.1);
+    }
+    
+    .filters-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+    
+    /* Map Container */
+    .map-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden;
+      flex: 1;
+      position: relative;
+      min-height: 400px;
+    }
+    
+    #map {
+      height: 100%;
+      width: 100%;
+      border-radius: 8px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    
+    /* Map Controls */
+    .map-controls {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .control-btn {
+      width: 40px;
+      height: 40px;
+      background-color: white;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .control-btn:hover {
+      background-color: #f5f5f5;
+    }
+    
+    /* Stats Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+    }
+    
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 1.5rem;
+    }
+    
+    .stat-info h3 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    
+    .stat-info p {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    /* Hidden content */
+    .content-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+    }
+    
+    .content-panel.active {
+      display: flex;
+    }
+
+    /* Loading indicator */
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0b74b9;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Badge para filtros activos */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .filter-badge {
+      background-color: #e3f2fd;
+      color: #0b74b9;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .filter-badge .remove {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .filter-badge .remove:hover {
+      color: #d32f2f;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h2 style="margin:0">Mapa de ubicaciones de operadores</h2>
+  <!-- Sidebar Menu -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>Sistema de Seguimiento</h1>
+      <p>Panel de Auxiliar Técnico</p>
+    </div>
+    
+    <div class="menu">
+      <div class="menu-item active" data-target="mapa1">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Mapa de Operadores</span>
+      </div>
+      <div class="menu-item" data-target="mapa2">
+        <i class="fas fa-route"></i>
+        <span>Rutas de Despliegue</span>
+      </div>
+      <div class="menu-item" data-target="mapa3">
+        <i class="fas fa-chart-bar"></i>
+        <span>Estadísticas por Zona</span>
+      </div>
+      <div class="menu-item" data-target="reportes">
+        <i class="fas fa-file-alt"></i>
+        <span>Reportes Diarios</span>
+      </div>
+    </div>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div>
+          <div style="font-weight: 500;" id="username">Auxiliar Técnico</div>
+          <div style="font-size: 0.8rem; opacity: 0.8;">Sistema de Seguimiento</div>
+        </div>
+      </div>
+      <a href="/logout/" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+      </a>
+    </div>
   </div>
-  <div id="map"></div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="content-header">
+      <h2 id="content-title">Mapa de Ubicaciones de Operadores</h2>
+      <div class="content-actions">
+        <button class="btn btn-outline" id="export-btn">
+          <i class="fas fa-download"></i> Exportar
+        </button>
+        <button class="btn btn-primary" id="refresh-data">
+          <i class="fas fa-sync-alt"></i> <span id="refresh-text">Actualizar</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="content-body">
+      <!-- Panel Mapa 1 -->
+      <div id="mapa1" class="content-panel active">
+        <!-- Filtros -->
+        <div class="filters-container">
+          <div class="filters-header">
+            <h3><i class="fas fa-filter"></i> Filtros de Búsqueda</h3>
+            <button class="btn btn-outline" id="toggle-filters">
+              <i class="fas fa-sliders-h"></i> Mostrar/Ocultar Filtros
+            </button>
+          </div>
+          
+          <div id="filters-content">
+            <div class="filters-row">
+              <div class="filter-group">
+                <label for="filter-user"><i class="fas fa-user"></i> Usuario</label>
+                <select id="filter-user" class="filter-control">
+                  <option value="">Todos los usuarios</option>
+                </select>
+              </div>
+              
+              <div class="filter-group">
+                <label for="filter-operator"><i class="fas fa-id-card"></i> Operador</label>
+                <select id="filter-operator" class="filter-control">
+                  <option value="">Todos los operadores</option>
+                </select>
+              </div>
+              
+              <div class="filter-group">
+                <label for="filter-date-from"><i class="fas fa-calendar"></i> Fecha Desde</label>
+                <input type="date" id="filter-date-from" class="filter-control">
+              </div>
+              
+              <div class="filter-group">
+                <label for="filter-date-to"><i class="fas fa-calendar"></i> Fecha Hasta</label>
+                <input type="date" id="filter-date-to" class="filter-control">
+              </div>
+            </div>
+            
+            <div class="active-filters" id="active-filters">
+              <!-- Los filtros activos aparecerán aquí -->
+            </div>
+            
+            <div class="filters-actions">
+              <button class="btn btn-outline" id="clear-filters">
+                <i class="fas fa-times"></i> Limpiar Filtros
+              </button>
+              <button class="btn btn-success" id="apply-filters">
+                <i class="fas fa-search"></i> Aplicar Filtros
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estadísticas y Mapa -->
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="total-operadores">0</h3>
+              <p>Operadores Activos</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e8f5e9; color: #4caf50;">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="total-ubicaciones">0</h3>
+              <p>Ubicaciones Registradas</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fff3e0; color: #ff9800;">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="actualizacion">-</h3>
+              <p>Última Actualización</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #f3e5f5; color: #9c27b0;">
+              <i class="fas fa-filter"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="filtrados">0</h3>
+              <p>Registros Filtrados</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="map-container" id="map-container">
+          <div id="map"></div>
+          <div class="map-controls">
+            <div class="control-btn" id="zoom-in" title="Acercar">
+              <i class="fas fa-plus"></i>
+            </div>
+            <div class="control-btn" id="zoom-out" title="Alejar">
+              <i class="fas fa-minus"></i>
+            </div>
+            <div class="control-btn" id="locate-me" title="Mi ubicación">
+              <i class="fas fa-crosshairs"></i>
+            </div>
+            <div class="control-btn" id="refresh-map" title="Actualizar mapa">
+              <i class="fas fa-sync-alt"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Otros paneles -->
+      <div id="mapa2" class="content-panel">
+        <div class="map-container">
+          <div id="map2" style="height: 100%;"></div>
+        </div>
+      </div>
+      
+      <div id="mapa3" class="content-panel">
+        <h3>Estadísticas por Zona</h3>
+        <p>Contenido en desarrollo...</p>
+      </div>
+      
+      <div id="reportes" class="content-panel">
+        <h3>Reportes Diarios</h3>
+        <p>Contenido en desarrollo...</p>
+      </div>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    // 1.  Inicializar mapa centrado en Bolivia
-    const map = L.map('map').setView([-16.5, -68.1], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    // Variables globales
+    let map;
+    let markers = [];
+    let allData = []; // Almacena todos los datos originales
+    let filteredData = []; // Almacena los datos filtrados
+    let totalOperadores = 0;
+    let totalUbicaciones = 0;
+    let isRefreshing = false;
 
-    // 2.  Obtener ubicaciones vía AJAX
-    fetch('/api/ubicaciones-operador/')
-      .then(r => r.json())
-      .then(data => {
-        data.forEach(p => {
-          if (p.latitud && p.longitud) {
-            const marker = L.marker([p.latitud, p.longitud]).addTo(map);
-            marker.bindPopup(
-              `Operador: <b>${p.operador.nombre ?? 'Sin nombre'}</b><br>
-               Fecha: ${new Date(p.fecha).toLocaleString()}`
-            );
+    // Configuración de filtros
+    let activeFilters = {
+      user: '',
+      operator: '',
+      dateFrom: '',
+      dateTo: ''
+    };
+
+    // Función para crear icono personalizado por operador
+    function createCustomIcon(operadorId, user) {
+      const colors = {
+        1: '#e74c3c', // Rojo para operador 1
+        2: '#3498db', // Azul para operador 2
+        default: '#2ecc71' // Verde por defecto
+      };
+
+      const color = colors[operadorId] || colors.default;
+      
+      // Crear iniciales del usuario para el marcador
+      let initials = 'OP';
+      if (user) {
+        const parts = user.split('.');
+        if (parts.length >= 2) {
+          initials = (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        } else {
+          initials = user.substring(0, 2).toUpperCase();
+        }
+      }
+
+      return L.divIcon({
+        html: `
+          <div style="
+            background-color: ${color}; 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 50%; 
+            border: 3px solid white; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+          ">${initials}</div>
+        `,
+        className: 'custom-marker',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+    }
+
+    // Función para aplicar filtros
+    function applyFilters() {
+      filteredData = allData.filter(item => {
+        // Filtro por usuario
+        if (activeFilters.user && item.user !== activeFilters.user) {
+          return false;
+        }
+        
+        // Filtro por operador
+        if (activeFilters.operator && String(item.operador) !== activeFilters.operator) {
+          return false;
+        }
+        
+        // Filtro por fecha
+        if (item.fecha) {
+          const itemDate = new Date(item.fecha);
+          
+          if (activeFilters.dateFrom) {
+            const fromDate = new Date(activeFilters.dateFrom);
+            if (itemDate < fromDate) return false;
           }
+          
+          if (activeFilters.dateTo) {
+            const toDate = new Date(activeFilters.dateTo);
+            toDate.setHours(23, 59, 59, 999); // Fin del día
+            if (itemDate > toDate) return false;
+          }
+        } else if (activeFilters.dateFrom || activeFilters.dateTo) {
+          // Si no tiene fecha pero se filtró por fecha, excluir
+          return false;
+        }
+        
+        return true;
+      });
+      
+      updateMapWithFilteredData();
+      updateActiveFiltersDisplay();
+    }
+
+    // Función para actualizar el mapa con datos filtrados
+    function updateMapWithFilteredData() {
+      // Limpiar marcadores anteriores
+      markers.forEach(marker => {
+        if (map && marker) {
+          map.removeLayer(marker);
+        }
+      });
+      markers = [];
+      
+      totalUbicaciones = 0;
+      const operadoresUnicos = new Set();
+      const usuariosUnicos = new Set();
+      
+      // Procesar cada ubicación filtrada
+      filteredData.forEach(p => {
+        if (p.latitud && p.longitud) {
+          const lat = parseFloat(p.latitud);
+          const lng = parseFloat(p.longitud);
+          
+          if (!isNaN(lat) && !isNaN(lng)) {
+            // Crear marcador con icono personalizado
+            const customIcon = createCustomIcon(p.operador, p.user);
+            const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+            
+            // Contar operadores y usuarios únicos
+            if (p.operador) {
+              operadoresUnicos.add(p.operador);
+            }
+            if (p.user) {
+              usuariosUnicos.add(p.user);
+            }
+            
+            // Crear contenido del popup
+            let popupContent = `<div style="min-width: 250px; font-family: Arial, sans-serif;">`;
+            popupContent += `<h4 style="margin: 0 0 12px 0; color: #0b74b9; border-bottom: 1px solid #eee; padding-bottom: 8px;">📍 Ubicación Registrada</h4>`;
+            
+            // Información del usuario
+            if (p.user) {
+              popupContent += `<p style="margin: 6px 0;"><strong>👤 Usuario:</strong> ${p.user}</p>`;
+            }
+            
+            // Información del operador
+            if (p.operador) {
+              popupContent += `<p style="margin: 6px 0;"><strong>🔧 Operador ID:</strong> ${p.operador}</p>`;
+            } else {
+              popupContent += `<p style="margin: 6px 0;"><strong>🔧 Operador:</strong> No asignado</p>`;
+            }
+            
+            // Información de fecha
+            if (p.fecha) {
+              const fechaLocal = new Date(p.fecha).toLocaleString('es-BO');
+              popupContent += `<p style="margin: 6px 0;"><strong>📅 Fecha:</strong> ${fechaLocal}</p>`;
+            } else {
+              popupContent += `<p style="margin: 6px 0;"><strong>📅 Fecha:</strong> No disponible</p>`;
+            }
+            
+            // Coordenadas
+            popupContent += `<p style="margin: 6px 0;"><strong>🌐 Coordenadas:</strong><br>`;
+            popupContent += `Lat: ${lat.toFixed(6)}<br>`;
+            popupContent += `Lng: ${lng.toFixed(6)}</p>`;
+            
+            // ID del registro
+            popupContent += `<p style="margin: 8px 0 0 0; font-size: 0.8em; color: #666;">🆔 Registro ID: ${p.id}</p>`;
+            popupContent += `</div>`;
+            
+            marker.bindPopup(popupContent);
+            markers.push(marker);
+            totalUbicaciones++;
+          }
+        }
+      });
+      
+      // Usar el mayor entre operadores únicos y usuarios únicos
+      totalOperadores = Math.max(operadoresUnicos.size, usuariosUnicos.size);
+      updateStats();
+      
+      // Ajustar el mapa para mostrar todos los marcadores
+      if (markers.length > 0 && map) {
+        try {
+          const group = L.featureGroup(markers);
+          map.fitBounds(group.getBounds().pad(0.1));
+          console.log(`Mapa ajustado para mostrar ${markers.length} marcadores filtrados`);
+        } catch (error) {
+          console.error('Error al ajustar los bounds del mapa:', error);
+        }
+      }
+    }
+
+    // Función para actualizar la lista de filtros activos
+    function updateActiveFiltersDisplay() {
+      const container = document.getElementById('active-filters');
+      container.innerHTML = '';
+      
+      Object.entries(activeFilters).forEach(([key, value]) => {
+        if (value) {
+          let label = '';
+          let displayValue = value;
+          
+          switch(key) {
+            case 'user':
+              label = 'Usuario';
+              break;
+            case 'operator':
+              label = 'Operador';
+              break;
+            case 'dateFrom':
+              label = 'Fecha Desde';
+              displayValue = new Date(value).toLocaleDateString('es-BO');
+              break;
+            case 'dateTo':
+              label = 'Fecha Hasta';
+              displayValue = new Date(value).toLocaleDateString('es-BO');
+              break;
+          }
+          
+          const badge = document.createElement('div');
+          badge.className = 'filter-badge';
+          badge.innerHTML = `
+            ${label}: ${displayValue}
+            <span class="remove" onclick="removeFilter('${key}')">×</span>
+          `;
+          container.appendChild(badge);
+        }
+      });
+    }
+
+    // Función para remover un filtro específico
+    function removeFilter(filterKey) {
+      activeFilters[filterKey] = '';
+      document.getElementById(`filter-${filterKey}`).value = '';
+      applyFilters();
+    }
+
+    // Función para limpiar todos los filtros
+    function clearAllFilters() {
+      activeFilters = {
+        user: '',
+        operator: '',
+        dateFrom: '',
+        dateTo: ''
+      };
+      
+      // Limpiar controles
+      document.getElementById('filter-user').value = '';
+      document.getElementById('filter-operator').value = '';
+      document.getElementById('filter-date-from').value = '';
+      document.getElementById('filter-date-to').value = '';
+      
+      applyFilters();
+    }
+
+    // Función para cargar opciones de filtros
+    function loadFilterOptions(data) {
+      const users = [...new Set(data.map(item => item.user).filter(Boolean))];
+      const operators = [...new Set(data.map(item => item.operador).filter(Boolean))];
+      
+      const userSelect = document.getElementById('filter-user');
+      const operatorSelect = document.getElementById('filter-operator');
+      
+      // Cargar usuarios
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user;
+        option.textContent = user;
+        userSelect.appendChild(option);
+      });
+      
+      // Cargar operadores
+      operators.forEach(operator => {
+        const option = document.createElement('option');
+        option.value = String(operator);
+        option.textContent = `Operador ${operator}`;
+        operatorSelect.appendChild(option);
+      });
+    }
+
+    // Inicializar mapa principal
+    function initMap() {
+      console.log('Inicializando mapa...');
+      
+      const mapContainer = document.getElementById('map');
+      if (!mapContainer) {
+        console.error('No se encontró el contenedor del mapa');
+        return;
+      }
+
+      const containerRect = mapContainer.getBoundingClientRect();
+      console.log('Dimensiones del contenedor del mapa:', containerRect.width, 'x', containerRect.height);
+
+      if (containerRect.width === 0 || containerRect.height === 0) {
+        console.warn('El contenedor del mapa tiene dimensiones cero, reintentando...');
+        setTimeout(initMap, 500);
+        return;
+      }
+
+      try {
+        map = L.map('map', {
+          center: [-16.5, -68.1],
+          zoom: 6,
+          zoomControl: false
         });
-      })
-      .catch(console.error);
+        
+        console.log('Mapa Leaflet creado');
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(map);
+
+        L.control.zoom({
+          position: 'topright'
+        }).addTo(map);
+
+        console.log('Mapa inicializado correctamente');
+
+        setTimeout(() => {
+          if (map) {
+            map.invalidateSize();
+            console.log('Mapa actualizado forzadamente');
+          }
+        }, 100);
+
+        setTimeout(loadUbicaciones, 200);
+        
+      } catch (error) {
+        console.error('Error al inicializar el mapa:', error);
+        alert('Error al cargar el mapa: ' + error.message);
+        return;
+      }
+
+      // Configurar controles del mapa
+      document.getElementById('zoom-in').addEventListener('click', () => {
+        if (map) map.zoomIn();
+      });
+      document.getElementById('zoom-out').addEventListener('click', () => {
+        if (map) map.zoomOut();
+      });
+      document.getElementById('refresh-map').addEventListener('click', loadUbicaciones);
+      document.getElementById('locate-me').addEventListener('click', locateUser);
+      document.getElementById('refresh-data').addEventListener('click', loadUbicaciones);
+      document.getElementById('export-btn').addEventListener('click', exportData);
+      
+      // Configurar filtros
+      document.getElementById('apply-filters').addEventListener('click', () => {
+        activeFilters.user = document.getElementById('filter-user').value;
+        activeFilters.operator = document.getElementById('filter-operator').value;
+        activeFilters.dateFrom = document.getElementById('filter-date-from').value;
+        activeFilters.dateTo = document.getElementById('filter-date-to').value;
+        applyFilters();
+      });
+      
+      document.getElementById('clear-filters').addEventListener('click', clearAllFilters);
+      
+      // Toggle para mostrar/ocultar filtros
+      document.getElementById('toggle-filters').addEventListener('click', () => {
+        const filtersContent = document.getElementById('filters-content');
+        const isVisible = filtersContent.style.display !== 'none';
+        filtersContent.style.display = isVisible ? 'none' : 'block';
+      });
+    }
+
+    // Cargar ubicaciones desde la API
+    async function loadUbicaciones() {
+      if (isRefreshing) return;
+      
+      isRefreshing = true;
+      const refreshBtn = document.getElementById('refresh-data');
+      const refreshText = document.getElementById('refresh-text');
+      refreshText.innerHTML = '<div class="loading"></div>';
+      refreshBtn.disabled = true;
+
+      try {
+        console.log('Cargando ubicaciones...');
+        
+        const response = await fetch('/api/ubicaciones-operador/', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Datos recibidos:', data.length, 'registros');
+        
+        // Guardar todos los datos
+        allData = data;
+        filteredData = [...data];
+        
+        // Cargar opciones de filtros
+        loadFilterOptions(data);
+        
+        // Aplicar filtros actuales
+        applyFilters();
+
+      } catch (error) {
+        console.error('Error cargando ubicaciones:', error);
+        alert('Error al cargar las ubicaciones: ' + error.message);
+      } finally {
+        isRefreshing = false;
+        refreshText.textContent = 'Actualizar';
+        refreshBtn.disabled = false;
+      }
+    }
+
+    // Actualizar estadísticas
+    function updateStats() {
+      document.getElementById('total-operadores').textContent = totalOperadores;
+      document.getElementById('total-ubicaciones').textContent = totalUbicaciones;
+      document.getElementById('filtrados').textContent = filteredData.length;
+      document.getElementById('actualizacion').textContent = new Date().toLocaleTimeString('es-BO');
+    }
+
+    // Localizar usuario
+    function locateUser() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            if (map) {
+              map.setView([latitude, longitude], 13);
+              L.marker([latitude, longitude])
+                .addTo(map)
+                .bindPopup('<b>📍 Su ubicación actual</b>')
+                .openPopup();
+            }
+          },
+          error => {
+            console.error('Error de geolocalización:', error);
+            alert('No se pudo obtener su ubicación: ' + error.message);
+          }
+        );
+      } else {
+        alert('La geolocalización no es compatible con este navegador');
+      }
+    }
+
+    // Exportar datos
+    function exportData() {
+      alert('Funcionalidad de exportación en desarrollo...');
+    }
+
+    // Navegación del menú
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        const target = this.getAttribute('data-target');
+        
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        document.querySelectorAll('.content-panel').forEach(panel => panel.classList.remove('active'));
+        document.getElementById(target).classList.add('active');
+        
+        const titleMap = {
+          'mapa1': 'Mapa de Ubicaciones de Operadores',
+          'mapa2': 'Rutas de Despliegue',
+          'mapa3': 'Estadísticas por Zona',
+          'reportes': 'Reportes Diarios'
+        };
+        document.getElementById('content-title').textContent = titleMap[target] || 'Panel';
+
+        if (target === 'mapa1' && map) {
+          setTimeout(() => {
+            map.invalidateSize();
+            console.log('Tamaño del mapa actualizado después de cambiar panel');
+          }, 300);
+        }
+      });
+    });
+
+    // Inicializar la aplicación cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM cargado, inicializando mapa...');
+      setTimeout(initMap, 300);
+    });
+
+    // Actualizar el mapa cuando la ventana cambie de tamaño
+    window.addEventListener('resize', function() {
+      if (map) {
+        setTimeout(() => {
+          map.invalidateSize();
+          console.log('Mapa actualizado por resize');
+        }, 100);
+      }
+    });
+
+    // Manejar errores no capturados
+    window.addEventListener('error', function(e) {
+      console.error('Error global:', e.error);
+    });
   </script>
-  <br>
-  <a href="{% url 'logout' %}">Cerrar sesión</a>
 </body>
 </html>

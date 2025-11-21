@@ -220,7 +220,7 @@ class EstacionResource(resources.ModelResource):
 class EstacionAdmin(admin.ModelAdmin):
     list_display = [
         'codigo_equipo',
-        'nro_estacion',
+        'llave',
         'fase',
         'ultimo_por',
     ]

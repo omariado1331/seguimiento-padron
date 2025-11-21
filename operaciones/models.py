@@ -59,7 +59,7 @@ class Estacion(models.Model):
     )
     FASES_CHOICES = [
         ('Recepcionado', 'Recepcionado'),
-        ('En Revision', 'En Revision'),
+        ('Revisado con Observacion', 'Revisado con Observacion'),
         ('Revisado funcional', 'Revisado funcional'),
         ('En Clonacion', 'En Clonacion'),
         ('Clonado', 'Clonado'),

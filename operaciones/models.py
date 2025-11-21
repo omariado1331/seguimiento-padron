@@ -314,7 +314,7 @@ class ReporteDiario(models.Model):
 
 class RegistroDespliegue(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)
-    destino = models.CharField(max_length=255, null=True)
+    centro_empadronamiento =  models.ForeignKey(CentroEmpadronamiento, on_delete=models.CASCADE, blank=True, null=True)
     latitud = models.CharField(max_length=255, null=True)
     longitud = models.CharField(max_length=255, null=True)
     DESCRIPCION_REPORTE_CHOICES = [
@@ -335,7 +335,7 @@ class RegistroDespliegue(models.Model):
     fecha_hora = models.DateTimeField(blank=True, null=True)
     
     def __str__(self):
-        return f"{self.operador.user.username}-{self.destino}--{self.descripcion_reporte}"
+        return f"{self.operador.user.username}-{self.centro_empadronamiento}--{self.descripcion_reporte}"
 
 class Item(models.Model):
     TIPO_CHOICES = [

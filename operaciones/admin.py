@@ -340,7 +340,7 @@ class ReporteDiarioAdmin(admin.ModelAdmin):
 # ---------------- RegistroDespliegue ----------------
 @admin.register(RegistroDespliegue)
 class RegistroDespliegueAdmin(admin.ModelAdmin):
-    list_display = ['operador', 'destino', 'descripcion_reporte', 'fecha_hora', 'sincronizar']
+    list_display = ['operador', 'centro_empadronamiento', 'descripcion_reporte', 'fecha_hora', 'sincronizar']
     search_fields = ['operador__user__username', 'destino']
     list_filter = ['descripcion_reporte', 'sincronizar', 'fecha_hora']
 

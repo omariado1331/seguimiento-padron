@@ -9,6 +9,8 @@ class CentroEmpadronamiento(models.Model):
     municipio = models.CharField(max_length=100, blank=True, null=True)
     provincia = models.CharField(max_length=50, blank=True, null=True)
     departamento = models.CharField(max_length=50, blank=True, null=True)
+    latitud = models.CharField(max_length=100, blank=True, null=True)
+    longitud = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.punto_de_empadronamiento

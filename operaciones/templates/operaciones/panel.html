@@ -291,6 +291,37 @@
       height: 300px;
       width: 100%;
     }
+
+    .modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index: 9999;
+    }
+    .modal-content {
+      background:white;
+      padding:20px;
+      width:400px;
+      border-radius:10px;
+      box-shadow:0 0 15px rgba(0,0,0,0.3);
+    }
+    .close {
+      float:right;
+      font-size:28px;
+      cursor:pointer;
+    }
+    .llave-item {
+      padding:8px;
+      border-bottom:1px solid #eee;
+      cursor:pointer;
+    }
+    .llave-item:hover {
+      background:#f1f1f1;
+    }
     
     /* Phase Progress */
     .phase-progress-container {
@@ -468,6 +499,10 @@
       <div class="menu-item" data-target="estaciones">
         <i class="fas fa-desktop"></i>
         <span>Estadísticas Estaciones</span>
+      </div>
+      <div class="menu-item" data-target="llaves">
+        <i class="fas fa-key"></i>
+        <span>Asignación de Llaves</span>
       </div>
       <div class="menu-item" data-target="operadores">
         <i class="fas fa-users"></i>
@@ -699,6 +734,29 @@
         </div>
       </div>
 
+      <!-- Panel de llaves  -->
+      <div id="llaves" class="content-panel">
+         <!-- 🔍 Buscador dinámico -->
+        <input 
+          type="text" 
+          id="buscador-llaves" 
+          placeholder="Buscar por Nº estación o código equipo..."
+          style="width: 100%; padding: 10px; margin-bottom: 15px; font-size: 16px;"
+        >
+
+        <div class="stats-container" id="llaves-container">
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+              <i class="fas fa-laptop"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="llave-generada">LLAVE</h4>
+              <p id="codigo-equipo-llave">CODIGO EQUIPO</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Otros paneles -->
       <div id="operadores" class="content-panel">
         <h3>Estadísticas de Operadores</h3>
@@ -712,10 +770,47 @@
     </div>
   </div>
 
+    <!-- Modal para asignar llaves -->
+  <div id="modal-llaves" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span id="cerrar-modal" class="close" style="margin-bottom: 5px;">&times;</span>
+
+      <h3 style="margin-bottom:3px" id="titulo-modal">Asignar Llave</h3>
+
+      <!-- 🔵 LLAVE SELECCIONADA -->
+      <div id="llave-seleccionada" 
+          style="display:none; padding:15px; border:2px solid #0b74b9; border-radius:8px; margin-bottom:15px;">
+      </div>
+      <!-- 🔍 Buscador -->
+      <input
+        type="text"
+        id="buscador-modal-llaves"
+        placeholder="Buscar llave por número..."
+        style="width:100%; padding:8px; margin:10px 0;"
+      />
+
+      <!-- Lista filtrada -->
+      <div id="lista-llaves" style="max-height:350px; overflow-y:auto; border:1px solid #ccc; padding:10px;">
+        <!-- Aquí se renderizan las llaves filtradas -->
+      </div>
+
+      <!-- 🔵 Botón asignar -->
+        <button id="btn-asignar-llave" 
+                style="width:50%; margin-top:15px; padding:12px; background:#0b74b9; 
+                      color:white; font-size:18px; border:none; border-radius:8px; cursor:pointer;"
+                disabled>
+          Asignar Llave
+        </button>
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script>
     // Variables globales
     let estacionesData = [];
+    let estacionesLlaveData = [];
+    let dataLlaves = [];
+    let estacionSeleccionada = null;
     let charts = {};
     let isRefreshing = false;
 
@@ -737,6 +832,8 @@
     function initDashboard() {
       console.log('Inicializando dashboard...');
       loadEstacionesData();
+      cargarEstacionesLlaves();
+      cargarLlaves();
       
       // Configurar botones
       document.getElementById('refresh-data').addEventListener('click', loadEstacionesData);
@@ -783,6 +880,253 @@
         isRefreshing = false;
         refreshText.textContent = 'Actualizar';
         refreshBtn.disabled = false;
+      }
+      cargarLlaves();
+      cargarEstacionesLlaves();
+    }
+
+    // Actualizar las llaves y equipos
+    async function cargarLlaves(){
+      try {
+        console.log('Cargando llaves sin asignar')
+        const response = await fetch('/llaves-sin-asignar/', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin'
+        });
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+          //console.log(`Error HTTP: ${response.status} - ${response.statusText}`)
+        }
+        const llaves = await response.json();
+        dataLlaves = llaves;
+      } catch (error) {
+        console.error("error al cargar llaves");
+        console.log(error);
+      }
+    }
+
+    // Actualizar las llaves y equipos
+    async function cargarEstacionesLlaves() {
+      try {
+        console.log('Cargando llaves y estaciones')
+        const response = await fetch('/lista-estaciones-llaves/', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin'
+        });
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+          console.log(`Error HTTP: ${response.status} - ${response.statusText}`)
+        }
+        const llaves = await response.json();
+ 
+        const contenedor = document.getElementById('llaves-container');
+        contenedor.innerHTML = "";
+        llaves.forEach(item => {
+           //cambiar icono de acuerdo al tipo de estacion
+          let icono = "fa-laptop"; // por defecto laptop
+          let style = "background-color: #e3f2fd; color: #0b74b9;"
+          if (item.tipo_estacion === "MOVIL") {
+            icono = "fa-mobile-alt";
+            style = "background-color: #e8f5e9; color: #4caf50;"
+          }
+          let descLlave = "";
+          if (item.id_llave == 'Sin llave asignada') {
+            descLlave = 'Sin llave asignada'
+          }
+          else {
+            descLlave = `${item.nro_estacion} -R:${item.contador_r} -C:${item.contador_c}`
+          }
+          const card = `
+            <div class="stat-card" onclick="abrirModal(${item.id}, '${item.codigo_equipo}', '${item.id_llave}')">
+            <div class="stat-icon" style="${style}">
+              <i class="fas ${icono}"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="llave-generada">${descLlave}</h4>
+              <p id="codigo-equipo-llave">${item.codigo_equipo}</p>
+            </div>
+          </div>
+          `;
+
+          contenedor.innerHTML += card;
+        });
+        estacionesLlaveData = llaves;
+
+      } catch (error) {
+        console.error("error al cargar llaves");
+        console.log(error);
+      }
+    }
+
+    const contenedor = document.getElementById('llaves-container')
+    const buscador = document.getElementById('buscador-llaves')
+
+    function renderLlaves(data){
+      contenedor.innerHTML = "";
+
+      data.forEach(item =>{
+        
+           //cambiar icono de acuerdo al tipo de estacion
+          let icono = "fa-laptop"; // por defecto laptop
+          let style = "background-color: #e3f2fd; color: #0b74b9;"
+          if (item.tipo_estacion === "MOVIL") {
+            icono = "fa-mobile-alt";
+            style = "background-color: #e8f5e9; color: #4caf50;"
+          }
+          let descLlave = "";
+          if (item.id_llave == 'Sin llave asignada') {
+            descLlave = 'Sin llave asignada'
+          }
+          else {
+            descLlave = `${item.nro_estacion} -R:${item.contador_r} -C:${item.contador_c}`
+          }
+          const card = `
+            <div class="stat-card" onclick="abrirModal(${item.id}, '${item.codigo_equipo}', '${item.id_llave}')">
+            <div class="stat-icon" style="${style}">
+              <i class="fas ${icono}"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="llave-generada">${descLlave}</h4>
+              <p id="codigo-equipo-llave">${item.codigo_equipo}</p>
+            </div>
+          </div>
+          `;
+
+          contenedor.innerHTML += card;
+      });
+    }
+
+    buscador.addEventListener("input", e=> {
+      const texto = e.target.value.toLowerCase();
+
+      const filtrados = estacionesLlaveData.filter(item => {
+      const nro = String(item.nro_estacion ?? "").toLowerCase();
+      const codigo = String(item.codigo_equipo ?? "").toLowerCase();
+      const sinAsignar = String(item.id_llave ?? "").toLowerCase(); 
+
+      return (
+        nro.includes(texto) || codigo.includes(texto) || sinAsignar.includes(texto)
+      );
+    });
+      renderLlaves(filtrados)
+    })
+    
+    // MODAL PARA ASIGNAR LLAVES
+    const modal =  document.getElementById("modal-llaves");
+    const cerrarModal = document.getElementById("cerrar-modal");
+    const buscadorModal = document.getElementById("buscador-modal-llaves");
+    const listaLlaves = document.getElementById("lista-llaves");
+    const panelSeleccionada = document.getElementById("llave-seleccionada");
+    const btnAsignar = document.getElementById("btn-asignar-llave");
+    const tituloModal = document.getElementById('titulo-modal')
+    let llaveSeleccionada = null;
+
+    //render para la lista de llaves
+    function renderLlavesSinAsignar(lista){
+      listaLlaves.innerHTML = "";
+
+      lista.forEach(ll => {
+          const item = document.createElement("div");
+          item.className = "llave-item";
+          item.textContent = `Llave ${ll.nro_estacion} C:${ll.contador_c} R:${ll.contador_r}`;
+          item.onclick = () => seleccionarLlave(ll);
+          listaLlaves.appendChild(item);
+      });
+    }
+
+    function abrirModal(id_estacion, codigo_equipo, id_llave){
+
+      // Si ya tiene llave asignada → NO abrir modal
+      if (id_llave && id_llave !== "Sin llave asignada") {
+        alert("Esta estación ya tiene una llave asignada");
+        return;
+      }
+      estacionSeleccionada = id_estacion;
+      llaveSeleccionada = null;
+      codigoEstacionSeleccionado = codigo_equipo
+      tituloModal.textContent = `Asignar Llave a ${codigoEstacionSeleccionado}`;
+
+      panelSeleccionada.style.display = "none";
+      panelSeleccionada.innerHTML = "";
+      btnAsignar.disabled = true;
+      buscadorModal.value = "";
+
+      modal.style.display = "flex";
+      renderLlavesSinAsignar(dataLlaves.slice(0, 10));
+    }
+
+    cerrarModal.onclick = () => {
+      modal.style.display = "none";
+    }
+
+    buscadorModal.addEventListener("input", e =>{
+      const texto = e.target.value.toLowerCase();
+
+      const filtrados = dataLlaves
+        .filter(l => String(l.nro_estacion).includes(texto))
+        .slice(0, 10);
+      
+      renderLlavesSinAsignar(filtrados)
+    });
+
+    // ---------- SELECCIONAR UNA LLAVE ----------
+    function seleccionarLlave(ll) {
+      llaveSeleccionada = ll;
+      
+      panelSeleccionada.style.display = "block";
+      panelSeleccionada.innerHTML = `
+        <h2 style="margin:0; font-size:26px;">Llave ${ll.nro_estacion}</h2>
+        <p style="font-size:18px; margin:5px 0;">Contador R: <b>${ll.contador_r}</b></p>
+        <p style="font-size:18px; margin:5px 0;">Contador C: <b>${ll.contador_c}</b></p>
+      `;
+
+      btnAsignar.disabled = false;
+    }
+
+    btnAsignar.onclick = () => {
+      if(!llaveSeleccionada) return;
+
+      console.log(llaveSeleccionada)
+      console.log(estacionSeleccionada)
+
+      // asignar llave a estacion metodo post
+
+      asignarLlaveEstacion(estacionSeleccionada, llaveSeleccionada.id);
+      modal.style.display = "none"
+    }
+
+    //funcion para asignar llave 
+    async function asignarLlaveEstacion(idEstacion, idLlave) {
+      const payload = {
+        llave: idLlave
+      }
+      try {
+        const response = await fetch(`/api/estaciones/${idEstacion}/`, {
+          method: "PATCH",
+          headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload),
+          credentials: "same-origin"
+        });
+
+        if(!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+
+        alert("Llave asignada con exito")
+        loadEstacionesData();
+      } catch (error) {
+        alert("error en asignar la llave, intente de nuevo")
       }
     }
 
@@ -1140,6 +1484,7 @@
         const titleMap = {
           'dashboard': 'Dashboard de Estadísticas Generales',
           'estaciones': 'Estadísticas Detalladas de Estaciones',
+          'llaves': 'Asignación de Llaves',
           'operadores': 'Estadísticas de Operadores',
           'reportes': 'Reportes Avanzados'
         };

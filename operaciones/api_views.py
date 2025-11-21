@@ -5,6 +5,7 @@ from .serializers import CustomTokenObtainPairSerializer
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 from .models import RegistroDespliegue
 from .serializers import UltimoRegistroDespliegueSerializer
 from .models import (
@@ -20,7 +21,7 @@ from .serializers import (
     ReporteDiarioSerializer, RegistroDespliegueSerializer, 
     UserSerializer, ListarOperadoresSerializer, ItemSerializer, 
     CentroEmpadronamientoSerializer, UbicacionesOperadorSerializer, 
-    PuntoEmpadronamientoSerializer
+    PuntoEmpadronamientoSerializer, ListarEstacionesLlavesSerializer
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -100,3 +101,13 @@ class ListarPuntosEmpadronamientoView(generics.ListAPIView):
     queryset           = CentroEmpadronamiento.objects.all()
     serializer_class   = PuntoEmpadronamientoSerializer
     pagination_class   = None
+
+class ListasEstacionesLlavesView(generics.ListAPIView):
+    queryset = Estacion.objects.select_related('llave').all()
+    serializer_class = ListarEstacionesLlavesSerializer
+
+class LlavesSinAsignarView(APIView):
+    def get(self, request):
+        llaves = Llave.objects.filter(estacion__isnull=True)
+        serializer = LlaveSerializer(llaves, many=True)
+        return Response(serializer.data)

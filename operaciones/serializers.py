@@ -165,3 +165,25 @@ class PuntoEmpadronamientoSerializer(serializers.ModelSerializer):
     class Meta:
         model  = CentroEmpadronamiento
         fields = ['id', 'provincia', 'punto_de_empadronamiento']
+
+class ListarEstacionesLlavesSerializer(serializers.ModelSerializer):
+    id_llave = serializers.SerializerMethodField()
+    nro_estacion = serializers.SerializerMethodField()
+    contador_r = serializers.SerializerMethodField()
+    contador_c = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Estacion
+        fields = ['id', 'codigo_equipo', 'tipo_estacion', 'id_llave', 'nro_estacion', 'contador_r', 'contador_c']
+    
+    def get_id_llave(self, obj):
+        return obj.llave.id if obj.llave else "Sin llave asignada"
+    
+    def get_nro_estacion(self, obj):
+        return obj.llave.nro_estacion if obj.llave else 0
+    
+    def get_contador_r(self, obj):
+        return obj.llave.contador_r if obj.llave else 0
+    
+    def get_contador_c(self, obj):
+        return obj.llave.contador_c if obj.llave else 0

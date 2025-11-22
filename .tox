@@ -1484,36 +1484,163 @@ def panel_view(request, rol):
 # ---------- QR SCAN (AJAX) ----------
 @login_required
 def qr_scan(request):
+    """
+    Maneja el escaneo de códigos QR para cambiar el estado de las estaciones
+    con normalización de códigos para manejar variaciones en formatos
+    """
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'msg': 'Método no permitido'})
 
     data = json.loads(request.body or '{}')
     codigo = (data.get('codigo') or '').strip()
-    accion = data.get('accion', '')          # revision / mantenimiento / clonacion / masterizacion / entrega
+    accion = data.get('accion', '')          
     nro_estacion = data.get('nro_estacion')
+    preview = data.get('preview', False)
+
+    # ---- Función para normalizar códigos ----
+    def normalizar_codigo(codigo):
+        """
+        Normaliza códigos removiendo ceros a la izquierda de números
+        Ejemplos:
+        - "M-001" -> "M-1"
+        - "TSE023" -> "TSE23"  
+        - "A-0005" -> "A-5"
+        - "M-1" -> "M-1" (sin cambios)
+        - "m-01" -> "M-1"
+        - "TSE 023" -> "TSE23"
+        """
+        if not codigo:
+            return codigo
+        
+        # Convertir a mayúsculas y limpiar espacios
+        codigo = codigo.upper().strip()
+        
+        # Normalizar guiones y espacios
+        codigo = re.sub(r'[-_\s]+', '-', codigo)
+        codigo = codigo.rstrip('-')
+        
+        # Buscar partes alfanuméricas y numéricas
+        partes = re.split(r'(\d+)', codigo)
+        resultado = []
+        
+        for parte in partes:
+            if parte.isdigit():
+                # Remover ceros a la izquierda, mantener '0' si es el único dígito
+                resultado.append(str(int(parte)) if parte else '')
+            else:
+                resultado.append(parte)
+        
+        return ''.join(resultado)
+
+    codigo_normalizado = normalizar_codigo(codigo)
+    print(f"QR Scan - Código original: '{codigo}' -> Normalizado: '{codigo_normalizado}'")
 
     # ---- Inventarios: crea si no existe ----
     if request.user.groups.first().name == 'SoporteInventarios':
-        estacion, created = Estacion.objects.get_or_create(
-            codigo_equipo=codigo,
-            defaults={'fase': 'Recepcionado', 'recepcionado': True}
-        )
-        if created:
-            log(request.user, estacion, 'Creó estación', ADDITION)
-        return JsonResponse({'ok': True, 'nueva_fase': estacion.fase, 'created': created})
+        # Buscar con código normalizado
+        try:
+            # Intentar encontrar con código exacto o normalizado
+            estacion = Estacion.objects.get(
+                Q(codigo_equipo=codigo) | 
+                Q(codigo_equipo=codigo_normalizado)
+            )
+            created = False
+            print(f"Inventarios - Estación encontrada: {estacion.codigo_equipo}")
+        except Estacion.DoesNotExist:
+            # Búsqueda flexible por normalización en todos los registros
+            estaciones_existentes = Estacion.objects.all()
+            estacion_encontrada = None
+            
+            for estacion_db in estaciones_existentes:
+                codigo_db_normalizado = normalizar_codigo(estacion_db.codigo_equipo)
+                if codigo_db_normalizado == codigo_normalizado:
+                    estacion_encontrada = estacion_db
+                    print(f"Inventarios - Encontrado por normalización: {estacion_db.codigo_equipo} -> {codigo_db_normalizado}")
+                    break
+            
+            if estacion_encontrada:
+                estacion = estacion_encontrada
+                created = False
+            else:
+                # Crear nueva estación
+                estacion = Estacion.objects.create(
+                    codigo_equipo=codigo,
+                    fase='Recepcionado', 
+                    recepcionado=True
+                )
+                created = True
+                log(request.user, estacion, 'Creó estación', ADDITION)
+                print(f"Inventarios - Nueva estación creada: {codigo}")
+
+        if preview:
+            return JsonResponse({
+                'ok': True, 
+                'nueva_fase': estacion.fase, 
+                'created': created,
+                'codigo_encontrado': estacion.codigo_equipo
+            })
+        
+        return JsonResponse({
+            'ok': True, 
+            'nueva_fase': estacion.fase, 
+            'created': created,
+            'codigo_encontrado': estacion.codigo_equipo
+        })
 
     # ---- Resto de roles: equipo debe existir ----
+    estacion = None
+    metodo_busqueda = "exacto"
+    
     try:
+        # 1. Búsqueda exacta primero
         estacion = Estacion.objects.get(codigo_equipo=codigo)
+        metodo_busqueda = "exacto"
+        print(f"Encontrado por búsqueda exacta: {estacion.codigo_equipo}")
     except Estacion.DoesNotExist:
-        return JsonResponse({'ok': False, 'msg': 'CÓDIGO NO REGISTRADO, COMUNÍQUESE CON TICs LA PAZ'})
+        try:
+            # 2. Búsqueda con código normalizado exacto
+            estacion = Estacion.objects.get(codigo_equipo=codigo_normalizado)
+            metodo_busqueda = "normalizado_exacto"
+            print(f"Encontrado por normalización exacta: {estacion.codigo_equipo}")
+        except Estacion.DoesNotExist:
+            # 3. Búsqueda flexible por normalización en todos los registros
+            estaciones_existentes = Estacion.objects.all()
+            estacion_encontrada = None
+            
+            for estacion_db in estaciones_existentes:
+                codigo_db_normalizado = normalizar_codigo(estacion_db.codigo_equipo)
+                if codigo_db_normalizado == codigo_normalizado:
+                    estacion_encontrada = estacion_db
+                    metodo_busqueda = "normalizado_flexible"
+                    print(f"Encontrado por normalización flexible: {estacion_db.codigo_equipo} -> {codigo_db_normalizado}")
+                    break
+            
+            if estacion_encontrada:
+                estacion = estacion_encontrada
+            else:
+                # 4. Último intento: búsqueda por contiene (sin guiones)
+                codigo_busqueda = codigo_normalizado.replace('-', '')
+                estaciones_posibles = Estacion.objects.filter(
+                    codigo_equipo__icontains=codigo_busqueda
+                )
+                
+                if estaciones_posibles.count() == 1:
+                    estacion = estaciones_posibles.first()
+                    metodo_busqueda = "busqueda_parcial"
+                    print(f"Encontrado por búsqueda parcial: {estacion.codigo_equipo}")
+                else:
+                    # No se encontró la estación
+                    mensaje_error = f'CÓDIGO NO REGISTRADO: "{codigo}". '
+                    mensaje_error += f'Código normalizado: "{codigo_normalizado}". '
+                    mensaje_error += 'COMUNÍQUESE CON TICs LA PAZ.'
+                    
+                    return JsonResponse({
+                        'ok': False, 
+                        'msg': mensaje_error
+                    })
 
-    rol = request.user.groups.first().name
-    nueva_fase = None
-    campos_bool = {}
-
-    if data.get('preview'):
-        # calculamos la fase nueva SIN grabar
+    # ---- PREVIEW: calcular fase nueva sin grabar ----
+    if preview:
         nueva_fase_prev = None
         rol_prev = request.user.groups.first().name
 
@@ -1521,42 +1648,88 @@ def qr_scan(request):
             nueva_fase_prev = 'Recepcionado'
         elif rol_prev == 'SoporteMantenimiento':
             if accion == 'revision':
+                if estacion.fase not in ('Recepcionado', 'Revisado funcional', 'En mantenimiento'):
+                    return JsonResponse({
+                        'ok': False, 
+                        'msg': f'No puede pasar a En Revisión desde la fase actual: {estacion.fase}'
+                    })
                 nueva_fase_prev = 'En Revision'
+            elif accion == 'mantenimiento':
+                nueva_fase_prev = 'En mantenimiento'
             elif accion == 'finalizar':
                 nueva_fase_prev = 'Revisado funcional'
+            else:
+                return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
         elif rol_prev == 'SoporteClonacion':
             if accion == 'clonacion':
+                if estacion.fase != 'Revisado funcional':
+                    return JsonResponse({
+                        'ok': False, 
+                        'msg': f'Requisito: Revisado funcional. Fase actual: {estacion.fase}'
+                    })
                 nueva_fase_prev = 'En Clonacion'
             elif accion == 'finalizar':
+                if estacion.fase != 'En Clonacion':
+                    return JsonResponse({
+                        'ok': False, 
+                        'msg': f'El equipo no está En Clonación. Fase actual: {estacion.fase}'
+                    })
                 nueva_fase_prev = 'Clonado'
+            else:
+                return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
         elif rol_prev == 'SoporteMasterizacion':
             if accion == 'masterizacion':
+                if estacion.fase != 'Clonado':
+                    return JsonResponse({
+                        'ok': False, 
+                        'msg': f'Requisito: Clonado. Fase actual: {estacion.fase}'
+                    })
                 nueva_fase_prev = 'En Masterizacion'
             elif accion == 'finalizar':
+                if estacion.fase != 'En Masterizacion':
+                    return JsonResponse({
+                        'ok': False, 
+                        'msg': f'El equipo no está En Masterización. Fase actual: {estacion.fase}'
+                    })
                 nueva_fase_prev = 'Masterizado'
-        elif rol_prev == 'SoporteEntrega':
-            if estacion.fase == 'Masterizado':
-                nueva_fase_prev = 'Asignado'
             else:
-                return JsonResponse({'ok': False, 'msg': 'Requisito: Masterizado'})
+                return JsonResponse({'ok': False, 'msg': 'Acción no válida'})
+        elif rol_prev == 'SoporteEntrega':
+            if estacion.fase != 'Masterizado':
+                return JsonResponse({
+                    'ok': False, 
+                    'msg': f'Requisito: Masterizado. Fase actual: {estacion.fase}'
+                })
+            nueva_fase_prev = 'Asignado'
+        else:
+            return JsonResponse({'ok': False, 'msg': 'Rol sin permisos'})
 
         return JsonResponse({
             'ok': True,
             'fase_anterior': estacion.fase,
-            'nueva_fase': nueva_fase_prev
+            'nueva_fase': nueva_fase_prev,
+            'codigo_encontrado': estacion.codigo_equipo,
+            'codigo_escaneado': codigo,
+            'metodo_busqueda': metodo_busqueda
         })
+
+    # ---------- Lógica de cambio de fases (acción real) ----------
+    rol = request.user.groups.first().name
+    nueva_fase = None
+    campos_bool = {}
 
     # ---------- SoporteMantenimiento ----------
     if rol == 'SoporteMantenimiento':
         if accion == 'revision':
             if estacion.fase not in ('Recepcionado', 'Revisado funcional', 'En mantenimiento'):
-                return JsonResponse({'ok': False, 'msg': 'No puede pasar a En Revisión desde esta fase'})
+                return JsonResponse({
+                    'ok': False, 
+                    'msg': f'No puede pasar a En Revisión desde la fase actual: {estacion.fase}'
+                })
             nueva_fase = 'En Revision'
         elif accion == 'mantenimiento':
             nueva_fase = 'En mantenimiento'
         elif accion == 'finalizar':
-            # cierra revisión o mantenimiento → Revisado funcional
-            # aquí puedes pedir el checklist vía AJAX si quieres
             nueva_fase = 'Revisado funcional'
             campos_bool['revisado'] = True
         else:
@@ -1566,11 +1739,17 @@ def qr_scan(request):
     elif rol == 'SoporteClonacion':
         if accion == 'clonacion':
             if estacion.fase != 'Revisado funcional':
-                return JsonResponse({'ok': False, 'msg': 'Requisito: Revisado funcional'})
+                return JsonResponse({
+                    'ok': False, 
+                    'msg': f'Requisito: Revisado funcional. Fase actual: {estacion.fase}'
+                })
             nueva_fase = 'En Clonacion'
         elif accion == 'finalizar':
             if estacion.fase != 'En Clonacion':
-                return JsonResponse({'ok': False, 'msg': 'El equipo no está En Clonación'})
+                return JsonResponse({
+                    'ok': False, 
+                    'msg': f'El equipo no está En Clonación. Fase actual: {estacion.fase}'
+                })
             nueva_fase = 'Clonado'
             campos_bool['clonado'] = True
         else:
@@ -1580,11 +1759,17 @@ def qr_scan(request):
     elif rol == 'SoporteMasterizacion':
         if accion == 'masterizacion':
             if estacion.fase != 'Clonado':
-                return JsonResponse({'ok': False, 'msg': 'Requisito: Clonado'})
+                return JsonResponse({
+                    'ok': False, 
+                    'msg': f'Requisito: Clonado. Fase actual: {estacion.fase}'
+                })
             nueva_fase = 'En Masterizacion'
         elif accion == 'finalizar':
             if estacion.fase != 'En Masterizacion':
-                return JsonResponse({'ok': False, 'msg': 'El equipo no está En Masterización'})
+                return JsonResponse({
+                    'ok': False, 
+                    'msg': f'El equipo no está En Masterización. Fase actual: {estacion.fase}'
+                })
             nueva_fase = 'Masterizado'
             campos_bool['masterizado'] = True
         else:
@@ -1593,9 +1778,15 @@ def qr_scan(request):
     # ---------- SoporteEntrega ----------
     elif rol == 'SoporteEntrega':
         if estacion.fase != 'Masterizado':
-            return JsonResponse({'ok': False, 'msg': 'Requisito: Masterizado'})
+            return JsonResponse({
+                'ok': False, 
+                'msg': f'Requisito: Masterizado. Fase actual: {estacion.fase}'
+            })
         if not nro_estacion or not str(nro_estacion).isdigit():
-            return JsonResponse({'ok': False, 'msg': 'Debe ingresar un nro_estacion numérico'})
+            return JsonResponse({
+                'ok': False, 
+                'msg': 'Debe ingresar un nro_estacion numérico'
+            })
         estacion.nro_estacion = int(nro_estacion)
         nueva_fase = 'Asignado'
         campos_bool['asignado'] = True
@@ -1603,14 +1794,30 @@ def qr_scan(request):
     else:
         return JsonResponse({'ok': False, 'msg': 'Rol sin permisos'})
 
-    # ----- aplicar -----
+    # ----- Aplicar cambios -----
     if nueva_fase:
         estacion.fase = nueva_fase
+    
     for k, v in campos_bool.items():
         setattr(estacion, k, v)
+    
     estacion.save()
-    log(request.user, estacion, f'Cambió fase a {nueva_fase}', CHANGE)
-    return JsonResponse({'ok': True, 'nueva_fase': nueva_fase})
+    
+    # Log detallado
+    mensaje_log = f'Cambió fase a {nueva_fase} | '
+    mensaje_log += f'Código escaneado: "{codigo}" -> Encontrado: "{estacion.codigo_equipo}" | '
+    mensaje_log += f'Método búsqueda: {metodo_busqueda}'
+    
+    log(request.user, estacion, mensaje_log, CHANGE)
+    
+    return JsonResponse({
+        'ok': True, 
+        'nueva_fase': nueva_fase,
+        'codigo_encontrado': estacion.codigo_equipo,
+        'metodo_busqueda': metodo_busqueda,
+        'msg': f'Estación actualizada exitosamente a: {nueva_fase}'
+    })
+
 
 # ---------- Helper para dejar rastro en Admin ----------
 def log(user, obj, message, flag=CHANGE):

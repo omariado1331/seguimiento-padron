@@ -194,3 +194,8 @@ def mapa_dashboard(request):
     if not request.user.groups.filter(name='AuxiliarTecnico').exists():
         return redirect('login')
     return render(request, 'operaciones/mapa.html')
+@login_required
+def soporte_view(request):
+    """Vista para la página de soporte técnico"""
+    rol = request.user.groups.first().name if request.user.groups.exists() else 'Usuario'
+    return render(request, 'operaciones/soporte.html', {'rol': rol})

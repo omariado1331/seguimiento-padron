@@ -50,4 +50,5 @@ urlpatterns = [
     path('mapa/', mapa_dashboard, name='mapa_dashboard'), 
     path('lista-estaciones-llaves/', ListasEstacionesLlavesView.as_view(), name='estaciones-llaves'),
     path('llaves-sin-asignar/', LlavesSinAsignarView.as_view(), name='llaves_sin_asignar'),
+    path('soporte/', views.soporte_view, name='soporte'),
 ]

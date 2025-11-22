@@ -1,5 +1,5 @@
 acme==4.0.0
-apt-listchanges==4.8
+#apt-listchanges==4.8
 asgiref==3.9.1
 bcrypt==4.2.0
 certbot==4.0.0
@@ -20,8 +20,8 @@ django-extensions==4.1
 django-grappelli==4.0.2
 django-sslserver==0.22
 django-suit==0.2.28
-django-rangefilter=0.9.1
-django-admin-rangefilter=0.13.3
+django-rangefilter==0.9.1
+django-admin-rangefilter==0.13.3
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 environ==1.0

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from simple_history.models import HistoricalRecords
 
 # Create your models here.
 class CentroEmpadronamiento(models.Model):
@@ -222,6 +223,9 @@ class Estacion(models.Model):
     obs_tripode        = models.TextField(blank=True)
     obs_banner         = models.TextField(blank=True)
     obs_adaptador_3a2  = models.TextField(blank=True)
+
+    history = HistoricalRecords()
+
     def __str__(self):
         return f"{self.nro_estacion} - Cod: {self.codigo_equipo}"
     

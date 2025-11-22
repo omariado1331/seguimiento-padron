@@ -1,189 +1,457 @@
 {% load static %}
+
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8">
-  <title>Panel {{ rol }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    #qr-reader{max-width:400px;margin:0 auto}
-    .step-done{background-color:#198754;color:#fff}
-    .hidden{display:none}
-  </style>
-</head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-4">
-  <div class="container-fluid">
-    <span class="navbar-brand mb-0 h1">Panel {{ rol }}</span>
-    <div class="ms-auto">
-      <span class="text-white me-3">{{ user.username }}</span>
-      <a class="btn btn-sm btn-outline-light" href="{% url 'logout' %}">Cerrar sesión</a>
-    </div>
-  </div>
-</nav>
+    <head>
+        <meta charset="utf-8" />
+        <title>Panel {{ rol }}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <style>
+            #qr-reader {
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            .step-done {
+                background-color: #198754;
+                color: #fff;
+            }
+            .hidden {
+                display: none;
+            }
+            .modal-backdrop {
+                z-index: 1040;
+            }
+            .modal {
+                z-index: 1050;
+            }
+        </style>
+    </head>
+    <body class="bg-light">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">Panel {{ rol }}</span>
+                <div class="ms-auto">
+                    <span class="text-white me-3">{{ user.username }}</span>
+                    <a class="btn btn-sm btn-outline-light" href="{% url 'logout' %}">Cerrar sesión</a>
+                </div>
+            </div>
+        </nav>
+        <div class="container">
+            <!-- MENÚ DE ACCIONES -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Seleccione una acción</h5>
+                    <div class="btn-group flex-wrap" role="group" id="acciones">
+                    {% if rol == 'SoporteInventarios' %}
+                        <button class="btn btn-outline-primary" data-accion="inventariar">
+                            Inventariar nuevo equipo
+                        </button>
 
-<div class="container">
-  <!-- MENÚ DE ACCIONES -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5 class="card-title">Seleccione una acción</h5>
-      <div class="btn-group flex-wrap" role="group" id="acciones">
-        {% if rol == 'SoporteInventarios' %}
-          <button class="btn btn-outline-primary" data-accion="inventariar">Inventariar nuevo equipo</button>
-        {% elif rol == 'SoporteMantenimiento' %}
-          <button class="btn btn-outline-primary" data-accion="revision">Pasar a Revisión</button>
-          <button class="btn btn-outline-primary" data-accion="mantenimiento">Pasar a Mantenimiento</button>
-          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Revisión/Mantenimiento</button>
-        {% elif rol == 'SoporteClonacion' %}
-          <button class="btn btn-outline-primary" data-accion="clonacion">Iniciar Clonación</button>
-          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Clonación</button>
-        {% elif rol == 'SoporteMasterizacion' %}
-          <button class="btn btn-outline-primary" data-accion="masterizacion">Iniciar Masterización</button>
-          <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Masterización</button>
-        {% elif rol == 'SoporteEntrega' %}
-          <button class="btn btn-outline-success" data-accion="entrega">Entregar equipo</button>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+                    {% elif rol == 'SoporteMantenimiento' %}
+                        <button class="btn btn-outline-primary" data-accion="revision">Pasar a Revisión</button>
+                        <button class="btn btn-outline-primary" data-accion="mantenimiento">Pasar a Mantenimiento</button>
+                        <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Revisión/Mantenimiento</button>
 
-  <!-- LECTOR QR (oculto hasta seleccionar acción) -->
-  <div id="qr-box" class="text-center mb-4 hidden">
-    <div id="qr-reader"></div>
-  </div>
+                    {% elif rol == 'SoporteClonacion' %}
+                        <button class="btn btn-outline-primary" data-accion="clonacion">Iniciar Clonación</button>
+                        <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Clonación</button>
 
-  <!-- Historial SIEMPRE visible -->
-  <h5>Historial de cambios</h5>
-  <div class="table-responsive">
-    <table class="table table-sm table-striped align-middle">
-      <thead class="table-dark"><tr><th>Código</th><th>Fase nueva</th><th>Fecha/hora</th><th>Estado</th></tr></thead>
-      <tbody id="hist"></tbody>
-    </table>
-  </div>
-</div>
+                    {% elif rol == 'SoporteMasterizacion' %}
+                        <button class="btn btn-outline-primary" data-accion="masterizacion">Iniciar Masterización</button>
+                        <button class="btn btn-outline-success" data-accion="finalizar">Finalizar Masterización</button>
 
-<!-- Modal nro_estacion (solo SoporteEntrega) -->
-<div class="modal fade" id="modalNro" tabindex="-1">
-  <div class="modal-dialog"><form class="modal-content" id="formNro">
-    <div class="modal-header"><h5 class="modal-title">Asignar número de estación</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-    </div>
-    <div class="modal-body">
-      <label>Número de estación (numérico)</label>
-      <input type="number" class="form-control" id="nro_estacion" required>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-      <button type="submit" class="btn btn-primary">Guardar</button>
-    </div>
-  </form></div>
-</div>
+                    {% elif rol == 'SoporteEntrega' %}
+                        <button class="btn btn-outline-success" data-accion="entrega">Entregar equipo</button>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
-  const rol = "{{ rol }}";
-  let accion = '';
-  let codigoQR = '';
-  let procesando = false;
-  const qrBox = document.getElementById('qr-box');
-  const modal = new bootstrap.Modal(document.getElementById('modalNro'));
-  const csrf = '{{ csrf_token }}';
+                    {% endif %}
 
-  /* ---------- mostrar / ocultar cámara ---------- */
-  function mostrarCamara(mostrar) {
-    if (mostrar) {
-      procesando = false;
-      qrBox.classList.remove('hidden');
-      html5QrcodeScanner.clear();
-      html5QrcodeScanner.render(onScanSuccess);
-    } else {
-      qrBox.classList.add('hidden');
-      html5QrcodeScanner.clear();
-    }
-  }
+                    </div>
+                </div>
+            </div>
+            <!-- LECTOR QR (oculto hasta seleccionar acción) -->
+            <div id="qr-box" class="text-center mb-4 hidden"><div id="qr-reader"></div></div>
+            <!-- Historial SIEMPRE visible -->
+            <h5>Historial de cambios</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Código</th>
+                            <th>Fase nueva</th>
+                            <th>Fecha/hora</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hist"></tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Modal confirmación cambio de fase -->
+        <div class="modal fade" id="modalConfirmacion" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmar Cambio de Fase</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="modalConfirmacionBody"><!-- Contenido dinámico --></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="btnConfirmarCambio">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal resultado clonación -->
+        <div class="modal fade" id="modalResultadoClonacion" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Resultado de Clonación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Seleccione el resultado del proceso de clonación:</p>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-success" id="btnClonacionExitosa">
+                                ✅ Clonación Exitosa
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btnClonacionFallida">
+                                ❌ Clonación Fallida
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal resultado masterización -->
+        <div class="modal fade" id="modalResultadoMasterizacion" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Resultado de Masterización</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Seleccione el resultado del proceso de masterización:</p>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-success" id="btnMasterizacionExitosa">
+                                ✅ Masterización Exitosa
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btnMasterizacionFallida">
+                                ❌ Masterización Fallida
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal opciones fallo -->
+        <div class="modal fade" id="modalOpcionesFallo" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalOpcionesTitulo">Acción Requerida</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="observacionFallo" class="form-label">Observación (requerida):</label>
+                            <textarea
+                                class="form-control"
+                                id="observacionFallo"
+                                rows="3"
+                                placeholder="Describa el problema encontrado..."
+                                required
+                            ></textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-warning" id="btnVolverAClonar">
+                                🔄 Volver a Clonar
+                            </button>
+                            <button type="button" class="btn btn-danger" id="btnEnviarMantenimiento">
+                                🔧 Enviar a Mantenimiento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal nro_estacion (solo SoporteEntrega) -->
+        <div class="modal fade" id="modalNro" tabindex="-1">
+            <div class="modal-dialog">
+                <form class="modal-content" id="formNro">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Asignar número de estación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label>Número de estación (numérico)</label>
+                        <input type="number" class="form-control" id="nro_estacion" required />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+        <script>
+        const rol = "{{ rol }}";
 
-  /* ---------- selección de acción ---------- */
-  document.querySelectorAll('#acciones button').forEach(btn => {
-    btn.addEventListener('click', e => {
-      accion = e.target.dataset.accion;
-      mostrarCamara(true);
-    });
-  });
+        let accion = '';
+        let codigoQR = '';
+        let procesando = false;
+        let estacionActual = null;
 
-  /* ---------- historial ---------- */
-  function addRow(cod, fase, ok, msg) {
-    const fe = new Date().toLocaleString('es-BO');
-    const icon = ok ? '✅' : '❌';
-    const cl = ok ? 'table-success' : 'table-danger';
-    document.getElementById('hist').insertAdjacentHTML('afterbegin',
-      `<tr class="${cl}"><td>${cod}</td><td>${fase || '-'}</td><td>${fe}</td><td>${icon} ${msg}</td></tr>`);
-  }
+        const qrBox = document.getElementById('qr-box');
+        const modalConfirmacion = new bootstrap.Modal(document.getElementById('modalConfirmacion'));
+        const modalResultadoClonacion = new bootstrap.Modal(document.getElementById('modalResultadoClonacion'));
+        const modalResultadoMasterizacion = new bootstrap.Modal(document.getElementById('modalResultadoMasterizacion'));
+        const modalOpcionesFallo = new bootstrap.Modal(document.getElementById('modalOpcionesFallo'));
+        const modalNro = new bootstrap.Modal(document.getElementById('modalNro'));
 
-  /* ---------- envío al backend ---------- */
-  function enviar(payload) {
-    fetch("{% url 'qr_scan' %}", {
-      method: 'POST',
-      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    })
-      .then(r => r.json())
-      .then(j => {
-        addRow(codigoQR, j.nueva_fase, j.ok, j.msg || j.nueva_fase);
-        if (!j.ok) alert(j.msg);
-        mostrarCamara(false);
-      })
-      .catch(err => alert('Error red'));
-  }
+        const csrf = '{{ csrf_token }}';
 
-  /* ---------- QR callback ---------- */
-  function onScanSuccess(decodedText) {
-    if (!accion || procesando) return;
-    procesando = true;                   // bloqueo temporal
-    codigoQR = decodedText;
-
-    /* ======  NUEVO: CONFIRMACIÓN  ====== */
-    // preguntamos al backend cuál sería la nueva fase
-    fetch("{% url 'qr_scan' %}", {
-      method: 'POST',
-      headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'},
-      body: JSON.stringify({codigo: codigoQR, accion: accion, preview: true})
-    })
-      .then(r => r.json())
-      .then(j => {
-        if (!j.ok) { alert(j.msg); procesando = false; return; }
-
-        const anterior = j.fase_anterior || '—';
-        const nuevo    = j.nueva_fase;
-        const msg = `¿Confirma el cambio de fase?\n\nEstado anterior: ${anterior}\nNuevo estado: ${nuevo}`;
-        if (confirm(msg)) {
-          // usuario confirma → enviamos definitivamente
-          if (accion === 'entrega') {
-            modal.show();
-          } else {
-            enviar({codigo: codigoQR, accion: accion});
-          }
-        } else {
-          // cancelado
-          procesando = false;
+        /* ---------- mostrar / ocultar cámara ---------- */
+        function mostrarCamara(mostrar) {
+            if (mostrar) {
+                procesando = false;
+                qrBox.classList.remove('hidden');
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner.render(onScanSuccess);
+            } else {
+                qrBox.classList.add('hidden');
+                html5QrcodeScanner.clear();
+            }
         }
-      })
-      .catch(err => { alert('Error red'); procesando = false; });
-  }
 
-  /* ---------- modal guardar ---------- */
-  document.getElementById('formNro').addEventListener('submit', e => {
-    e.preventDefault();
-    const nro = document.getElementById('nro_estacion').value;
-    if (!nro) { alert('Ingrese número'); return; }
-    enviar({codigo: codigoQR, accion: 'entrega', nro_estacion: nro});
-    modal.hide();
-    e.target.reset();
-  });
+        /* ---------- selección de acción ---------- */
+        document.querySelectorAll('#acciones button').forEach(btn => {
+            btn.addEventListener('click', e => {
+                accion = e.target.dataset.accion;
+                mostrarCamara(true);
+            });
+        });
 
-  /* ---------- crear lector UNA vez ---------- */
-  const html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", {fps: 10, qrbox: 250}, false);
-</script>
-</body>
+        /* ---------- historial ---------- */
+        function addRow(cod, fase, ok, msg) {
+            const fe = new Date().toLocaleString('es-BO');
+            const icon = ok ? '✅' : '❌';
+            const cl = ok ? 'table-success' : 'table-danger';
+
+            document.getElementById('hist').insertAdjacentHTML(
+                'afterbegin',
+                `<tr class="${cl}">
+                    <td>${cod}</td>
+                    <td>${fase || '-'}</td>
+                    <td>${fe}</td>
+                    <td>${icon} ${msg}</td>
+                </tr>`
+            );
+        }
+
+        /* ---------- envío al backend ---------- */
+        function enviar(payload) {
+            fetch("{% url 'qr_scan' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrf,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(j => {
+                    if (j.ok) {
+                        addRow(codigoQR, j.nueva_fase, true, j.msg || j.nueva_fase);
+                    } else {
+                        addRow(codigoQR, null, false, j.msg || 'Error');
+                        alert(j.msg);
+                    }
+                    mostrarCamara(false);
+                })
+                .catch(err => {
+                    addRow(codigoQR, null, false, 'Error de red');
+                    alert('Error de red: ' + err.message);
+                });
+        }
+
+        /* ---------- QR callback ---------- */
+        function onScanSuccess(decodedText) {
+            if (!accion || procesando) return;
+
+            procesando = true;
+            codigoQR = decodedText;
+
+            fetch("{% url 'qr_scan' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrf,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    codigo: codigoQR,
+                    accion: accion,
+                    preview: true
+                })
+            })
+                .then(r => r.json())
+                .then(j => {
+                    if (!j.ok) {
+                        alert(j.msg);
+                        procesando = false;
+                        return;
+                    }
+
+                    estacionActual = j;
+                    mostrarModalConfirmacion(j);
+                })
+                .catch(err => {
+                    alert('Error de conexión: ' + err.message);
+                    procesando = false;
+                });
+        }
+
+        /* ---------- Modal confirmación ---------- */
+        function mostrarModalConfirmacion(datos) {
+            const anterior = datos.fase_anterior || '—';
+            const nuevo = datos.nueva_fase;
+            const codigoEncontrado = datos.codigo_encontrado || codigoQR;
+            const nroEstacion = datos.nro_estacion || 'No asignado';
+
+            let contenido = `
+                <div class="alert alert-info">
+                    <strong>Código escaneado:</strong> ${codigoQR}<br>
+                    ${codigoEncontrado !== codigoQR ? `<strong>Código encontrado:</strong> ${codigoEncontrado}<br>` : ''}
+                    <strong>Número de estación:</strong> ${nroEstacion}
+                </div>
+
+                <p><strong>Estado anterior:</strong> ${anterior}</p>
+                <p><strong>Nuevo estado:</strong> ${nuevo}</p>
+            `;
+
+            document.getElementById('modalConfirmacionBody').innerHTML = contenido;
+
+            document.getElementById('btnConfirmarCambio').onclick = function () {
+                modalConfirmacion.hide();
+
+                if (accion === 'finalizar') {
+                    if (rol === 'SoporteClonacion') {
+                        modalResultadoClonacion.show();
+                    } else if (rol === 'SoporteMasterizacion') {
+                        modalResultadoMasterizacion.show();
+                    } else {
+                        enviar({ codigo: codigoQR, accion: accion });
+                    }
+                } else if (accion === 'entrega') {
+                    modalNro.show();
+                } else {
+                    enviar({ codigo: codigoQR, accion: accion });
+                }
+            };
+
+            modalConfirmacion.show();
+        }
+
+        /* ---------- Manejo de resultados de clonación ---------- */
+        document.getElementById('btnClonacionExitosa').addEventListener('click', function () {
+            modalResultadoClonacion.hide();
+            enviar({ codigo: codigoQR, accion: 'finalizar', resultado: 'exitoso' });
+        });
+
+        document.getElementById('btnClonacionFallida').addEventListener('click', function () {
+            modalResultadoClonacion.hide();
+            document.getElementById('modalOpcionesTitulo').textContent =
+                'Clonación Fallida - Seleccione Acción';
+            modalOpcionesFallo.show();
+        });
+
+        /* ---------- Manejo de resultados de masterización ---------- */
+        document.getElementById('btnMasterizacionExitosa').addEventListener('click', function () {
+            modalResultadoMasterizacion.hide();
+            enviar({ codigo: codigoQR, accion: 'finalizar', resultado: 'exitoso' });
+        });
+
+        document.getElementById('btnMasterizacionFallida').addEventListener('click', function () {
+            modalResultadoMasterizacion.hide();
+            document.getElementById('modalOpcionesTitulo').textContent =
+                'Masterización Fallida - Seleccione Acción';
+            modalOpcionesFallo.show();
+        });
+
+        /* ---------- Manejo de opciones de fallo ---------- */
+        document.getElementById('btnVolverAClonar').addEventListener('click', function () {
+            const observacion = document.getElementById('observacionFallo').value.trim();
+
+            if (!observacion) {
+                alert('Por favor ingrese una observación');
+                return;
+            }
+
+            modalOpcionesFallo.hide();
+
+            enviar({
+                codigo: codigoQR,
+                accion: 'finalizar',
+                resultado: 'fallo_volver_clonar',
+                observacion: observacion
+            });
+
+            document.getElementById('observacionFallo').value = '';
+        });
+
+        document.getElementById('btnEnviarMantenimiento').addEventListener('click', function () {
+            const observacion = document.getElementById('observacionFallo').value.trim();
+
+            if (!observacion) {
+                alert('Por favor ingrese una observación');
+                return;
+            }
+
+            modalOpcionesFallo.hide();
+
+            enviar({
+                codigo: codigoQR,
+                accion: 'finalizar',
+                resultado: 'fallo_mantenimiento',
+                observacion: observacion
+            });
+
+            document.getElementById('observacionFallo').value = '';
+        });
+
+        /* ---------- modal guardar nro estación ---------- */
+        document.getElementById('formNro').addEventListener('submit', e => {
+            e.preventDefault();
+
+            const nro = document.getElementById('nro_estacion').value;
+
+            if (!nro) {
+                alert('Ingrese número');
+                return;
+            }
+
+            enviar({
+                codigo: codigoQR,
+                accion: 'entrega',
+                nro_estacion: nro
+            });
+
+            modalNro.hide();
+            e.target.reset();
+        });
+
+        /* ---------- crear lector UNA vez ---------- */
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader",
+            { fps: 10, qrbox: 250 },
+            false
+        );
+
+        </script>
+    </body>
 </html>

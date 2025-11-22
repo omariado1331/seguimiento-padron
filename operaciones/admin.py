@@ -30,6 +30,11 @@ from .models import (
     Llave, MovimientosEstacion, Operador, RegistroDespliegue,
     ReporteDiario, Ruta, UbicacionesOperador
 )      
+# ------------------------------------------------------------------
+#  Historico
+# ------------------------------------------------------------------
+from simple_history.admin import SimpleHistoryAdmin
+
 def _primer_que(modelo, obj_id):
     log = LogEntry.objects.filter(
         content_type=ContentType.objects.get_for_model(modelo),
@@ -217,7 +222,7 @@ class EstacionResource(resources.ModelResource):
 
 # ---------------- Estacion  ----------------
 @admin.register(Estacion)
-class EstacionAdmin(admin.ModelAdmin):
+class EstacionAdmin(SimpleHistoryAdmin):
     list_display = [
         'codigo_equipo',
         'llave',
@@ -363,3 +368,8 @@ class UbicacionesOperadorAdmin(admin.ModelAdmin):
     list_display = [f.name for f in UbicacionesOperador._meta.fields]
     search_fields = ['operador', 'operador__carnet']
     list_filter = ['fecha', 'operador']
+
+
+# @admin.register(Estacion)
+# class EstacionHistoricoAdmin(SimpleHistoryAdmin):
+#     list_display = ['__all__']

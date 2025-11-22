@@ -58,7 +58,9 @@ INSTALLED_APPS = [
     #cors
     'corsheaders',
     #rangefilter
-    'rangefilter'
+    'rangefilter',
+    # simple history
+    'simple_history'
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -80,6 +82,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'seguimiento_padron.urls'

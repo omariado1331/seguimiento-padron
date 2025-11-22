@@ -8,12 +8,14 @@ from rest_framework import status
 from rest_framework.views import APIView
 from .models import RegistroDespliegue
 from .serializers import UltimoRegistroDespliegueSerializer
+from simple_history.utils import update_change_reasonX
 from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
     ReporteDiario, RegistroDespliegue, Item, CentroEmpadronamiento,
     UbicacionesOperador
 )
+from simple_history.utils import update_change_reason
 from .serializers import (
     LlaveSerializer, RutaSerializer,
     EstacionSerializer, MovimientosEstacionSerializer, 
@@ -42,6 +44,12 @@ class RutaViewSet(viewsets.ModelViewSet):
 class EstacionViewSet(viewsets.ModelViewSet):
     queryset = Estacion.objects.all()
     serializer_class = EstacionSerializer
+
+    # Registro de usuario y motivo para modificar desde API
+    def perform_update(self, serializer):
+        obj = serializer.save(history_user=self.request.user)
+        update_change_reason(obj, "Modificado desde Panel")
+
 
 class MovimientosEstacionViewSet(viewsets.ModelViewSet):
     queryset = MovimientosEstacion.objects.all()

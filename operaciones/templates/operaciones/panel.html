@@ -929,39 +929,8 @@
           console.log(`Error HTTP: ${response.status} - ${response.statusText}`)
         }
         const llaves = await response.json();
- 
-        const contenedor = document.getElementById('llaves-container');
-        contenedor.innerHTML = "";
-        llaves.forEach(item => {
-           //cambiar icono de acuerdo al tipo de estacion
-          let icono = "fa-laptop"; // por defecto laptop
-          let style = "background-color: #e3f2fd; color: #0b74b9;"
-          if (item.tipo_estacion === "MOVIL") {
-            icono = "fa-mobile-alt";
-            style = "background-color: #e8f5e9; color: #4caf50;"
-          }
-          let descLlave = "";
-          if (item.id_llave == 'Sin llave asignada') {
-            descLlave = 'Sin llave asignada'
-          }
-          else {
-            descLlave = `${item.nro_estacion} -R:${item.contador_r} -C:${item.contador_c}`
-          }
-          const card = `
-            <div class="stat-card" onclick="abrirModal(${item.id}, '${item.codigo_equipo}', '${item.id_llave}')">
-            <div class="stat-icon" style="${style}">
-              <i class="fas ${icono}"></i>
-            </div>
-            <div class="stat-info">
-              <h4 id="llave-generada">${descLlave}</h4>
-              <p id="codigo-equipo-llave">${item.codigo_equipo}</p>
-            </div>
-          </div>
-          `;
-
-          contenedor.innerHTML += card;
-        });
         estacionesLlaveData = llaves;
+        renderLlaves(estacionesLlaveData.slice(0, 20));
 
       } catch (error) {
         console.error("error al cargar llaves");
@@ -1019,7 +988,7 @@
         nro.includes(texto) || codigo.includes(texto) || sinAsignar.includes(texto)
       );
     });
-      renderLlaves(filtrados)
+      renderLlaves(filtrados.slice(0, 20));
     })
     
     // MODAL PARA ASIGNAR LLAVES

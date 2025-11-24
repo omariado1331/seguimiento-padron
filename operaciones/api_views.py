@@ -6,9 +6,10 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from .models import RegistroDespliegue
 from .serializers import UltimoRegistroDespliegueSerializer
-from simple_history.utils import update_change_reasonX
+from simple_history.utils import update_change_reason
 from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
@@ -47,7 +48,8 @@ class EstacionViewSet(viewsets.ModelViewSet):
 
     # Registro de usuario y motivo para modificar desde API
     def perform_update(self, serializer):
-        obj = serializer.save(history_user=self.request.user)
+        user = self.request.user if self.request.user.is_authenticated else None
+        obj = serializer.save(_history_user=user)
         update_change_reason(obj, "Modificado desde Panel")
 
 

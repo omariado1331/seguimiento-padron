@@ -1079,13 +1079,14 @@
     async function asignarLlaveEstacion(idEstacion, idLlave) {
       const payload = {
         llave: idLlave
+        // Falta agregar cambio de estado 
       }
       try {
         const response = await fetch(`/api/estaciones/${idEstacion}/`, {
           method: "PATCH",
           headers: {
             'Accept': 'application/json',
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(payload),
           credentials: "same-origin"

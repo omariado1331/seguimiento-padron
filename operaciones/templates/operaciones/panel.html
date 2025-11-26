@@ -158,6 +158,26 @@
       display: flex;
       gap: 10px;
     }
+    .secciones-container {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+    }
+
+    .seccion {
+      flex: 1;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
+
+    .cards-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* una sola card por fila */
+      gap: 15px;
+      margin-top: 10px;
+    }
     
     .btn {
       padding: 8px 15px;
@@ -202,6 +222,12 @@
     .stats-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stats-container-clonacion {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 15px;
       margin-bottom: 20px;
     }
@@ -257,7 +283,103 @@
       border-radius: 2px;
       transition: width 0.3s ease;
     }
-    
+    /* Modal masterizacion */
+    /* Fondo modal */
+    .modal-master {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9000;
+    }
+
+    /* Contenido */
+    .modal-content-master {
+      background: white;
+      width: 420px;
+      border-radius: 12px;
+      padding: 25px;
+      position: relative;
+      box-shadow: 0 0 18px rgba(0,0,0,0.3);
+      animation: pop 0.2s ease-out;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.9); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* Botón cerrar */
+    .close-master {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      font-size: 26px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    /* Checks */
+    .checks-container-master {
+      margin-top: 15px;
+      margin-bottom: 15px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 3px;
+      font-size: 16px;
+      padding: 3px 0;
+    }
+
+    /* Botón */
+    .btn-master {
+      width: 100%;
+      padding: 12px;
+      font-size: 17px;
+      background: #0b5ed7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: not-allowed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      opacity: 50%;
+    }
+
+    .btn-master.enable {
+      cursor: pointer;
+      background: #0d6efd;
+      opacity: 1;
+    }
+
+    .btn-icon i {
+      font-size: 20px;
+    }
+
+    /* Spinner */
+    .spinner-master {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #ffffff;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     /* Charts Container */
     .charts-container {
       display: grid;
@@ -459,9 +581,10 @@
       }
     }
     
-    @media (max-width: 768px) {
+    @media (max-width: 1000px) {
       .sidebar {
         width: 70px;
+        display: flow-root;
       }
       
       .sidebar-header h1,
@@ -500,13 +623,17 @@
         <i class="fas fa-desktop"></i>
         <span>Estadísticas Estaciones</span>
       </div>
+      <div class="menu-item" data-target="clonacion">
+        <i class="fas fa-users"></i>
+        <span>Clonación</span>
+      </div>
+      <div class="menu-item" data-target="masterizacion">
+        <i class="fas fa-compact-disc"></i>
+        <span>Masterización</span>
+      </div>
       <div class="menu-item" data-target="llaves">
         <i class="fas fa-key"></i>
         <span>Asignación de Llaves</span>
-      </div>
-      <div class="menu-item" data-target="operadores">
-        <i class="fas fa-users"></i>
-        <span>Estadísticas Operadores</span>
       </div>
       <div class="menu-item" data-target="reportes">
         <i class="fas fa-file-alt"></i>
@@ -737,6 +864,93 @@
         </div>
       </div>
 
+      <!-- CLONACION -->
+      <div id="clonacion" class="content-panel">
+           <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+              <!-- 🔍 Buscador dinámico -->
+              <input 
+                type="text" 
+                id="buscador-clonacion" 
+                placeholder="Buscar por código equipo..."
+                style="flex:1; padding: 10px; font-size: 16px;"
+              >
+
+              <!-- Limpiar selección -->
+              <button 
+                id="btn-limpiar-en-clonacion"
+                style="padding:10px 15px; background:#c62828; color:white; border:none; border-radius:6px; cursor:pointer;"
+              >
+                Limpiar selección
+              </button>
+
+              <!-- Guardar en backend -->
+              <button 
+                id="btn-guardar-clonacion"
+                style="padding:10px 15px; background:#2e7d32; color:white; border:none; border-radius:6px; cursor:pointer;"
+              >
+                Confirmar 0 estaciones Clonadas
+              </button>
+
+            </div>
+        <div class="secciones-container">
+          <!-- Sección 1 -->
+          <div class="seccion">
+              <h4>Listas para clonar</h4>
+              <div class="stats-container-clonacion" id="listas-para-clonar-container">
+                  <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+                  <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+                      <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="stat-info">
+                      <h4 id="llave-generada">CODIGO EQUIPO</h4>
+                      <p id="codigo-equipo-llave">MODELO</p>
+                    </div>
+                  </div>
+                  <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+                </div>
+          </div>
+
+          <!-- Sección 2 -->
+          <div class="seccion">
+              <h4>En clonación</h4>
+                <div class="stats-container-clonacion" id="en-clonacion-container">
+                  <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+                  <div class="stat-card">
+                    <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+                      <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="stat-info">
+                      <h4 id="llave-generada">CODIGO EQUIPO</h4>
+                      <p id="codigo-equipo-llave">MODELO</p>
+                    </div>
+                  </div>
+                  <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+                </div>
+          </div>
+
+      </div>
+      </div>
+
+      <!-- Panel MASTERIZACION -->
+      <div id="masterizacion" class="content-panel">
+
+        <div class="stats-container" id="master-container">
+          <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+              <i class="fas fa-laptop"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="llave-generada">LLAVE</h4>
+              <p id="codigo-equipo-llave">CODIGO EQUIPO</p>
+            </div>
+          </div>
+          <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+        </div>
+
+      </div>
+
       <!-- Panel de llaves  -->
       <div id="llaves" class="content-panel">
          <!-- 🔍 Buscador dinámico -->
@@ -748,6 +962,7 @@
         >
 
         <div class="stats-container" id="llaves-container">
+          <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
           <div class="stat-card">
             <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
               <i class="fas fa-laptop"></i>
@@ -757,15 +972,11 @@
               <p id="codigo-equipo-llave">CODIGO EQUIPO</p>
             </div>
           </div>
+          <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
         </div>
       </div>
 
       <!-- Otros paneles -->
-      <div id="operadores" class="content-panel">
-        <h3>Estadísticas de Operadores</h3>
-        <p>Contenido en desarrollo...</p>
-      </div>
-      
       <div id="reportes" class="content-panel">
         <h3>Reportes Avanzados</h3>
         <p>Contenido en desarrollo...</p>
@@ -775,37 +986,70 @@
 
     <!-- Modal para asignar llaves -->
   <div id="modal-llaves" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span id="cerrar-modal" class="close" style="margin-bottom: 5px;">&times;</span>
+      <div class="modal-content">
+        <span id="cerrar-modal" class="close" style="margin-bottom: 5px;">&times;</span>
 
-      <h3 style="margin-bottom:3px" id="titulo-modal">Asignar Llave</h3>
+        <h3 style="margin-bottom:3px" id="titulo-modal">Asignar Llave</h3>
 
-      <!-- 🔵 LLAVE SELECCIONADA -->
-      <div id="llave-seleccionada" 
-          style="display:none; padding:15px; border:2px solid #0b74b9; border-radius:8px; margin-bottom:15px;">
+        <!-- 🔵 LLAVE SELECCIONADA -->
+        <div id="llave-seleccionada" 
+            style="display:none; padding:15px; border:2px solid #0b74b9; border-radius:8px; margin-bottom:15px;">
+        </div>
+        <!-- 🔍 Buscador -->
+        <input
+          type="text"
+          id="buscador-modal-llaves"
+          placeholder="Buscar llave por número..."
+          style="width:100%; padding:8px; margin:10px 0;"
+        />
+
+        <!-- Lista filtrada -->
+        <div id="lista-llaves" style="max-height:350px; overflow-y:auto; border:1px solid #ccc; padding:10px;">
+          <!-- Aquí se renderizan las llaves filtradas -->
+        </div>
+
+        <!-- 🔵 Botón asignar -->
+          <button id="btn-asignar-llave" 
+                  style="width:50%; margin-top:15px; padding:12px; background:#0b74b9; 
+                        color:white; font-size:18px; border:none; border-radius:8px; cursor:pointer;"
+                  disabled>
+            Asignar Llave
+          </button>
       </div>
-      <!-- 🔍 Buscador -->
-      <input
-        type="text"
-        id="buscador-modal-llaves"
-        placeholder="Buscar llave por número..."
-        style="width:100%; padding:8px; margin:10px 0;"
-      />
-
-      <!-- Lista filtrada -->
-      <div id="lista-llaves" style="max-height:350px; overflow-y:auto; border:1px solid #ccc; padding:10px;">
-        <!-- Aquí se renderizan las llaves filtradas -->
-      </div>
-
-      <!-- 🔵 Botón asignar -->
-        <button id="btn-asignar-llave" 
-                style="width:50%; margin-top:15px; padding:12px; background:#0b74b9; 
-                      color:white; font-size:18px; border:none; border-radius:8px; cursor:pointer;"
-                disabled>
-          Asignar Llave
-        </button>
     </div>
-  </div>
+
+    <!-- Modal PROCESO DE CLONACIÓN -->
+    <div id="modal-masterizacion" class="modal-master" style="display:none;">
+      <div class="modal-content-master">
+
+        <!-- Cerrar -->
+        <span class="close-master" id="cerrar-modal-master">&times;</span>
+
+        <!-- Título dinámico -->
+        <h3 id="titulo-modal-master">EQUIPO - MODELO</h3>
+
+        <hr>
+
+        <!-- Contenido: 5 Checks -->
+        <div class="checks-container-master">
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="1"> 1. Verificación física</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="2"> 2. Respaldo de información</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="3"> 3. Carga de firmware</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="4"> 4. Pruebas funcionales</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="5"> 5. Documentación final</label><br>
+        </div>
+
+        <hr>
+
+        <!-- Botón enviar -->
+        <button id="btn-actualizar-estado-master" disabled class="btn-master">
+          <span class="btn-icon"><i class="fas fa-check-circle"></i></span>
+          <span class="btn-text">Confirmar proceso</span>
+          <span class="spinner-master"></span>
+        </button>
+
+      </div>
+    </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script>
@@ -816,6 +1060,16 @@
     let estacionSeleccionada = null;
     let charts = {};
     let isRefreshing = false;
+
+    //Listas filtradas por estado
+    let estacionesRevisadasFuncionalData = [];
+    let estacionesEnClonacionData = [];
+    let estacionesClonadasData = [];
+    let estacionesLlaveAsignadaData = [];
+    let estacionesMasterizadas = [];
+
+    // lista filtrados para clonacion
+    let filtradosClonacion = [];
 
     // Colores para las gráficas
     const chartColors = {
@@ -835,12 +1089,18 @@
     function initDashboard() {
       console.log('Inicializando dashboard...');
       loadEstacionesData();
-      cargarEstacionesLlaves();
       cargarLlaves();
       
       // Configurar botones
       document.getElementById('refresh-data').addEventListener('click', loadEstacionesData);
       document.getElementById('export-btn').addEventListener('click', exportData);
+    }
+
+    // Función para obtener una cookie por nombre
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
     // Cargar datos de estaciones desde la API
@@ -873,9 +1133,12 @@
         console.log('Datos de estaciones recibidos:', data.length, 'registros');
         
         estacionesData = data;
+        estacionesRevisadasFuncionalData = data.filter(l => String(l.fase).includes("Revisado funcional"))
+        estacionesClonadasData = data.filter(l => String(l.fase).includes("Clonado"));
+        estacionesLlaveAsignadaData = data.filter(l => String(l.fase).includes("Llave asignada"));
+        estacionesMasterizadas = data.filter(l => String(l.fase).includes("Masterizado"));
         updateDashboard(data);
         createCharts(data);
-
       } catch (error) {
         console.error('Error cargando datos de estaciones:', error);
         alert('Error al cargar los datos: ' + error.message);
@@ -884,9 +1147,218 @@
         refreshText.textContent = 'Actualizar';
         refreshBtn.disabled = false;
       }
-      cargarLlaves();
-      cargarEstacionesLlaves();
+      console.log(estacionesLlaveAsignadaData.length)
+      //renderizar estaciones listas para clonar
+      renderListarParaClonar(estacionesRevisadasFuncionalData.slice(0, 20));
+      //renderizar estaciones para control masterizacion
+      renderMaster(estacionesClonadasData.slice(0, 20));
+      //renderizar estaciones para asignar llaves y controlar 
+      renderLlaves(estacionesLlaveAsignadaData.slice(0, 20));
     }
+
+    //Funcion para crear tarjeta en seccion de clonacion LISTA PARA CLONAR
+    function crearCardListaParaClonar(item) {
+         //cambiar icono de acuerdo al tipo de estacion
+        let icono = "fa-laptop"; // por defecto laptop
+        let style = "background-color: #e3f2fd; color: #0b74b9;"
+        if (item.tipo_estacion === "MOVIL") {
+          icono = "fa-mobile-alt";
+          style = "background-color: #e8f5e9; color: #4caf50;"
+        }
+        const card = `
+          <div class="stat-card" onclick="cambiarEnClonacion(${item.id}, '${item.fase}')">
+            <div class="stat-icon" style="${style}">
+              <i class="fas ${icono}"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="llave-generada">${item.codigo_equipo}</h4>
+              <p id="codigo-equipo-llave">${item.modelo}</p>
+            </div>
+          </div>
+        `;
+        return card;
+    }
+    // render para estaciones listas para clonar
+    function renderListarParaClonar(estaciones){
+      const contenedor = document.getElementById("listas-para-clonar-container");
+      contenedor.innerHTML = "";
+
+      estaciones.forEach(item => {
+        contenedor.innerHTML += crearCardListaParaClonar(item);
+      })
+    }
+
+    //Funcion para crear tarjeta en seccion de clonacion EN CLONACION
+    function crearCardEnClonacion(item) {
+           //cambiar icono de acuerdo al tipo de estacion
+          let icono = "fa-laptop"; // por defecto laptop
+          let style = "background-color: #e3f2fd; color: #0b74b9;"
+          if (item.tipo_estacion === "MOVIL") {
+            icono = "fa-mobile-alt";
+            style = "background-color: #e8f5e9; color: #4caf50;"
+          }
+          const card = `
+            <div class="stat-card" onclick="cambiarListaParaClonar(${item.id}, '${item.fase}')">
+            <div class="stat-icon" style="${style}">
+              <i class="fas ${icono}"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="llave-generada">${item.codigo_equipo}</h4>
+              <p id="codigo-equipo-llave">${item.modelo}</p>
+            </div>
+          </div>
+          `;
+          return card;
+    }
+
+    function renderEnClonacion(estaciones){
+      const contenedor = document.getElementById("en-clonacion-container");
+      contenedor.innerHTML = "";
+
+      estaciones.forEach(item => {
+        contenedor.innerHTML += crearCardEnClonacion(item);
+      })
+    }
+
+    // funcion para pasar de lista para clonar a estado en clonacion vista del panel
+    function cambiarEnClonacion(id, fase) {
+      if (fase === "Revisado funcional") {
+        // Buscar el objeto
+        const index = estacionesRevisadasFuncionalData.findIndex(e => e.id === id);
+        if (index === -1) return;
+        const item = estacionesRevisadasFuncionalData[index];
+        // Mover a clonación
+        estacionesEnClonacionData.push(item);
+        // Eliminar de la lista original
+        estacionesRevisadasFuncionalData.splice(index, 1);
+        // eliminar de filtrados
+        const indexFiltrado = filtradosClonacion.findIndex(e => e.id === id);
+
+        if (filtradosClonacion.length > 0){
+          
+          if (indexFiltrado === -1) return;
+          const itemFiltrado = filtradosClonacion[index];
+
+          filtradosClonacion.splice(indexFiltrado, 1);
+
+          renderListarParaClonar(filtradosClonacion.slice(0, 20));
+        
+        } else {
+          renderListarParaClonar(estacionesRevisadasFuncionalData.slice(0, 20));
+        }
+      renderEnClonacion(estacionesEnClonacionData.slice(0,20));
+      actualizarBotonConfirmar()
+      }
+    }
+
+    // funcion para pasar de EN CLONACION a estado en LISTA PARA CLONAR vista del panel
+    function cambiarListaParaClonar(id, fase) {
+      if (fase === "Revisado funcional") {
+        // Buscar el objeto
+        const index = estacionesEnClonacionData.findIndex(e => e.id === id);
+        if (index === -1) return;
+
+        const item = estacionesEnClonacionData[index];
+        
+        // Mover a lista para revisada funcional
+        estacionesRevisadasFuncionalData.push(item);
+        // Eliminar de la en clonacion
+        estacionesEnClonacionData.splice(index, 1);
+
+        if(filtradosClonacion.length > 0){
+
+          filtradosClonacion.push(item);
+
+          renderListarParaClonar(filtradosClonacion.slice(0, 20));
+
+        } else {
+          renderListarParaClonar(estacionesRevisadasFuncionalData.slice(0, 20));
+          
+        }
+        renderEnClonacion(estacionesEnClonacionData.slice(0, 20));
+        actualizarBotonConfirmar();
+      }
+    }
+
+    /// funcion para actualizar el texto del boton confirmar N estaciones
+    function actualizarBotonConfirmar(){
+      const boton = document.getElementById("btn-guardar-clonacion");
+      boton.textContent = `Confirmar ${estacionesEnClonacionData.length} estaciones Clonadas`;
+    }
+
+    //Limpiar la seleccion EN CLONACION
+    document.getElementById("btn-limpiar-en-clonacion").onclick = () => {
+      estacionesEnClonacionData.forEach(e => {
+        estacionesRevisadasFuncionalData.push(e);
+      })
+      estacionesEnClonacionData = [];
+      actualizarBotonConfirmar();
+      renderListarParaClonar(estacionesRevisadasFuncionalData.slice(0, 20));
+      renderEnClonacion(estacionesEnClonacionData.slice(0, 20))
+      alert("Selección de estaciones en clonación limpiada");
+    };
+
+    // MASTERIZACION *********************************
+    //************************************************
+
+    //Abrir modal masterizacion
+    let estacionActualID = null;
+
+    function abrirModalMaster(idEstacion, codigo_equipo, modelo) {
+      estacionActualID = idEstacion;
+      const checks = document.querySelectorAll(".check-item-master");
+      const btnConfirmar = document.getElementById("btn-actualizar-estado-master");
+      // Colocar título
+      document.getElementById("titulo-modal-master").textContent =`${codigo_equipo} — ${modelo}`;
+
+      // Resetear checks
+      checks.forEach(c => c.checked = false);
+
+      // Deshabilitar botón
+      btnConfirmar.disabled = false;
+      btnConfirmar.classList.remove("enable");
+
+      // Mostrar modal
+      document.getElementById("modal-masterizacion").style.display = "flex";
+
+      // checks.forEach(check => {
+      //   check.addEventListener("change", () => {
+      //     const todosMarcados = Array.from(checks).every(c => c.checked);
+      //     btnConfirmar.disabled = !todosMarcados
+      //   });
+      // });
+    }
+
+    const checks = document.querySelectorAll(".check-item-master");
+    const btnConfirmar = document.getElementById("btn-actualizar-estado-master");
+
+    checks.forEach(check => {
+      check.addEventListener("change", () => {
+        const todosMarcados = Array.from(checks).every(c => c.checked);
+        btnConfirmar.disabled = !todosMarcados;
+
+        if (todosMarcados) {
+          btnConfirmar.classList.add("enable")
+        } else {
+          btnConfirmar.classList.remove("enable")
+        }
+
+      });
+    });
+
+    btnConfirmar.addEventListener("click", async => {
+      try {
+        document.getElementById("modal-masterizacion").style.display = "none";
+      } catch (error) {
+        console.log(error)
+        alert("No se pudo conectar con el servidor");
+      }
+    })
+
+    //cerrar modal
+    document.getElementById("cerrar-modal-master").onclick = () => {
+      document.getElementById("modal-masterizacion").style.display = "none";
+    };
 
     // Actualizar las llaves y equipos
     async function cargarLlaves(){
@@ -938,14 +1410,12 @@
       }
     }
 
-    const contenedor = document.getElementById('llaves-container')
-    const buscador = document.getElementById('buscador-llaves')
-
-    function renderLlaves(data){
+    // Render para controlar estaciones masterizadas
+    function renderMaster(data){
+      const contenedor = document.getElementById('master-container')
       contenedor.innerHTML = "";
 
       data.forEach(item =>{
-        
            //cambiar icono de acuerdo al tipo de estacion
           let icono = "fa-laptop"; // por defecto laptop
           let style = "background-color: #e3f2fd; color: #0b74b9;"
@@ -953,21 +1423,42 @@
             icono = "fa-mobile-alt";
             style = "background-color: #e8f5e9; color: #4caf50;"
           }
-          let descLlave = "";
-          if (item.id_llave == 'Sin llave asignada') {
-            descLlave = 'Sin llave asignada'
-          }
-          else {
-            descLlave = `${item.nro_estacion} -R:${item.contador_r} -C:${item.contador_c}`
+          const card = `
+            <div class="stat-card" onclick="abrirModalMaster(${item.id}, '${item.codigo_equipo}', '${item.modelo}')">
+              <div class="stat-icon" style="${style}">
+                <i class="fas ${icono}"></i>
+              </div>
+              <div class="stat-info">
+                <h4>${item.codigo_equipo}</h4>
+                <p>${item.modelo}</p>
+              </div>
+            </div>
+          `;
+          contenedor.innerHTML += card;
+      });
+    }
+
+    // Render para asignar llaves
+    function renderLlaves(data){
+      const contenedor = document.getElementById('llaves-container')
+      contenedor.innerHTML = "";
+
+      data.forEach(item =>{
+           //cambiar icono de acuerdo al tipo de estacion
+          let icono = "fa-laptop"; // por defecto laptop
+          let style = "background-color: #e3f2fd; color: #0b74b9;"
+          if (item.tipo_estacion === "MOVIL") {
+            icono = "fa-mobile-alt";
+            style = "background-color: #e8f5e9; color: #4caf50;"
           }
           const card = `
-            <div class="stat-card" onclick="abrirModal(${item.id}, '${item.codigo_equipo}', '${item.id_llave}')">
+            <div class="stat-card" onclick="abrirModal(${item.id}, '${item.codigo_equipo}')">
             <div class="stat-icon" style="${style}">
               <i class="fas ${icono}"></i>
             </div>
             <div class="stat-info">
-              <h4 id="llave-generada">${descLlave}</h4>
-              <p id="codigo-equipo-llave">${item.codigo_equipo}</p>
+              <h4>${item.codigo_equipo}</h4>
+              <p>"Sin llave asignada"</p>
             </div>
           </div>
           `;
@@ -976,6 +1467,8 @@
       });
     }
 
+    // buscador dinamico para la seccion de asignacion de llaves
+    const buscador = document.getElementById('buscador-llaves')
     buscador.addEventListener("input", e=> {
       const texto = e.target.value.toLowerCase();
 
@@ -989,7 +1482,24 @@
       );
     });
       renderLlaves(filtrados.slice(0, 20));
-    })
+    });
+
+    // buscador dinamico para la seccion EN CLONACION
+    const buscadorClonacion = document.getElementById('buscador-clonacion')
+    buscadorClonacion.addEventListener("input", e=> {
+      const texto = e.target.value.toLowerCase();
+
+      filtradosClonacion = estacionesRevisadasFuncionalData.filter(item => {
+      const codigo = String(item.codigo_equipo ?? "").toLowerCase();
+      const modelo = String(item.modelo ?? "").toLowerCase();
+
+      return (
+        codigo.includes(texto) || modelo.includes(texto)
+      );
+    });
+      renderListarParaClonar(filtradosClonacion.slice(0, 20));
+    });
+
     
     // MODAL PARA ASIGNAR LLAVES
     const modal =  document.getElementById("modal-llaves");
@@ -1087,9 +1597,10 @@
           headers: {
             'Accept': 'application/json',
             "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
           },
           body: JSON.stringify(payload),
-          credentials: "same-origin"
+          credentials: "include",
         });
 
         if(!response.ok) {
@@ -1277,7 +1788,6 @@
         }
       });
     }
-
     // Gráfica de tipos de estación
     function createTiposChart(data) {
       const ctx = document.getElementById('tiposChart').getContext('2d');
@@ -1457,8 +1967,9 @@
         const titleMap = {
           'dashboard': 'Dashboard de Estadísticas Generales',
           'estaciones': 'Estadísticas Detalladas de Estaciones',
+          'clonacion': 'Etapa de clonacion',
+          'masterizacion': 'Etapa de Masterización',
           'llaves': 'Asignación de Llaves',
-          'operadores': 'Estadísticas de Operadores',
           'reportes': 'Reportes Avanzados'
         };
         document.getElementById('content-title').textContent = titleMap[target] || 'Panel';

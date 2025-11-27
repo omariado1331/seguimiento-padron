@@ -935,6 +935,16 @@
       <!-- Panel MASTERIZACION -->
       <div id="masterizacion" class="content-panel">
 
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+              <!-- 🔍 Buscador dinámico -->
+              <input 
+                type="text" 
+                id="buscador-masterizacion" 
+                placeholder="Buscar por código equipo..."
+                style="flex:1; padding: 10px; font-size: 16px;"
+              >
+        </div>
+
         <div class="stats-container" id="master-container">
           <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
           <div class="stat-card">
@@ -1018,7 +1028,7 @@
       </div>
     </div>
 
-    <!-- Modal PROCESO DE CLONACIÓN -->
+    <!-- Modal PROCESO DE MASTERIZACION -->
     <div id="modal-masterizacion" class="modal-master" style="display:none;">
       <div class="modal-content-master">
 
@@ -1032,11 +1042,11 @@
 
         <!-- Contenido: 5 Checks -->
         <div class="checks-container-master">
-          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="1"> 1. Verificación física</label><br>
-          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="2"> 2. Respaldo de información</label><br>
-          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="3"> 3. Carga de firmware</label><br>
-          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="4"> 4. Pruebas funcionales</label><br>
-          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="5"> 5. Documentación final</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="1"> 1. Asigna llave a la estación</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="2"> 2. Programa de actualización ParClient</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="3"> 3. Actualización de LOGO</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="4"> 4. Restauración de Counters - ParClient</label><br>
+          <label class="check-item" ><input type="checkbox" class="check-item-master" data-paso="5"> 5. Prueba del trabajo realizado</label><br>
         </div>
 
         <hr>
@@ -1067,6 +1077,18 @@
     let estacionesClonadasData = [];
     let estacionesLlaveAsignadaData = [];
     let estacionesMasterizadas = [];
+
+    let estacionesImprimirLlave = []
+
+    estacionImprimirLlave : {
+      id: number;
+      codigo_estacion: string; 
+      llave : {
+        idLlave: number;
+        contador_r: number;
+        contador_c: number
+      }
+    }
 
     // lista filtrados para clonacion
     let filtradosClonacion = [];
@@ -1163,7 +1185,7 @@
     async function cambiarFaseClonado(idEstacion) {
       const payload = {
         fase: "Clonado"
-        // Falta agregar cambio de estado 
+        // Cambia a fase clonado
       }
       try {
         const response = await fetch(`/api/estaciones/${idEstacion}/`, {
@@ -1240,6 +1262,7 @@
           return card;
     }
 
+    // Funcion de renderizado para estaciones EN CLONACION
     function renderEnClonacion(estaciones){
       const contenedor = document.getElementById("en-clonacion-container");
       contenedor.innerHTML = "";
@@ -1361,7 +1384,7 @@
     function abrirModalMaster(idEstacion, codigo_equipo, modelo) {
       estacionActualID = idEstacion;
       const checks = document.querySelectorAll(".check-item-master");
-      const btnConfirmar = document.getElementById("btn-actualizar-estado-master");
+      const btnConfirmarMaster = document.getElementById("btn-actualizar-estado-master");
       // Colocar título
       document.getElementById("titulo-modal-master").textContent =`${codigo_equipo} — ${modelo}`;
 
@@ -1369,39 +1392,35 @@
       checks.forEach(c => c.checked = false);
 
       // Deshabilitar botón
-      btnConfirmar.disabled = false;
-      btnConfirmar.classList.remove("enable");
+      btnConfirmarMaster.disabled = false;
+      btnConfirmarMaster.classList.remove("enable");
 
       // Mostrar modal
       document.getElementById("modal-masterizacion").style.display = "flex";
-
-      // checks.forEach(check => {
-      //   check.addEventListener("change", () => {
-      //     const todosMarcados = Array.from(checks).every(c => c.checked);
-      //     btnConfirmar.disabled = !todosMarcados
-      //   });
-      // });
     }
 
     const checks = document.querySelectorAll(".check-item-master");
-    const btnConfirmar = document.getElementById("btn-actualizar-estado-master");
+    const btnConfirmarMaster = document.getElementById("btn-actualizar-estado-master");
 
+    // CONFIRMAR CHECKS PARA MASTERIZACION
     checks.forEach(check => {
       check.addEventListener("change", () => {
         const todosMarcados = Array.from(checks).every(c => c.checked);
-        btnConfirmar.disabled = !todosMarcados;
+        btnConfirmarMaster.disabled = !todosMarcados;
 
         if (todosMarcados) {
-          btnConfirmar.classList.add("enable")
+          btnConfirmarMaster.classList.add("enable")
         } else {
-          btnConfirmar.classList.remove("enable")
+          btnConfirmarMaster.classList.remove("enable")
         }
 
       });
     });
 
-    btnConfirmar.addEventListener("click", async => {
+    //Boton para cambiar de estado a llave asignada MASTERIZACION
+    btnConfirmarMaster.addEventListener("click", async () => {
       try {
+        cambiarFaseLlaveAsignada(estacionActualID);
         document.getElementById("modal-masterizacion").style.display = "none";
       } catch (error) {
         console.log(error)
@@ -1413,6 +1432,36 @@
     document.getElementById("cerrar-modal-master").onclick = () => {
       document.getElementById("modal-masterizacion").style.display = "none";
     };
+
+    //funcion para cambiar de estado a Llave asignada MASTERIZACION
+    async function cambiarFaseLlaveAsignada(idEstacion) {
+      const payload = {
+        fase: "Llave asignada"
+        // Cambia a fase Llave asignada
+      }
+      try {
+        const response = await fetch(`/api/estaciones/${idEstacion}/`, {
+          method: "PATCH",
+          headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+          },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        });
+
+        if(!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        alert('Masterizado, verifique en asignacion de llave')
+        estacionesClonadasData = [];
+        loadEstacionesData();
+      } catch (error) {
+        alert("error al cambiar de fase a Llave asignada, intente de nuevo")
+      }
+    }
+
 
     // Actualizar las llaves y equipos
     async function cargarLlaves(){
@@ -1521,9 +1570,25 @@
       });
     }
 
-    // buscador dinamico para la seccion de asignacion de llaves
-    const buscador = document.getElementById('buscador-llaves')
-    buscador.addEventListener("input", e=> {
+    // buscador dinamico para la seccion MASTERIZACION
+    const buscadorMasterizacion = document.getElementById('buscador-masterizacion')
+    buscadorMasterizacion.addEventListener("input", e=> {
+      const texto = e.target.value.toLowerCase();
+
+      const filtrados = estacionesClonadasData.filter(item => {
+      const codigo = String(item.codigo_equipo ?? "").toLowerCase();
+      const modelo = String(item.modelo ?? "").toLowerCase();
+
+      return (
+        modelo.includes(texto) || codigo.includes(texto)
+      );
+    });
+      renderMaster(filtrados.slice(0, 20));
+    });
+
+    // buscador dinamico para la seccion de ASIGNACION DE LLAVES
+    const buscadorLlaves = document.getElementById('buscador-llaves')
+    buscadorLlaves.addEventListener("input", e=> {
       const texto = e.target.value.toLowerCase();
 
       const filtrados = estacionesLlaveData.filter(item => {
@@ -1564,6 +1629,7 @@
     const btnAsignar = document.getElementById("btn-asignar-llave");
     const tituloModal = document.getElementById('titulo-modal')
     let llaveSeleccionada = null;
+    
 
     //render para la lista de llaves
     function renderLlavesSinAsignar(lista){

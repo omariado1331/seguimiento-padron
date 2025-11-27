@@ -1156,6 +1156,35 @@
       renderLlaves(estacionesLlaveAsignadaData.slice(0, 20));
     }
 
+    //**CLONACION**************************************************
+    //************************************************************
+
+    //funcion para cambiar de estado a CLONADO
+    async function cambiarFaseClonado(idEstacion) {
+      const payload = {
+        fase: "Clonado"
+        // Falta agregar cambio de estado 
+      }
+      try {
+        const response = await fetch(`/api/estaciones/${idEstacion}/`, {
+          method: "PATCH",
+          headers: {
+            'Accept': 'application/json',
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+          },
+          body: JSON.stringify(payload),
+          credentials: "include",
+        });
+
+        if(!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+      } catch (error) {
+        alert("error al cambiar de fase a CLONADO, intente de nuevo")
+      }
+    }
+
     //Funcion para crear tarjeta en seccion de clonacion LISTA PARA CLONAR
     function crearCardListaParaClonar(item) {
          //cambiar icono de acuerdo al tipo de estacion
@@ -1297,6 +1326,31 @@
       renderEnClonacion(estacionesEnClonacionData.slice(0, 20))
       alert("Selección de estaciones en clonación limpiada");
     };
+
+    const btnCambiarFaseClonado = document.getElementById("btn-guardar-clonacion");
+    btnCambiarFaseClonado.addEventListener("click", async () => {
+      if (estacionesEnClonacionData.length === 0) {
+        alert("No hay estaciones seleccionadas para actualizar.");
+        return;
+      }
+      try {
+        // Crear una lista de promesas
+        const promises = estacionesEnClonacionData.map(e =>
+          cambiarFaseClonado(e.id)
+        );
+
+        // Esperar que todas terminen
+        await Promise.all(promises);
+
+        alert("Todas las estaciones fueron actualizadas a CLONADO con éxito.");
+        estacionesEnClonacionData = [];
+        renderEnClonacion(estacionesEnClonacionData);
+        loadEstacionesData();
+
+      } catch (error) {
+        alert("Ocurrió un error en alguna estación. Revise e intente nuevamente.");
+      }
+        })
 
     // MASTERIZACION *********************************
     //************************************************
@@ -1613,6 +1667,7 @@
         alert("error en asignar la llave, intente de nuevo")
       }
     }
+
 
     // Actualizar el dashboard con los datos
     function updateDashboard(data) {

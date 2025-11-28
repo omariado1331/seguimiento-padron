@@ -2,10 +2,10 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
-from rest_framework import generics, status
+#from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
-from django.http import HttpResponse
+#from rest_framework.decorators import action
+#from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .models import RegistroDespliegue
@@ -18,11 +18,11 @@ from .models import (
     UbicacionesOperador
 )
 from simple_history.utils import update_change_reason
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
-from reportlab.lib.pagesizes import landscape, A5
-import qrcode
-from io import BytesIO
+#from reportlab.pdfgen import canvas
+#from reportlab.lib.utils import ImageReader
+#from reportlab.lib.pagesizes import landscape, A5
+#import qrcode
+#from io import BytesIO
 from .serializers import (
     LlaveSerializer, RutaSerializer,
     EstacionSerializer, MovimientosEstacionSerializer, 

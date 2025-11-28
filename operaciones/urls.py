@@ -11,7 +11,7 @@ from .api_views import (
     UserViewSet, ListarOperadoresListView, ItemViewSet, 
     CentroEmpadronamientoViewSet, UbicacionesOperadorViewSet,
     ListarPuntosEmpadronamientoView, ListasEstacionesLlavesView,
-    LlavesSinAsignarView
+    LlavesSinAsignarView, OperadoresSinEstacionAsignadaView
 )
 from . import views
 
@@ -51,4 +51,5 @@ urlpatterns = [
     path('lista-estaciones-llaves/', ListasEstacionesLlavesView.as_view(), name='estaciones-llaves'),
     path('llaves-sin-asignar/', LlavesSinAsignarView.as_view(), name='llaves_sin_asignar'),
     path('soporte/', views.soporte_view, name='soporte'),
+    path('operadores-sin-estacion/', OperadoresSinEstacionAsignadaView.as_view(), name='operadores-sin-estacion')
 ]

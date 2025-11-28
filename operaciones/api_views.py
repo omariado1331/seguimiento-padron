@@ -200,3 +200,9 @@ class LlavesSinAsignarView(APIView):
         llaves = Llave.objects.filter(estacion__isnull=True)
         serializer = LlaveSerializer(llaves, many=True)
         return Response(serializer.data)
+    
+class OperadoresSinEstacionAsignadaView(APIView):
+    def get(self, request):
+        operadores = Operador.objects.filter(estacion__isnull=True)
+        serializer = OperadorSerializer(operadores, many=True)
+        return Response(serializer.data)

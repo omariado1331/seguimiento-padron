@@ -325,8 +325,8 @@ class CoordinadorAdmin(admin.ModelAdmin):
 # ---------------- Operador ----------------
 @admin.register(Operador)
 class OperadorAdmin(admin.ModelAdmin):
-    list_display = ['user__first_name','user__last_name', 'tipo_operador', 'estado', 'coordinador', 'estacion']
-    search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
+    list_display = ['user__username', 'nombre','apellido_paterno', 'apellido_materno', 'carnet','tipo_operador', 'estado', 'coordinador', 'estacion']
+    search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular', 'carnet']
     list_filter = ['estado', 'tipo_operador', 'coordinador', 'estacion']
 
 # ---------------- ReporteDiario ----------------

@@ -633,7 +633,7 @@
       </div>
       <div class="menu-item" data-target="llaves">
         <i class="fas fa-key"></i>
-        <span>Asignación de Llaves</span>
+        <span>Confirmación de Llave</span>
       </div>
       <div class="menu-item" data-target="asignacion">
         <i class="fas fa-file-alt"></i>
@@ -1096,6 +1096,7 @@
     let estacionesClonadasData = [];
     let estacionesLlaveAsignadaData = [];
     let estacionesMasterizadasData = [];
+    let operadoresSinEstacionData= [];
 
     // lista filtrados para clonacion
     let filtradosClonacion = [];
@@ -1472,7 +1473,7 @@
     }
 
 
-    // Actualizar las llaves y equipos
+    // Cargar daros de llaves sin asignar
     async function cargarLlaves(){
       try {
         console.log('Cargando llaves sin asignar')
@@ -1496,7 +1497,7 @@
       }
     }
 
-    // Actualizar las llaves y equipos
+    // Cargar datos de las llaves y equipos
     async function cargarEstacionesLlaves() {
       try {
         console.log('Cargando llaves y estaciones')
@@ -1757,6 +1758,32 @@
     // ASIGNACION ******************************************
     //******************************************************
 
+    
+    // Actualizar las llaves y equipos
+    async function cargarOperadoresSinEstacion(){
+      try {
+        console.log('Cargando operadores sin estacion asignada')
+        const response = await fetch('/operadores-sin-estacion/', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin'
+        });
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+          //console.log(`Error HTTP: ${response.status} - ${response.statusText}`)
+        }
+        const operadoresSinEstacion = await response.json();
+        operadoresSinEstacionData = operadoresSinEstacion;
+        console.log(operadoresSinEstacionData)
+      } catch (error) {
+        console.error("error al cargar operadores sin estacion asignada");
+        console.log(error);
+      }
+    }
+
     // Render para seccion ASIGNACION DE ESTACIONES
     function renderAsignacion(data){
       const contenedor = document.getElementById('asignacion-container')
@@ -1771,18 +1798,23 @@
             style = "background-color: #e8f5e9; color: #4caf50;"
           }
           const card = `
-            <div class="stat-card" >
-            <div class="stat-icon" style="${style}">
-              <i class="fas ${icono}"></i>
+            <div class="stat-card" onclick="abrirModalAsignacion(${item.id}, '${item.codigo_equipo}', ${item.modelo},'${item.tipo_estacion}')" >
+              <div class="stat-icon" style="${style}">
+                <i class="fas ${icono}"></i>
+              </div>
+              <div class="stat-info">
+                <h4>${item.codigo_equipo}</h4>
+                <p>${item.nro_estacion} R:${item.contador_r} C:${item.contador_c}</p>
+              </div>
             </div>
-            <div class="stat-info">
-              <h4>${item.codigo_equipo}</h4>
-              <p>${item.nro_estacion} R:${item.contador_r} C:${item.contador_c}</p>
-            </div>
-          </div>
           `;
           contenedor.innerHTML += card;
       });
+    }
+
+    // Abrir modal de asignacion a operador
+    function abrirModalAsignacion(idEstacion, codigoEquipo, modelo, tipoEstacion){
+      cargarOperadoresSinEstacion();
     }
 
     // Actualizar el dashboard con los datos
@@ -2140,7 +2172,7 @@
           'estaciones': 'Estadísticas Detalladas de Estaciones',
           'clonacion': 'Etapa de clonacion',
           'masterizacion': 'Etapa de Masterización',
-          'llaves': 'Asignación de Llaves',
+          'llaves': 'Confirmación de Llave',
           'asignacion': 'Asignación de Estaciones'
         };
         document.getElementById('content-title').textContent = titleMap[target] || 'Panel';

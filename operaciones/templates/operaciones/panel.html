@@ -635,9 +635,9 @@
         <i class="fas fa-key"></i>
         <span>Asignación de Llaves</span>
       </div>
-      <div class="menu-item" data-target="reportes">
+      <div class="menu-item" data-target="asignacion">
         <i class="fas fa-file-alt"></i>
-        <span>Reportes Avanzados</span>
+        <span>Asignación de Estaciones</span>
       </div>
     </div>
     
@@ -986,11 +986,29 @@
         </div>
       </div>
 
-      <!-- Otros paneles -->
-      <div id="reportes" class="content-panel">
+      <!-- PANEL DE ASIGNACION -->
+      <div id="asignacion" class="content-panel">
+        <div class="stats-container" id="asignacion-container">
+          <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e3f2fd; color: #0b74b9;">
+              <i class="fas fa-laptop"></i>
+            </div>
+            <div class="stat-info">
+              <h4 id="Codigo equipo">LLAVE</h4>
+              <p id="llave">CODIGO EQUIPO</p>
+            </div>
+          </div>
+          <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
+        </div>
+      </div>
+
+
+      <!-- modelo de panel *********************** -->
+      <!-- <div id="asignacion" class="content-panel">
         <h3>Reportes Avanzados</h3>
         <p>Contenido en desarrollo...</p>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -1068,6 +1086,7 @@
     let estacionesLlaveData = [];
     let dataLlaves = [];
     let estacionSeleccionada = null;
+    let codigoEstacionSeleccionada = null;
     let charts = {};
     let isRefreshing = false;
 
@@ -1146,7 +1165,7 @@
         estacionesRevisadasFuncionalData = data.filter(l => String(l.fase).includes("Revisado funcional"))
         estacionesClonadasData = data.filter(l => String(l.fase).includes("Clonado"));
         estacionesLlaveAsignadaData = data.filter(l => String(l.fase).includes("Llave asignada"));
-        estacionesMasterizadas = data.filter(l => String(l.fase).includes("Masterizado"));
+        estacionesMasterizadasData = data.filter(l => String(l.fase).includes("Masterizado"));
         updateDashboard(data);
         createCharts(data);
       } catch (error) {
@@ -1164,6 +1183,8 @@
       renderMaster(estacionesClonadasData.slice(0, 20));
       //renderizar estaciones para asignar llaves y controlar 
       renderLlaves(estacionesLlaveAsignadaData.slice(0, 20));
+      // renderizar estaciones listas para signar
+      renderAsignados(estacionesMasterizadasData).slice(0,25);
     }
 
     //**CLONACION**************************************************
@@ -1501,7 +1522,7 @@
       }
     }
 
-    // Render para controlar estaciones masterizadas
+    // Render para controlar fase de masterizacion
     function renderMaster(data){
       const contenedor = document.getElementById('master-container')
       contenedor.innerHTML = "";
@@ -1640,9 +1661,9 @@
         return;
       }
       estacionSeleccionada = id_estacion;
+      codigoEstacionSeleccionada = codigo_equipo;
       llaveSeleccionada = null;
-      codigoEstacionSeleccionado = codigo_equipo
-      tituloModal.textContent = `Asignar Llave a ${codigoEstacionSeleccionado}`;
+      tituloModal.textContent = `Asignar Llave a ${codigoEstacionSeleccionada}`;
 
       panelSeleccionada.style.display = "none";
       panelSeleccionada.innerHTML = "";
@@ -1681,23 +1702,23 @@
       btnAsignar.disabled = false;
     }
 
+    // boton para asignar llave a la estacion
     btnAsignar.onclick = () => {
       if(!llaveSeleccionada) return;
 
       console.log(llaveSeleccionada)
       console.log(estacionSeleccionada)
 
-      // asignar llave a estacion metodo post
-
-      asignarLlaveEstacion(estacionSeleccionada, llaveSeleccionada.id);
+      // asignar llave a estacion metodo PATCH
+      asignarLlaveEstacion(estacionSeleccionada, codigoEstacionSeleccionada, llaveSeleccionada);
       modal.style.display = "none"
     }
 
     //funcion para asignar llave 
-    async function asignarLlaveEstacion(idEstacion, idLlave) {
+    async function asignarLlaveEstacion(idEstacion, codigoEstacion, llave) {
       const payload = {
-        llave: idLlave
-        // Falta agregar cambio de estado 
+        llave: llave.id,
+        fase: "Masterizado"
       }
       try {
         const response = await fetch(`/api/estaciones/${idEstacion}/`, {
@@ -1716,12 +1737,49 @@
         }
 
         alert("Llave asignada con exito")
+        // try {
+        //   window.open(`/api/estaciones/${idEstacion}/ticket/`, "_blank");
+        // } catch (error) {
+        //   alert('error en descargar tickets')
+        //   console.log(error)
+        // }
         loadEstacionesData();
+        cargarLlaves();
       } catch (error) {
         alert("error en asignar la llave, intente de nuevo")
       }
     }
 
+    // ASIGNACION ******************************************
+    //******************************************************
+
+    // Render para seccion ASIGNACION DE ESTACIONES
+    function renderAsignados(data){
+      const contenedor = document.getElementById('asignacion-container')
+      contenedor.innerHTML = "";
+
+      data.forEach(item =>{
+           //cambiar icono de acuerdo al tipo de estacion
+          let icono = "fa-laptop"; // por defecto laptop
+          let style = "background-color: #e3f2fd; color: #0b74b9;"
+          if (item.tipo_estacion === "MOVIL") {
+            icono = "fa-mobile-alt";
+            style = "background-color: #e8f5e9; color: #4caf50;"
+          }
+          const card = `
+            <div class="stat-card" onclick="abrirModal(${item.id}, '${item.codigo_equipo}')">
+            <div class="stat-icon" style="${style}">
+              <i class="fas ${icono}"></i>
+            </div>
+            <div class="stat-info">
+              <h4>${item.codigo_equipo}</h4>
+              <p>${item.llave}</p>
+            </div>
+          </div>
+          `;
+          contenedor.innerHTML += card;
+      });
+    }
 
     // Actualizar el dashboard con los datos
     function updateDashboard(data) {
@@ -2079,7 +2137,7 @@
           'clonacion': 'Etapa de clonacion',
           'masterizacion': 'Etapa de Masterización',
           'llaves': 'Asignación de Llaves',
-          'reportes': 'Reportes Avanzados'
+          'asignacion': 'Asignación de Estaciones'
         };
         document.getElementById('content-title').textContent = titleMap[target] || 'Panel';
       });

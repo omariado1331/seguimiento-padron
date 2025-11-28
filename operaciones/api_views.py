@@ -187,8 +187,13 @@ class ListarPuntosEmpadronamientoView(generics.ListAPIView):
     pagination_class   = None
 
 class ListasEstacionesLlavesView(generics.ListAPIView):
-    queryset = Estacion.objects.select_related('llave').all()
     serializer_class = ListarEstacionesLlavesSerializer
+    def get_queryset(self):
+        return( 
+            Estacion.objects
+            .select_related('llave')
+            .filter(llave__isnull=False)
+        )
 
 class LlavesSinAsignarView(APIView):
     def get(self, request):

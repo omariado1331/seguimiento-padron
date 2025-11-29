@@ -236,7 +236,7 @@ class EstacionAdmin(SimpleHistoryAdmin):
         'estado_computadora',
         'llave__nro_estacion',   # búsqueda por número de llave
     ]
-    list_filter  = [UltimoUsuarioFilter] 
+    list_filter  = [UltimoUsuarioFilter, 'fase'] 
     def primer_por(self, obj):
         return _primer_que(Estacion, obj.pk)
     primer_por.short_description = 'Primero por'

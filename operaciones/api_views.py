@@ -49,7 +49,7 @@ class RutaViewSet(viewsets.ModelViewSet):
     serializer_class = RutaSerializer
 
 class EstacionViewSet(viewsets.ModelViewSet):
-    queryset = Estacion.objects.all()
+    queryset = Estacion.objects.all().order_by('codigo_equipo')
     serializer_class = EstacionSerializer
 
     # Registro de usuario y motivo para modificar desde API
@@ -193,11 +193,12 @@ class ListasEstacionesLlavesView(generics.ListAPIView):
             Estacion.objects
             .select_related('llave')
             .filter(llave__isnull=False)
+            .order_by('codigo_equipo')
         )
 
 class LlavesSinAsignarView(APIView):
     def get(self, request):
-        llaves = Llave.objects.filter(estacion__isnull=True)
+        llaves = Llave.objects.filter(estacion__isnull=True).order_by('nro_estacion')
         serializer = LlaveSerializer(llaves, many=True)
         return Response(serializer.data)
     

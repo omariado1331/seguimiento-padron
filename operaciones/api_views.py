@@ -198,7 +198,11 @@ class ListasEstacionesLlavesView(generics.ListAPIView):
 
 class LlavesSinAsignarView(APIView):
     def get(self, request):
-        llaves = Llave.objects.filter(estacion__isnull=True).order_by('nro_estacion')
+        llaves = (
+            Llave.objects
+            .filter(estacion__isnull=True)
+            .exclude(nro_estacion__range=(10450, 10474))
+            .order_by('nro_estacion'))
         serializer = LlaveSerializer(llaves, many=True)
         return Response(serializer.data)
     

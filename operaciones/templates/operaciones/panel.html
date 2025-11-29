@@ -255,6 +255,16 @@
                     
                     <div class="phase-item mb-4">
                         <div class="phase-header flex justify-between items-center mb-2">
+                            <span class="phase-name font-medium text-gray-700">Estaciones En Mantenimiento / Total de Estaciones</span>
+                            <span class="phase-count font-semibold text-primary" id="count-en-mantenimiento">0/0</span>
+                        </div>
+                        <div class="phase-bar h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="phase-progress h-full rounded-full transition-all duration-300" id="progress-en-mantenimiento" style="width: 0%; background-color: #ff9800;"></div>
+                        </div>
+                    </div>
+
+                    <div class="phase-item mb-4">
+                        <div class="phase-header flex justify-between items-center mb-2">
                             <span class="phase-name font-medium text-gray-700">Estaciones Revisadas Funcionales / Total de Estaciones</span>
                             <span class="phase-count font-semibold text-primary" id="count-revisadas-funcionales">0/0</span>
                         </div>
@@ -755,7 +765,8 @@
         const data = await response.json();
         console.log('Datos de estaciones recibidos:', data.length, 'registros');
         
-        estacionesData = data;
+        estacionesData = data.filter(l => !String(l.fase).includes("En mantenimiento"));
+        estacionesEnMantenimeinto = data.filter(l => String(l.fase).includes("En mantenimiento"));
         estacionesRevisadasFuncionalData = data.filter(l => String(l.fase).includes("Revisado funcional"))
         estacionesClonadasData = data.filter(l => String(l.fase).includes("Clonado"));
         estacionesLlaveAsignadaData = data.filter(l => String(l.fase).includes("Llave asignada"));
@@ -763,6 +774,7 @@
         updateDashboard(data);
         createCharts(data);
         cargarEstacionesLlaves();
+        cargarLlaves();
       } catch (error) {
         console.error('Error cargando datos de estaciones:', error);
         alert('Error al cargar los datos: ' + error.message);
@@ -1031,8 +1043,14 @@ function crearCardEnClonacion(item) {
     //Boton para cambiar de estado a llave asignada MASTERIZACION
     btnConfirmarMaster.addEventListener("click", async () => {
       try {
-        cambiarFaseLlaveAsignada(estacionActualID);
+        await cambiarFaseLlaveAsignada(estacionActualID);
         document.getElementById("modal-masterizacion").style.display = "none";
+        // Redirigir al panel de Llaves
+        const llavesMenuItem = document.querySelector('.menu-item[data-target="llaves"]');
+        if (llavesMenuItem) {
+            llavesMenuItem.click(); // Simular click en el item del menú
+        }
+
       } catch (error) {
         console.log(error)
         alert("No se pudo conectar con el servidor");
@@ -1041,7 +1059,7 @@ function crearCardEnClonacion(item) {
 
     //cerrar modal
     document.getElementById("cerrar-modal-master").onclick = () => {
-      document.getElementById("modal-masterizacion").style.display = "none";
+    document.getElementById("modal-masterizacion").style.display = "none";
     };
 
     //funcion para cambiar de estado a Llave asignada MASTERIZACION
@@ -1270,40 +1288,42 @@ function crearCardEnClonacion(item) {
 
     //render para la lista de llaves
     function renderLlavesSinAsignar(lista){
-      listaLlaves.innerHTML = "";
+        listaLlaves.innerHTML = "";
 
-      lista.forEach(ll => {
-          const item = document.createElement("div");
-          item.className = "llave-item";
-          item.textContent = `Llave ${ll.nro_estacion} C:${ll.contador_c} R:${ll.contador_r}`;
-          item.onclick = () => seleccionarLlave(ll);
-          listaLlaves.appendChild(item);
-      });
+        lista.forEach(ll => {
+            const item = document.createElement("div");
+            item.className = "llave-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200";
+            item.textContent = `Llave ${ll.nro_estacion} C:${ll.contador_c} R:${ll.contador_r}`;
+            item.onclick = () => seleccionarLlave(ll);
+            listaLlaves.appendChild(item);
+        });
     }
 
     function abrirModal(id_estacion, codigo_equipo, id_llave){
-
       // Si ya tiene llave asignada → NO abrir modal
       if (id_llave && id_llave !== "Sin llave asignada") {
-        alert("Esta estación ya tiene una llave asignada");
-        return;
+          alert("Esta estación ya tiene una llave asignada");
+          return;
       }
       estacionSeleccionada = id_estacion;
       codigoEstacionSeleccionada = codigo_equipo;
       llaveSeleccionada = null;
       tituloModal.textContent = `Asignar Llave a ${codigoEstacionSeleccionada}`;
 
-      panelSeleccionada.style.display = "none";
+      panelSeleccionada.classList.add("hidden");
       panelSeleccionada.innerHTML = "";
       btnAsignar.disabled = true;
+      btnAsignar.classList.add("disabled:opacity-50", "disabled:cursor-not-allowed");
       buscadorModal.value = "";
 
-      modal.style.display = "flex";
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
       renderLlavesSinAsignar(dataLlaves.slice(0, 10));
-    }
+  }
 
     cerrarModal.onclick = () => {
-      modal.style.display = "none";
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
     }
 
     buscadorModal.addEventListener("input", e =>{
@@ -1317,9 +1337,24 @@ function crearCardEnClonacion(item) {
     });
 
     // ---------- SELECCIONAR UNA LLAVE ---------- TAILWIND
-  function seleccionarLlave(ll) {
+    function seleccionarLlave(ll) {
       llaveSeleccionada = ll;
       
+      // Remover selección anterior
+      document.querySelectorAll('.llave-item').forEach(item => {
+          item.classList.remove('bg-blue-50', 'border-l-4', 'border-l-primary');
+      });
+      
+      // Agregar clase al item seleccionado
+      const selectedItem = Array.from(document.querySelectorAll('.llave-item')).find(item => 
+          item.textContent.includes(`Llave ${ll.nro_estacion}`)
+      );
+      if (selectedItem) {
+          selectedItem.classList.add('bg-blue-50', 'border-l-4', 'border-l-primary');
+      }
+      
+      // Mostrar la llave seleccionada en el panel
+      const panelSeleccionada = document.getElementById('llave-seleccionada');
       panelSeleccionada.classList.remove("hidden");
       panelSeleccionada.innerHTML = `
           <h2 class="text-2xl font-bold m-0">Llave ${ll.nro_estacion}</h2>
@@ -1332,15 +1367,17 @@ function crearCardEnClonacion(item) {
   }
 
     // boton para asignar llave a la estacion
-    btnAsignar.onclick = () => {
+    btnAsignar.onclick = async () => {
       if(!llaveSeleccionada) return;
 
-      console.log(llaveSeleccionada)
-      console.log(estacionSeleccionada)
-
       // asignar llave a estacion metodo PATCH
-      asignarLlaveEstacion(estacionSeleccionada, codigoEstacionSeleccionada, llaveSeleccionada);
-      modal.style.display = "none"
+      await asignarLlaveEstacion(estacionSeleccionada, codigoEstacionSeleccionada, llaveSeleccionada);
+      // Redirigir al panel de Asignacion
+        const asignacionMenuItem = document.querySelector('.menu-item[data-target="asignacion"]');
+        if (asignacionMenuItem) {
+            asignacionMenuItem.click(); // Simular click en el item del menú
+        }
+      modal.classList.add("hidden");
     }
 
     //funcion para asignar llave 
@@ -1449,7 +1486,7 @@ function crearCardEnClonacion(item) {
 
     // Actualizar el dashboard con los datos
     function updateDashboard(data) {
-      const totalEstaciones = data.length;
+      const totalEstaciones = data.filter(l => !String(l.fase).includes("En mantenimiento")).length;
       
       // Contar por fases
       const fasesCount = {};
@@ -1504,6 +1541,8 @@ function crearCardEnClonacion(item) {
 
     // Actualizar el progreso del flujo de trabajo
     function updateWorkflowProgress(data) {
+      const estacionesEnMantenimientoCounter = data.filter(e => e.fase === 'En mantenimiento').length;
+
       const estacionesRevisadasFuncionalCounter = data.filter(e => e.fase === 'Revisado funcional').length;
 
       const estacionesClonadasCounter = data.filter(e => e.fase === 'Clonado').length;
@@ -1514,24 +1553,29 @@ function crearCardEnClonacion(item) {
 
       const estacionesOperativas = data.filter(e => e.fase === 'Revisado funcional' || e.fase === 'Clonado' || e.fase === 'Masterizado' || e.fase === 'Asignado')
  
-      const totalEstaciones = data.length;
+      const totalEstaciones = data.filter(l => !String(l.fase).includes("En mantenimiento")).length;
 
-      // Recepcionado → Revisado funcional
+      // En mantenimiento
+      const progresoEnMantenimiento = totalEstaciones > 0 ? (estacionesEnMantenimientoCounter / totalEstaciones) * 100 : 0;
+      document.getElementById('count-en-mantenimiento').textContent = `${estacionesEnMantenimientoCounter}/${totalEstaciones}`;
+      document.getElementById('progress-en-mantenimiento').style.width = `${progresoEnMantenimiento}%`;
+
+      // Revisado funcional
       const progresoRevisadasFuncional = totalEstaciones > 0 ? (estacionesRevisadasFuncionalCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-revisadas-funcionales').textContent = `${estacionesRevisadasFuncionalCounter}/${totalEstaciones}`;
       document.getElementById('progress-revisadas-funcionales').style.width = `${progresoRevisadasFuncional}%`;
 
-      // Revisado → En Clonación
+      //  En Clonación
       const progresoClonacion = totalEstaciones > 0 ? (estacionesClonadasCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-clonacion').textContent = `${estacionesClonadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-clonacion').style.width = `${progresoClonacion}%`;
 
-      // Clonado → En Masterización
+      // En Masterización
       const progresoMasterizacion = totalEstaciones > 0 ? (estacionesMasterizadasCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-masterizacion').textContent = `${estacionesMasterizadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-masterizacion').style.width = `${progresoMasterizacion}%`;
 
-      // Masterizado → Asignado
+      //  Asignado
       const progresoAsignado = totalEstaciones > 0 ? (estacionesAsignadasCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-asignado').textContent = `${estacionesAsignadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-asignado').style.width = `${progresoAsignado}%`;

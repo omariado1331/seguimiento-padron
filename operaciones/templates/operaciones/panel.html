@@ -190,39 +190,39 @@
                     
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
                         <div class="stat-icon w-14 h-14 rounded-lg bg-green-50 text-green-500 flex items-center justify-center mr-4 text-xl">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 class="text-2xl text-gray-800 mb-1" id="estaciones-operativas">0</h3>
-                            <p class="text-sm text-gray-600">Estaciones Asignada y Entregada a un operador.</p>
+                            <h3 class="text-2xl text-gray-800 mb-1" id="estaciones-clonadas-counter"></h3>
+                            <p class="text-sm text-gray-600">Estaciones Clonadas.</p>
                             <div class="stat-progress h-1 bg-gray-200 rounded-full mt-2 overflow-hidden">
-                                <div class="stat-progress-bar h-full bg-primary rounded-full transition-all duration-300" id="operativas-progress" style="width: 0%"></div>
+                                <div class="stat-progress-bar h-full bg-primary rounded-full transition-all duration-300" id="clonadas-progress" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
                         <div class="stat-icon w-14 h-14 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center mr-4 text-xl">
-                            <i class="fas fa-tasks"></i>
+                            <i class="fas fa-compact-disc"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 class="text-2xl text-gray-800 mb-1" id="en-proceso">0</h3>
-                            <p class="text-sm text-gray-600">En Proceso</p>
+                            <h3 class="text-2xl text-gray-800 mb-1" id="estaciones-masterizadas-counter">0</h3>
+                            <p class="text-sm text-gray-600">Estaciones Masterizadas</p>
                             <div class="stat-progress h-1 bg-gray-200 rounded-full mt-2 overflow-hidden">
-                                <div class="stat-progress-bar h-full bg-primary rounded-full transition-all duration-300" id="proceso-progress" style="width: 0%"></div>
+                                <div class="stat-progress-bar h-full bg-primary rounded-full transition-all duration-300" id="masterizadas-progress" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
                         <div class="stat-icon w-14 h-14 rounded-lg bg-red-50 text-red-500 flex items-center justify-center mr-4 text-xl">
-                            <i class="fas fa-exclamation-triangle"></i>
+                            <i class="fas fa-user"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 class="text-2xl text-gray-800 mb-1" id="en-mantenimiento">0</h3>
-                            <p class="text-sm text-gray-600">En Mantenimiento</p>
+                            <h3 class="text-2xl text-gray-800 mb-1" id="estaciones-asignadas-counter">0</h3>
+                            <p class="text-sm text-gray-600">Estaciones Asignadas a un operador</p>
                             <div class="stat-progress h-1 bg-gray-200 rounded-full mt-2 overflow-hidden">
-                                <div class="stat-progress-bar h-full bg-primary rounded-full transition-all duration-300" id="mantenimiento-progress" style="width: 0%"></div>
+                                <div class="stat-progress-bar h-full bg-primary rounded-full transition-all duration-300" id="asignadas-progress" style="width: 0%"></div>
                             </div>
                         </div>
                     </div>
@@ -255,17 +255,17 @@
                     
                     <div class="phase-item mb-4">
                         <div class="phase-header flex justify-between items-center mb-2">
-                            <span class="phase-name font-medium text-gray-700">Equipos en Revision / Total de equipos en Recepción</span>
-                            <span class="phase-count font-semibold text-primary" id="count-revision">0/0</span>
+                            <span class="phase-name font-medium text-gray-700">Estaciones Revisadas Funcionales / Total de Estaciones</span>
+                            <span class="phase-count font-semibold text-primary" id="count-revisadas-funcionales">0/0</span>
                         </div>
                         <div class="phase-bar h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="phase-progress h-full rounded-full transition-all duration-300" id="progress-revision" style="width: 0%; background-color: #ff9800;"></div>
+                            <div class="phase-progress h-full rounded-full transition-all duration-300" id="progress-revisadas-funcionales" style="width: 0%; background-color: #ff9800;"></div>
                         </div>
                     </div>
                     
                     <div class="phase-item mb-4">
                         <div class="phase-header flex justify-between items-center mb-2">
-                            <span class="phase-name font-medium text-gray-700">Equipos En Proceso de Clonación / Total de Equipos Funcionales Para Clonación</span>
+                            <span class="phase-name font-medium text-gray-700">Estaciones Clonadas / Total de Estaciones</span>
                             <span class="phase-count font-semibold text-primary" id="count-clonacion">0/0</span>
                         </div>
                         <div class="phase-bar h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -275,7 +275,7 @@
                     
                     <div class="phase-item mb-4">
                         <div class="phase-header flex justify-between items-center mb-2">
-                            <span class="phase-name font-medium text-gray-700">Equipos En Proceso de Masterización / Total de Equipos Clonados Exitosamente </span>
+                            <span class="phase-name font-medium text-gray-700">Estaciones Masterizadas / Total de Equipos Clonados Exitosamente </span>
                             <span class="phase-count font-semibold text-primary" id="count-masterizacion">0/0</span>
                         </div>
                         <div class="phase-bar h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -481,6 +481,13 @@
 
             <!-- PANEL DE ASIGNACION -->
             <div id="asignacion" class="content-panel">
+                <!-- 🔍 Buscador -->
+                <input
+                    type="text"
+                    id="buscador-asignacion"
+                    placeholder="Buscar estacion por código de equipo o número de estación..."
+                    class="w-full p-2 my-3 border border-gray-300 rounded"
+                />
                 <div class="stats-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="asignacion-container">
                     <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -705,6 +712,7 @@
       console.log('Inicializando dashboard...');
       loadEstacionesData();
       cargarLlaves();
+      cargarOperadoresSinEstacion();
       
       // Configurar botones
       document.getElementById('refresh-data').addEventListener('click', loadEstacionesData);
@@ -971,6 +979,7 @@ function crearCardEnClonacion(item) {
         estacionesEnClonacionData = [];
         renderEnClonacion(estacionesEnClonacionData);
         loadEstacionesData();
+        btnCambiarFaseClonado.textContent = 'Confirmar 0 estaciones Clonadas';
 
       } catch (error) {
         alert("Ocurrió un error en alguna estación. Revise e intente nuevamente.");
@@ -1065,7 +1074,7 @@ function crearCardEnClonacion(item) {
     }
 
 
-    // Cargar daros de llaves sin asignar
+    // Cargar datos de llaves sin asignar
     async function cargarLlaves(){
       try {
         console.log('Cargando llaves sin asignar')
@@ -1106,11 +1115,9 @@ function crearCardEnClonacion(item) {
           console.log(`Error HTTP: ${response.status} - ${response.statusText}`)
         }
         const estacionesMasterizadas = await response.json();
-        console.log(estacionesMasterizadas)
         estacionesMasterizadasData = estacionesMasterizadas;
-        console.log(estacionesMasterizadasData);
         // renderizar estaciones listas para signar
-        renderAsignacion(estacionesMasterizadasData.slice(0,20));
+        renderAsignacion(estacionesMasterizadasData.slice(0,30));
         //renderLlaves(estacionesLlaveData.slice(0, 20));
 
       } catch (error) {
@@ -1231,6 +1238,22 @@ function crearCardEnClonacion(item) {
       );
     });
       renderListarParaClonar(filtradosClonacion.slice(0, 20));
+    });
+
+    // buscador dinamico para la seccion ASIGNACION DE ESTACIONES 
+    const buscadorAsignacion = document.getElementById('buscador-asignacion')
+    buscadorAsignacion.addEventListener("input", e=> {
+      const texto = e.target.value.toLowerCase();
+
+      const filtrados = estacionesMasterizadasData.filter(item => {
+      const codigo = String(item.codigo_equipo ?? "").toLowerCase();
+      const nro_estacion = String(item.nro_estacion ?? "").toLowerCase();
+
+      return (
+        nro_estacion.includes(texto) || codigo.includes(texto)
+      );
+    });
+      renderAsignacion(filtrados.slice(0, 30));
     });
 
     
@@ -1420,7 +1443,8 @@ function crearCardEnClonacion(item) {
 
     // Abrir modal de asignacion a operador
     function abrirModalAsignacion(idEstacion, codigoEquipo, modelo, tipoEstacion){
-      cargarOperadoresSinEstacion();
+      
+      alert("En desarrollo")
     }
 
     // Actualizar el dashboard con los datos
@@ -1442,19 +1466,16 @@ function crearCardEnClonacion(item) {
       });
 
       // Calcular estadísticas
-      const estacionesOperativas = data.filter(e => 
-        e.fase === 'Asignado' || e.fase === 'Desplegado'
-      ).length;
-      
-      const enProceso = data.filter(e => 
-        e.fase === 'En Revision' || e.fase === 'En Clonacion' || 
-        e.fase === 'En Masterizacion' || e.fase === 'Revisado funcional'
-      ).length;
-      
-      const enMantenimiento = data.filter(e => 
-        e.fase === 'En mantenimiento'
-      ).length;
+      const estacionesRevisadasFuncionalCounter = data.filter(e => e.fase === 'Revisado funcional').length;
 
+      const estacionesClonadasCounter = data.filter(e => e.fase === 'Clonado').length;
+      
+      const estacionesMasterizadasCounter = data.filter(e => e.fase === 'Masterizado').length;
+      
+      const estacionesAsignadasCounter = data.filter(e => e.fase === 'Asignado').length;
+
+      const estacionesOperativas = data.filter(e => e.fase === 'Revisado funcional' || e.fase === 'Clonado' || e.fase === 'Masterizado' || e.fase === 'Asignado')
+ 
       const estacionesFijas = data.filter(e => e.tipo_estacion === 'FIJA').length;
       const estacionesMoviles = data.filter(e => e.tipo_estacion === 'MOVIL').length;
       const estacionesDefectuosas = data.filter(e => e.estado_computadora === 'defectuoso').length;
@@ -1462,14 +1483,14 @@ function crearCardEnClonacion(item) {
 
       // Actualizar estadísticas principales
       document.getElementById('total-estaciones').textContent = totalEstaciones;
-      document.getElementById('estaciones-operativas').textContent = estacionesOperativas;
-      document.getElementById('en-proceso').textContent = enProceso;
-      document.getElementById('en-mantenimiento').textContent = enMantenimiento;
+      document.getElementById('estaciones-clonadas-counter').textContent = estacionesClonadasCounter;
+      document.getElementById('estaciones-masterizadas-counter').textContent = estacionesMasterizadasCounter;
+      document.getElementById('estaciones-asignadas-counter').textContent = estacionesAsignadasCounter;
       
       // Actualizar barras de progreso
-      document.getElementById('operativas-progress').style.width = `${(estacionesOperativas / totalEstaciones) * 100}%`;
-      document.getElementById('proceso-progress').style.width = `${(enProceso / totalEstaciones) * 100}%`;
-      document.getElementById('mantenimiento-progress').style.width = `${(enMantenimiento / totalEstaciones) * 100}%`;
+      document.getElementById('clonadas-progress').style.width = `${(estacionesClonadasCounter / totalEstaciones) * 100}%`;
+      document.getElementById('masterizadas-progress').style.width = `${(estacionesClonadasCounter / totalEstaciones) * 100}%`;
+      document.getElementById('asignadas-progress').style.width = `${(estacionesAsignadasCounter / totalEstaciones) * 100}%`;
 
       // Actualizar estadísticas detalladas
       document.getElementById('estaciones-fijas').textContent = estacionesFijas;
@@ -1483,37 +1504,36 @@ function crearCardEnClonacion(item) {
 
     // Actualizar el progreso del flujo de trabajo
     function updateWorkflowProgress(data) {
-      const recepcionado = data.filter(e => e.fase === 'Recepcionado').length;
-      const enRevision = data.filter(e => e.fase === 'En Revision').length;
-      const revisado = data.filter(e => e.fase === 'Revisado funcional').length;
-      const enClonacion = data.filter(e => e.fase === 'En Clonacion').length;
-      const clonado = data.filter(e => e.fase === 'Clonado').length;
-      const enMasterizacion = data.filter(e => e.fase === 'En Masterizacion').length;
-      const masterizado = data.filter(e => e.fase === 'Masterizado').length;
-      const asignado = data.filter(e => e.fase === 'Asignado').length;
+      const estacionesRevisadasFuncionalCounter = data.filter(e => e.fase === 'Revisado funcional').length;
 
-      // Recepcionado → En Revisión
-      const totalRevision = recepcionado + enRevision;
-      const progresoRevision = totalRevision > 0 ? (enRevision / totalRevision) * 100 : 0;
-      document.getElementById('count-revision').textContent = `${enRevision}/${totalRevision}`;
-      document.getElementById('progress-revision').style.width = `${progresoRevision}%`;
+      const estacionesClonadasCounter = data.filter(e => e.fase === 'Clonado').length;
+      
+      const estacionesMasterizadasCounter = data.filter(e => e.fase === 'Masterizado').length;
+      
+      const estacionesAsignadasCounter = data.filter(e => e.fase === 'Asignado').length;
+
+      const estacionesOperativas = data.filter(e => e.fase === 'Revisado funcional' || e.fase === 'Clonado' || e.fase === 'Masterizado' || e.fase === 'Asignado')
+ 
+      const totalEstaciones = data.length;
+
+      // Recepcionado → Revisado funcional
+      const progresoRevisadasFuncional = totalEstaciones > 0 ? (estacionesRevisadasFuncionalCounter / totalEstaciones) * 100 : 0;
+      document.getElementById('count-revisadas-funcionales').textContent = `${estacionesRevisadasFuncionalCounter}/${totalEstaciones}`;
+      document.getElementById('progress-revisadas-funcionales').style.width = `${progresoRevisadasFuncional}%`;
 
       // Revisado → En Clonación
-      const totalClonacion = revisado + enClonacion;
-      const progresoClonacion = totalClonacion > 0 ? (enClonacion / totalClonacion) * 100 : 0;
-      document.getElementById('count-clonacion').textContent = `${enClonacion}/${totalClonacion}`;
+      const progresoClonacion = totalEstaciones > 0 ? (estacionesClonadasCounter / totalEstaciones) * 100 : 0;
+      document.getElementById('count-clonacion').textContent = `${estacionesClonadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-clonacion').style.width = `${progresoClonacion}%`;
 
       // Clonado → En Masterización
-      const totalMasterizacion = clonado + enMasterizacion;
-      const progresoMasterizacion = totalMasterizacion > 0 ? (enMasterizacion / totalMasterizacion) * 100 : 0;
-      document.getElementById('count-masterizacion').textContent = `${enMasterizacion}/${totalMasterizacion}`;
+      const progresoMasterizacion = totalEstaciones > 0 ? (estacionesMasterizadasCounter / totalEstaciones) * 100 : 0;
+      document.getElementById('count-masterizacion').textContent = `${estacionesMasterizadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-masterizacion').style.width = `${progresoMasterizacion}%`;
 
       // Masterizado → Asignado
-      const totalAsignado = masterizado + asignado;
-      const progresoAsignado = totalAsignado > 0 ? (asignado / totalAsignado) * 100 : 0;
-      document.getElementById('count-asignado').textContent = `${asignado}/${totalAsignado}`;
+      const progresoAsignado = totalEstaciones > 0 ? (estacionesAsignadasCounter / totalEstaciones) * 100 : 0;
+      document.getElementById('count-asignado').textContent = `${estacionesAsignadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-asignado').style.width = `${progresoAsignado}%`;
     }
 

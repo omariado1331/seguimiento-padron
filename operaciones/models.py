@@ -272,8 +272,8 @@ class Operador(models.Model):
         ('renuncia', 'Renuncia'),
     ]
     TIPO_OPERADOR_CHOICES = [
-        ('URBANO', 'OPERADOR URBANO'),
-        ('RURAL', 'OPERADOR RURAL'),
+        ('Operador Urbano', 'OPERADOR URBANO'),
+        ('Operador Rural', 'OPERADOR RURAL'),
     ]
     estado = models.CharField(
         max_length=20,

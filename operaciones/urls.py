@@ -15,6 +15,7 @@ from .api_views import (
     HistorialMasterizacionViewSet, HistorialMasterViewSet
 )
 from . import views
+from .coordinador_login import CoordinadorLoginView
 
 from .views import mapa_dashboard
 router = routers.DefaultRouter()
@@ -55,5 +56,6 @@ urlpatterns = [
     path('operadores-sin-estacion/', OperadoresSinEstacionAsignadaView.as_view(), name='operadores-sin-estacion'),
     path('historico-master/', EstacionesCambioFaseConLlaveViewSet.as_view(), name='historico-masterizacion'),
     path('historial-master/', HistorialMasterViewSet.as_view(), name='historial-master'),
-    path('historial-masterizacion/', HistorialMasterizacionViewSet.as_view(), name='historial-masterizacion')
+    path('historial-masterizacion/', HistorialMasterizacionViewSet.as_view(), name='historial-masterizacion'),
+    path('api/token/', CoordinadorLoginView.as_view(), name='token_obtain_pair'),
 ]

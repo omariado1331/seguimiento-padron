@@ -12,19 +12,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-
         token['username'] = user.username
-        if user.groups.exists():
-            token['group'] = user.groups.first().name
-        else:
-            token['group'] = None
-        
+        token['group'] = user.groups.first().name if user.groups.exists() else None
         return token
 
     def validate(self, attrs):
         data = super().validate(attrs)
         user = self.user
 
+        # base user
         data['user'] = {
             'id': user.id,
             'username': user.username,
@@ -32,29 +28,48 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'groups': [g.name for g in user.groups.all()],
         }
 
-        # Operador
+        # ====== 1. CASO COORDINADOR ======
+        if user.groups.filter(name='Coordinador').exists():
+            try:
+                coord = Coordinador.objects.get(user=user)
+            except Coordinador.DoesNotExist:
+                data['user']['coordinador'] = None
+                data['user']['operadores_asignados'] = []
+                data['user']['operador'] = None
+                return data
+
+            operadores = Operador.objects.filter(
+                coordinador=coord
+            ).select_related('user', 'ruta', 'estacion__llave')
+
+            operadores_list = []
+            for op in operadores:
+                operadores_list.append({
+                    "id": op.user.id,
+                    "id_operador": op.id,
+                    "tipo_operador": op.tipo_operador,
+                    "ruta": op.ruta.nombre if op.ruta else None,
+                    "nro_estacion": op.estacion.llave.nro_estacion if op.estacion and op.estacion.llave else 0,
+                    "username": op.user.username,
+                    "email": op.user.email
+                })
+
+            data['user']['coordinador'] = {
+                "id_coordinador": coord.id,
+                "cantidad_operadores": operadores.count()
+            }
+            data['user']['operadores_asignados'] = operadores_list
+            data['user']['operador'] = None
+            return data
+
+        # ====== 2. CASO OPERADOR (formato anterior) ======
         try:
             operador = Operador.objects.select_related("estacion", "ruta").get(user=user)
-            if operador.estacion:
-                id_estacion = operador.estacion.id
-                nro_estacion = (
-                        operador.estacion.llave.nro_estacion
-                        if operador.estacion.llave
-                        else 0
-                    )
-            else:
-                id_estacion = 0
-                nro_estacion = 0
+            id_estacion = operador.estacion.id if operador.estacion else 0
+            nro_estacion = operador.estacion.llave.nro_estacion if operador.estacion and operador.estacion.llave else 0
+            ruta_data = {"id": operador.ruta.id, "nombre": str(operador.ruta)} if operador.ruta else None
 
-            # ✅ Corregido: convertir 'ruta' a un dict simple
-            ruta_data = None
-            if operador.ruta:
-                ruta_data = {
-                    "id": operador.ruta.id,
-                    "nombre": str(operador.ruta),
-                }
-
-            data["user"]['operador'] = {
+            data['user']['operador'] = {
                 "id_operador": operador.id,
                 "ruta": ruta_data,
                 "id_estacion": id_estacion,
@@ -62,27 +77,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 "tipo_operador": operador.tipo_operador,
             }
         except Operador.DoesNotExist:
-            data["user"]["operador"] = None
+            data['user']['operador'] = None
 
-        # Coordinador
-        try:
-            coordinador = Coordinador.objects.select_related("ruta").get(user=user)
-
-            # ✅ Corregido: convertir 'ruta' a un dict simple
-            ruta_data = None
-            if coordinador.ruta:
-                ruta_data = {
-                    "id": coordinador.ruta.id,
-                    "nombre": str(coordinador.ruta),
-                }
-
-            data["user"]["coordinador"] = {
-                "id_coordinador": coordinador.id,
-                "ruta": ruta_data,
-            }
-        except Coordinador.DoesNotExist:
-            data["user"]["coordinador"] = None
-
+        data['user']['coordinador'] = None
+        data['user']['operadores_asignados'] = []
         return data
 
 

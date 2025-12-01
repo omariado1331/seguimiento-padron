@@ -4,8 +4,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 #from rest_framework import generics, status
 from rest_framework.response import Response
+from django.db import connection
 from django.db.models import Prefetch, OuterRef, Subquery
-from django.db.models import Max
 #from rest_framework.decorators import action
 #from django.http import HttpResponse
 from rest_framework.views import APIView
@@ -279,76 +279,57 @@ class EstacionesCambioFaseConLlaveViewSet(APIView):
             "data": resultados_finales
         })
 
-class HistorialMasterizacionView(APIView):
+class HistorialMasterViewSet(APIView):
     def get(self, request):
         HistoricalEstacion = Estacion.history.model
         
-        # Subquery para obtener el histórico más reciente de cada estación
-        latest_historical = HistoricalEstacion.objects.filter(
-            id=OuterRef('id')
-        ).order_by('-history_date')
+        # 1. Obtener IDs y fecha de cambio a Masterizado
+        masterizado_data = HistoricalEstacion.objects.filter(
+            fase='Masterizado'
+        ).values('id', 'history_date', 'history_user__username').order_by('id', '-history_date')
         
-        # Obtener estaciones con su histórico más reciente
-        estaciones_con_historico = Estacion.objects.annotate(
-            latest_history_date=Subquery(latest_historical.values('history_date')[:1])
-        ).filter(
-            latest_history_date__isnull=False
-        )
+        # Agrupar por estación (tomar solo la fecha más reciente)
+        from collections import defaultdict
+        estaciones_masterizado = defaultdict(list)
+        
+        for data in masterizado_data:
+            estaciones_masterizado[data['id']].append(data)
+        
+        # 2. Obtener estaciones con llave actual
+        estaciones_ids = list(estaciones_masterizado.keys())
+        estaciones = Estacion.objects.filter(
+            id__in=estaciones_ids,
+            llave__isnull=False
+        ).select_related('llave')
         
         resultado = []
         
-        for estacion in estaciones_con_historico:
-            # Obtener el registro histórico más reciente
-            historico_reciente = HistoricalEstacion.objects.filter(
-                id=estacion.id,
-                history_date=estacion.latest_history_date
-            ).select_related('history_user', 'llave').first()
+        for estacion in estaciones:
+            # Obtener el registro Masterizado más reciente
+            master_info = estaciones_masterizado[estacion.id][0] if estaciones_masterizado[estacion.id] else None
             
-            if not historico_reciente:
-                continue
-                
-            registro_anterior = historico_reciente.prev_record
-            if not registro_anterior:
-                continue
+            registro = {
+                "codigo_equipo": estacion.codigo_equipo,
+                "modelo": estacion.modelo,
+                "tipo_estacion": estacion.tipo_estacion,
+                "llave": {
+                    "nro_estacion": estacion.llave.nro_estacion,
+                    "contador_c": estacion.llave.contador_c,
+                    "contador_r": estacion.llave.contador_r,
+                },
+                "fase_actual": estacion.fase,
+                "fecha_modificacion": master_info['history_date'] if master_info else None,
+                "username": master_info['history_user__username'] if master_info else None,
+            }
             
-            diff = historico_reciente.diff_against(registro_anterior)
-            
-            cambios_fase = [c for c in diff.changes if c.field == 'fase']
-            cambios_llave = [c for c in diff.changes if c.field == 'llave']
-            
-            if cambios_fase and cambios_llave and historico_reciente.llave:
-                cambio_fase = cambios_fase[0]
-                cambio_llave = cambios_llave[0]
-                
-                registro = {
-                    "codigo_equipo": historico_reciente.codigo_equipo,
-                    "modelo": historico_reciente.modelo,
-                    "tipo_estacion": historico_reciente.tipo_estacion,
-                    "fase": historico_reciente.fase,
-                    "llave": {
-                        "nro_estacion": historico_reciente.llave.nro_estacion,
-                        "contador_c": historico_reciente.llave.contador_c,
-                        "contador_r": historico_reciente.llave.contador_r,
-                    },
-                    "username": historico_reciente.history_user.username if historico_reciente.history_user else None,
-                    "fecha_modificacion": historico_reciente.history_date,
-                    "motivo_cambio": historico_reciente.history_change_reason,
-                    "cambios": {
-                        "fase_anterior": cambio_fase.old,
-                        "fase_nueva": cambio_fase.new,
-                        "llave_anterior": str(cambio_llave.old),
-                        "llave_nueva": str(cambio_llave.new)
-                    }
-                }
-                
-                resultado.append(registro)
+            resultado.append(registro)
         
         return Response({
             "success": True,
             "total_registros": len(resultado),
             "data": resultado
         })
-
+    
 class HistorialMasterizacionViewSet(APIView):
     def get(self, request):
         HistoricalEstacion = Estacion.history.model

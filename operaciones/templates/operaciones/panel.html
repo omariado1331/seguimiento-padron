@@ -802,6 +802,8 @@
 
     // lista filtrados para clonacion
     let filtradosClonacion = [];
+    // lista filtrados para asignacion
+    let filtradosAsignacion = [];
 
     // Colores para las gráficas
     const chartColors = {
@@ -875,8 +877,7 @@
         createCharts(data);
         cargarEstacionesLlaves();
         cargarLlaves();
-        document.getElementById('total-registros-clonacion').textContent = 
-                    `Total de registros: ${estacionesRevisadasFuncionalData.length}`;
+        
         document.getElementById('total-registros-masterizacion').textContent = 
                     `Total de registros: ${estacionesClonadasData.length}`;
         document.getElementById('total-registros-llaves').textContent = 
@@ -962,6 +963,14 @@
       estaciones.forEach(item => {
         contenedor.innerHTML += crearCardListaParaClonar(item);
       })
+      if (filtradosClonacion.length > 0){
+        document.getElementById('total-registros-clonacion').textContent = 
+                    `Total de registros: ${filtradosClonacion.length}`;
+      }
+      else {
+        document.getElementById('total-registros-clonacion').textContent = 
+                      `Total de registros: ${estacionesRevisadasFuncionalData.length}`;
+      }
     }
 // Función para crear tarjeta en sección de clonación EN CLONACION TAILWIND
 function crearCardEnClonacion(item) {
@@ -1242,10 +1251,9 @@ function crearCardEnClonacion(item) {
         const estacionesMasterizadas = await response.json();
         estacionesMasterizadasData = estacionesMasterizadas;
         // renderizar estaciones listas para signar
-        renderAsignacion(estacionesMasterizadasData.slice(0,30));
+        renderAsignacion(estacionesMasterizadasData.slice(0,32));
         //renderLlaves(estacionesLlaveData.slice(0, 20));
-        document.getElementById('total-registros-asignacion').textContent = 
-                    `Total de registros: ${estacionesMasterizadasData.length}`;
+        
 
       } catch (error) {
         console.error("error al cargar llaves");
@@ -1366,21 +1374,20 @@ function crearCardEnClonacion(item) {
     });
       renderListarParaClonar(filtradosClonacion.slice(0, 20));
     });
-
+    
     // buscador dinamico para la seccion ASIGNACION DE ESTACIONES 
     const buscadorAsignacion = document.getElementById('buscador-asignacion')
     buscadorAsignacion.addEventListener("input", e=> {
       const texto = e.target.value.toLowerCase();
 
-      const filtrados = estacionesMasterizadasData.filter(item => {
-      const codigo = String(item.codigo_equipo ?? "").toLowerCase();
-      const nro_estacion = String(item.nro_estacion ?? "").toLowerCase();
-
+      filtradosAsignacion = estacionesMasterizadasData.filter(item => {
+        const codigo = String(item.codigo_equipo ?? "").toLowerCase();
+        const nro_estacion = String(item.nro_estacion ?? "").toLowerCase();
       return (
         nro_estacion.includes(texto) || codigo.includes(texto)
       );
     });
-      renderAsignacion(filtrados.slice(0, 30));
+      renderAsignacion(filtradosAsignacion.slice(0, 32));
     });
 
     
@@ -1558,7 +1565,7 @@ function crearCardEnClonacion(item) {
     function renderAsignacion(data) {
         const contenedor = document.getElementById('asignacion-container');
         contenedor.innerHTML = "";
- 
+        
         data.forEach(item => {
             // Determinar icono y colores según el tipo de estación
             let icono = "fa-laptop"; // por defecto laptop
@@ -1585,6 +1592,14 @@ function crearCardEnClonacion(item) {
             `;
             contenedor.innerHTML += card;
         });
+
+        if (filtradosAsignacion.length > 0){
+          document.getElementById('total-registros-asignacion').textContent = 
+                    `Total de registros: ${filtradosAsignacion.length}`;
+        } else {
+          document.getElementById('total-registros-asignacion').textContent = 
+                    `Total de registros: ${estacionesMasterizadasData.length}`;
+        }
     }
 
     // Abrir modal de asignacion a operador
@@ -1604,7 +1619,7 @@ function crearCardEnClonacion(item) {
     async function cargarHistorialMasterizacion() {
         try {
           console.log("as")
-            const response = await fetch('/historial-masterizacion/');
+            const response = await fetch('/historial-master/');
             const data = await response.json();
             
             if (data.success) {
@@ -1657,7 +1672,7 @@ function crearCardEnClonacion(item) {
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            ${item.cambios.fase_nueva}
+                            ${item.fase_actual}
                         </span>
                     </td>
                 </tr>
@@ -1720,15 +1735,17 @@ function crearCardEnClonacion(item) {
             // Filtrar datos
             datosFiltradosHistorial = datosHistorial.filter(item => {
                 const codigoEquipo = item.codigo_equipo ? item.codigo_equipo.toLowerCase() : '';
-                const modelo = item.modelo ? item.modelo.toLowerCase() : '';
+                //const modelo = item.modelo ? item.modelo.toLowerCase() : '';
                 const nroEstacion = item.llave && item.llave.nro_estacion ? item.llave.nro_estacion.toString() : '';
                 const username = item.username ? item.username.toLowerCase() : '';
                 
                 return codigoEquipo.includes(texto) ||
-                      modelo.includes(texto) ||
+                      //modelo.includes(texto) ||
                       nroEstacion.includes(texto) ||
                       username.includes(texto);
             });
+            document.getElementById('total-registros-historial').textContent = 
+                    `Total de registros: ${datosFiltradosHistorial.length}`;
             
             paginaActualHistorial = 1;
             renderizarTablaConDatosActual();
@@ -1776,8 +1793,8 @@ function crearCardEnClonacion(item) {
             const contadorC = item.llave && item.llave.contador_c ? 
                 item.llave.contador_c : 'N/A';
                 
-            const faseNueva = item.cambios && item.cambios.fase_nueva ? 
-                item.cambios.fase_nueva : 'N/A';
+            const faseNueva = item.fase_actual ? 
+                item.fase_actual : 'N/A';
 
             const fila = `
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
@@ -1882,7 +1899,7 @@ function crearCardEnClonacion(item) {
       
       // Actualizar barras de progreso
       document.getElementById('clonadas-progress').style.width = `${(estacionesClonadasCounter / totalEstaciones) * 100}%`;
-      document.getElementById('masterizadas-progress').style.width = `${(estacionesClonadasCounter / totalEstaciones) * 100}%`;
+      document.getElementById('masterizadas-progress').style.width = `${(estacionesMasterizadasCounter / totalEstaciones) * 100}%`;
       document.getElementById('asignadas-progress').style.width = `${(estacionesAsignadasCounter / totalEstaciones) * 100}%`;
 
       // Actualizar estadísticas detalladas

@@ -36,7 +36,7 @@ urlpatterns = [
     #path('', views.index, name='index'),
     #path para apis
     path('api/', include(router.urls)),
-    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    #path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('listar-operadores/', ListarOperadoresListView.as_view(), name='listado-operadores'),
     path('api/ultimo-registro-despliegue/<int:id_operador>/',
@@ -57,5 +57,5 @@ urlpatterns = [
     path('historico-master/', EstacionesCambioFaseConLlaveViewSet.as_view(), name='historico-masterizacion'),
     path('historial-master/', HistorialMasterViewSet.as_view(), name='historial-master'),
     path('historial-masterizacion/', HistorialMasterizacionViewSet.as_view(), name='historial-masterizacion'),
-    path('api/token/', CoordinadorLoginView.as_view(), name='token_obtain_pair'),
+    #path('api/token/', CoordinadorLoginView.as_view(), name='token_obtain_pair'),
 ]

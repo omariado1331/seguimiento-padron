@@ -86,6 +86,23 @@
         .sidebar-overlay.active {
             display: block;
         }
+
+        /* Estilos para áreas seguras en móviles */
+      .safe-area-padding {
+          padding-bottom: env(safe-area-inset-bottom, 1rem);
+      }
+      
+      /* Para dispositivos que no soportan env() */
+      @supports not (padding-bottom: env(safe-area-inset-bottom)) {
+          .safe-area-padding {
+              padding-bottom: 2rem;
+          }
+      }
+      
+      /* Asegurar que el contenido principal también tenga padding seguro */
+      .content-body {
+          padding-bottom: env(safe-area-inset-bottom, 1rem);
+      }
     </style>
 </head>
 <body>
@@ -109,10 +126,10 @@
                 <i class="fas fa-chart-bar mr-3 text-lg w-6 text-center"></i>
                 <span class="font-medium">Dashboard General</span>
             </div>
-            <div class="menu-item py-4 px-6 flex items-center cursor-pointer transition-all duration-300 border-l-4 border-transparent hover:bg-white/10" data-target="estaciones">
+            <!-- <div class="menu-item py-4 px-6 flex items-center cursor-pointer transition-all duration-300 border-l-4 border-transparent hover:bg-white/10" data-target="estaciones">
                 <i class="fas fa-desktop mr-3 text-lg w-6 text-center"></i>
                 <span class="font-medium">Estadísticas Estaciones</span>
-            </div>
+            </div> -->
             <div class="menu-item py-4 px-6 flex items-center cursor-pointer transition-all duration-300 border-l-4 border-transparent hover:bg-white/10" data-target="clonacion">
                 <i class="fas fa-users mr-3 text-lg w-6 text-center"></i>
                 <span class="font-medium">Clonación</span>
@@ -129,7 +146,11 @@
                 <i class="fas fa-file-alt mr-3 text-lg w-6 text-center"></i>
                 <span class="font-medium">Asignación de Estaciones</span>
             </div>
-        </div>
+            <div class="menu-item py-4 px-6 flex items-center cursor-pointer transition-all duration-300 border-l-4 border-transparent hover:bg-white/10" data-target="historial-master">
+                  <i class="fas fa-history mr-3 text-lg w-6 text-center"></i>
+                  <span class="font-medium">Historial Masterización</span>
+            </div>
+          </div>
         
         <div class="sidebar-footer p-5 border-t border-white/10 text-center">
             <div class="user-info flex items-center justify-center mb-4">
@@ -253,6 +274,16 @@
                 <div class="phase-progress-container bg-white rounded-lg p-5 shadow-sm mb-5">
                     <h3 class="mb-5 text-gray-800 text-lg font-semibold"><i class="fas fa-project-diagram mr-2"></i> Progreso del Flujo de Trabajo</h3>
                     
+                    <div class="phase-item mb-4">
+                        <div class="phase-header flex justify-between items-center mb-2">
+                            <span class="phase-name font-medium text-gray-700">Estaciones En Mantenimiento / Total de Estaciones</span>
+                            <span class="phase-count font-semibold text-primary" id="count-en-mantenimiento">0/0</span>
+                        </div>
+                        <div class="phase-bar h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="phase-progress h-full rounded-full transition-all duration-300" id="progress-en-mantenimiento" style="width: 0%; background-color: #ff9800;"></div>
+                        </div>
+                    </div>
+
                     <div class="phase-item mb-4">
                         <div class="phase-header flex justify-between items-center mb-2">
                             <span class="phase-name font-medium text-gray-700">Estaciones Revisadas Funcionales / Total de Estaciones</span>
@@ -387,7 +418,10 @@
                         Confirmar 0 estaciones Clonadas
                     </button>
                 </div>
-                
+                <!-- Contador de registros -->
+              <div class="mb-4">
+                  <p class="text-sm text-gray-600" id="total-registros-clonacion">Total de registros: 0</p>
+              </div>
                 <div class="secciones-container flex flex-col lg:flex-row gap-5 w-full">
                     <!-- Sección 1 -->
                     <div class="seccion flex-1 bg-white p-4 rounded-lg shadow-sm">
@@ -439,6 +473,11 @@
                     >
                 </div>
 
+                <!-- Contador de registros -->
+              <div class="mb-4">
+                  <p class="text-sm text-gray-600" id="total-registros-masterizacion">Total de registros: 0</p>
+              </div>
+
                 <div class="stats-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="master-container">
                     <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -463,7 +502,10 @@
                     placeholder="Buscar por Nº estación o código equipo..."
                     class="w-full p-3 mb-4 text-base border border-gray-300 rounded"
                 >
-
+                <!-- Contador de registros -->
+              <div class="mb-4">
+                  <p class="text-sm text-gray-600" id="total-registros-llaves">Total de registros: 0</p>
+              </div>
                 <div class="stats-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="llaves-container">
                     <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -488,6 +530,11 @@
                     placeholder="Buscar estacion por código de equipo o número de estación..."
                     class="w-full p-2 my-3 border border-gray-300 rounded"
                 />
+
+                <!-- Contador de registros -->
+              <div class="mb-4">
+                  <p class="text-sm text-gray-600" id="total-registros-asignacion">Total de registros: 0</p>
+              </div>
                 <div class="stats-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="asignacion-container">
                     <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
                     <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
@@ -502,6 +549,69 @@
                     <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
                 </div>
             </div>
+
+            <!-- PANEL DE HISTORIAL DE MASTERIZACION -->
+          <div id="historial-master" class="content-panel hidden flex-col">
+              <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-4">
+                  <div class="flex gap-2">
+                      <input 
+                          type="text" 
+                          id="buscador-historial" 
+                          placeholder="Buscar por código equipo..."
+                          class="p-2 border border-gray-300 rounded text-sm"
+                      >
+                      <!-- DESARROLLAR BOTON DE EXPORTAR REGISTROS -->
+                       <button id="btn-refresh-historial" class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark">
+                          <i class="fas fa-sync-alt"></i> <span class="hidden sm:inline">Actualizar</span>
+                      </button> 
+                  </div>
+              </div>
+
+              <!-- Contador de registros -->
+              <div class="mb-4">
+                  <p class="text-sm text-gray-600" id="total-registros-historial">Total de registros: 0</p>
+              </div>
+
+              <!-- Tabla de historial -->
+              <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                  <div class="overflow-x-auto">
+                      <table class="min-w-full divide-y divide-gray-200">
+                          <thead class="bg-gray-50">
+                              <tr>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código Equipo</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modelo</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Llave</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contadores</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fase</th>
+                              </tr>
+                          </thead>
+                          <tbody id="tabla-historial-body" class="bg-white divide-y divide-gray-200">
+                              <!-- Los datos se cargarán aquí dinámicamente -->
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+
+             <!-- Paginación - ALTERNATIVA SIMPLE -->
+            <div class="flex justify-between items-center mt-4 pb-6 sm:pb-4 safe-area-padding" id="paginacion-historial">
+                <button id="btn-prev" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                    <i class="fas fa-chevron-left"></i> 
+                    <span class="hidden sm:inline">Anterior</span>
+                    <span class="sm:hidden">Ant.</span>
+                </button>
+                
+                <span class="text-sm text-gray-600 px-2 text-center flex-1" id="info-pagina">Página 1 de 1</span>
+                
+                <button id="btn-next" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                    <span class="hidden sm:inline">Siguiente</span>
+                    <span class="sm:hidden">Sig.</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+          </div>
+
         </div>
     </div>
 
@@ -715,7 +825,7 @@
       cargarOperadoresSinEstacion();
       
       // Configurar botones
-      document.getElementById('refresh-data').addEventListener('click', loadEstacionesData);
+      document.getElementById('refresh-data').addEventListener('click', loadEstacionesData, cargarHistorialMasterizacion);
       document.getElementById('export-btn').addEventListener('click', exportData);
     }
 
@@ -755,7 +865,8 @@
         const data = await response.json();
         console.log('Datos de estaciones recibidos:', data.length, 'registros');
         
-        estacionesData = data;
+        estacionesData = data.filter(l => !String(l.fase).includes("En mantenimiento"));
+        estacionesEnMantenimeinto = data.filter(l => String(l.fase).includes("En mantenimiento"));
         estacionesRevisadasFuncionalData = data.filter(l => String(l.fase).includes("Revisado funcional"))
         estacionesClonadasData = data.filter(l => String(l.fase).includes("Clonado"));
         estacionesLlaveAsignadaData = data.filter(l => String(l.fase).includes("Llave asignada"));
@@ -763,6 +874,14 @@
         updateDashboard(data);
         createCharts(data);
         cargarEstacionesLlaves();
+        cargarLlaves();
+        document.getElementById('total-registros-clonacion').textContent = 
+                    `Total de registros: ${estacionesRevisadasFuncionalData.length}`;
+        document.getElementById('total-registros-masterizacion').textContent = 
+                    `Total de registros: ${estacionesClonadasData.length}`;
+        document.getElementById('total-registros-llaves').textContent = 
+                    `Total de registros: ${estacionesLlaveAsignadaData.length}`;
+
       } catch (error) {
         console.error('Error cargando datos de estaciones:', error);
         alert('Error al cargar los datos: ' + error.message);
@@ -1031,8 +1150,14 @@ function crearCardEnClonacion(item) {
     //Boton para cambiar de estado a llave asignada MASTERIZACION
     btnConfirmarMaster.addEventListener("click", async () => {
       try {
-        cambiarFaseLlaveAsignada(estacionActualID);
+        await cambiarFaseLlaveAsignada(estacionActualID);
         document.getElementById("modal-masterizacion").style.display = "none";
+        // Redirigir al panel de Llaves
+        const llavesMenuItem = document.querySelector('.menu-item[data-target="llaves"]');
+        if (llavesMenuItem) {
+            llavesMenuItem.click(); // Simular click en el item del menú
+        }
+
       } catch (error) {
         console.log(error)
         alert("No se pudo conectar con el servidor");
@@ -1041,7 +1166,7 @@ function crearCardEnClonacion(item) {
 
     //cerrar modal
     document.getElementById("cerrar-modal-master").onclick = () => {
-      document.getElementById("modal-masterizacion").style.display = "none";
+    document.getElementById("modal-masterizacion").style.display = "none";
     };
 
     //funcion para cambiar de estado a Llave asignada MASTERIZACION
@@ -1119,6 +1244,8 @@ function crearCardEnClonacion(item) {
         // renderizar estaciones listas para signar
         renderAsignacion(estacionesMasterizadasData.slice(0,30));
         //renderLlaves(estacionesLlaveData.slice(0, 20));
+        document.getElementById('total-registros-asignacion').textContent = 
+                    `Total de registros: ${estacionesMasterizadasData.length}`;
 
       } catch (error) {
         console.error("error al cargar llaves");
@@ -1270,40 +1397,42 @@ function crearCardEnClonacion(item) {
 
     //render para la lista de llaves
     function renderLlavesSinAsignar(lista){
-      listaLlaves.innerHTML = "";
+        listaLlaves.innerHTML = "";
 
-      lista.forEach(ll => {
-          const item = document.createElement("div");
-          item.className = "llave-item";
-          item.textContent = `Llave ${ll.nro_estacion} C:${ll.contador_c} R:${ll.contador_r}`;
-          item.onclick = () => seleccionarLlave(ll);
-          listaLlaves.appendChild(item);
-      });
+        lista.forEach(ll => {
+            const item = document.createElement("div");
+            item.className = "llave-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200";
+            item.textContent = `Llave ${ll.nro_estacion} C:${ll.contador_c} R:${ll.contador_r}`;
+            item.onclick = () => seleccionarLlave(ll);
+            listaLlaves.appendChild(item);
+        });
     }
 
     function abrirModal(id_estacion, codigo_equipo, id_llave){
-
       // Si ya tiene llave asignada → NO abrir modal
       if (id_llave && id_llave !== "Sin llave asignada") {
-        alert("Esta estación ya tiene una llave asignada");
-        return;
+          alert("Esta estación ya tiene una llave asignada");
+          return;
       }
       estacionSeleccionada = id_estacion;
       codigoEstacionSeleccionada = codigo_equipo;
       llaveSeleccionada = null;
       tituloModal.textContent = `Asignar Llave a ${codigoEstacionSeleccionada}`;
 
-      panelSeleccionada.style.display = "none";
+      panelSeleccionada.classList.add("hidden");
       panelSeleccionada.innerHTML = "";
       btnAsignar.disabled = true;
+      btnAsignar.classList.add("disabled:opacity-50", "disabled:cursor-not-allowed");
       buscadorModal.value = "";
 
-      modal.style.display = "flex";
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
       renderLlavesSinAsignar(dataLlaves.slice(0, 10));
-    }
+  }
 
     cerrarModal.onclick = () => {
-      modal.style.display = "none";
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
     }
 
     buscadorModal.addEventListener("input", e =>{
@@ -1317,9 +1446,24 @@ function crearCardEnClonacion(item) {
     });
 
     // ---------- SELECCIONAR UNA LLAVE ---------- TAILWIND
-  function seleccionarLlave(ll) {
+    function seleccionarLlave(ll) {
       llaveSeleccionada = ll;
       
+      // Remover selección anterior
+      document.querySelectorAll('.llave-item').forEach(item => {
+          item.classList.remove('bg-blue-50', 'border-l-4', 'border-l-primary');
+      });
+      
+      // Agregar clase al item seleccionado
+      const selectedItem = Array.from(document.querySelectorAll('.llave-item')).find(item => 
+          item.textContent.includes(`Llave ${ll.nro_estacion}`)
+      );
+      if (selectedItem) {
+          selectedItem.classList.add('bg-blue-50', 'border-l-4', 'border-l-primary');
+      }
+      
+      // Mostrar la llave seleccionada en el panel
+      const panelSeleccionada = document.getElementById('llave-seleccionada');
       panelSeleccionada.classList.remove("hidden");
       panelSeleccionada.innerHTML = `
           <h2 class="text-2xl font-bold m-0">Llave ${ll.nro_estacion}</h2>
@@ -1332,15 +1476,17 @@ function crearCardEnClonacion(item) {
   }
 
     // boton para asignar llave a la estacion
-    btnAsignar.onclick = () => {
+    btnAsignar.onclick = async () => {
       if(!llaveSeleccionada) return;
 
-      console.log(llaveSeleccionada)
-      console.log(estacionSeleccionada)
-
       // asignar llave a estacion metodo PATCH
-      asignarLlaveEstacion(estacionSeleccionada, codigoEstacionSeleccionada, llaveSeleccionada);
-      modal.style.display = "none"
+      await asignarLlaveEstacion(estacionSeleccionada, codigoEstacionSeleccionada, llaveSeleccionada);
+      // Redirigir al panel de Asignacion
+        const asignacionMenuItem = document.querySelector('.menu-item[data-target="asignacion"]');
+        if (asignacionMenuItem) {
+            asignacionMenuItem.click(); // Simular click en el item del menú
+        }
+      modal.classList.add("hidden");
     }
 
     //funcion para asignar llave 
@@ -1447,9 +1593,256 @@ function crearCardEnClonacion(item) {
       alert("En desarrollo")
     }
 
+    //************HISTORIAL MASTERIZACION*********************************
+    //********************************************************************
+    // Variables para el historial
+    let datosHistorial = [];
+    let paginaActualHistorial = 1;
+    const registrosPorPagina = 15;
+
+    // Función para cargar el historial
+    async function cargarHistorialMasterizacion() {
+        try {
+          console.log("as")
+            const response = await fetch('/historial-masterizacion/');
+            const data = await response.json();
+            
+            if (data.success) {
+                datosHistorial = data.data;
+                document.getElementById('total-registros-historial').textContent = 
+                    `Total de registros: ${data.total_registros}`;
+                renderizarTablaHistorial();
+                actualizarPaginacion();
+            } else {
+                throw new Error('Error al cargar historial');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al cargar el historial');
+        }
+    }
+
+    // Función para renderizar la tabla
+    function renderizarTablaHistorial() {
+        const tbody = document.getElementById('tabla-historial-body');
+        tbody.innerHTML = '';
+
+        const inicio = (paginaActualHistorial - 1) * registrosPorPagina;
+        const fin = inicio + registrosPorPagina;
+        const datosPagina = datosHistorial.slice(inicio, fin);
+
+        datosPagina.forEach(item => {
+            const fecha = new Date(item.fecha_modificacion).toLocaleDateString('es-ES');
+            
+            const fila = `
+                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${item.codigo_equipo}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${item.modelo}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${item.llave ? item.llave.nro_estacion : 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        R:${item.llave ? item.llave.contador_r : 'N/A'} 
+                        C:${item.llave ? item.llave.contador_c : 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${item.username}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${fecha}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ${item.cambios.fase_nueva}
+                        </span>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+    }
+
+    // Función para actualizar la paginación 
+    function actualizarPaginacion() {
+        // Usar datosFiltradosHistorial si hay búsqueda, sino datosHistorial
+        const datosParaPaginacion = datosFiltradosHistorial.length > 0 ? datosFiltradosHistorial : datosHistorial;
+        const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPagina);
+        const infoPagina = document.getElementById('info-pagina');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        infoPagina.textContent = `Página ${paginaActualHistorial} de ${totalPaginas}`;
+        
+        btnPrev.disabled = paginaActualHistorial === 1;
+        btnPrev.classList.toggle('disabled:opacity-50', paginaActualHistorial === 1);
+        btnPrev.classList.toggle('disabled:cursor-not-allowed', paginaActualHistorial === 1);
+        
+        btnNext.disabled = paginaActualHistorial === totalPaginas;
+        btnNext.classList.toggle('disabled:opacity-50', paginaActualHistorial === totalPaginas);
+        btnNext.classList.toggle('disabled:cursor-not-allowed', paginaActualHistorial === totalPaginas);
+    }
+
+    // Event listeners para paginación
+    document.getElementById('btn-prev').addEventListener('click', () => {
+        if (paginaActualHistorial > 1) {
+            paginaActualHistorial--;
+            renderizarTablaConDatosActual();
+            actualizarPaginacion();
+        }
+    });
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+        const datosParaPaginacion = datosFiltradosHistorial.length > 0 ? datosFiltradosHistorial : datosHistorial;
+        const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPagina);
+        
+        if (paginaActualHistorial < totalPaginas) {
+            paginaActualHistorial++;
+            renderizarTablaConDatosActual();
+            actualizarPaginacion();
+        }
+    });
+
+
+    // Búsqueda en tiempo real 
+    document.getElementById('buscador-historial').addEventListener('input', (e) => {
+        const texto = e.target.value.toLowerCase();
+        
+        if (texto === '') {
+            // Si el buscador está vacío, limpiar filtros
+            datosFiltradosHistorial = [];
+            paginaActualHistorial = 1;
+            renderizarTablaHistorial();
+        } else {
+            // Filtrar datos
+            datosFiltradosHistorial = datosHistorial.filter(item => {
+                const codigoEquipo = item.codigo_equipo ? item.codigo_equipo.toLowerCase() : '';
+                const modelo = item.modelo ? item.modelo.toLowerCase() : '';
+                const nroEstacion = item.llave && item.llave.nro_estacion ? item.llave.nro_estacion.toString() : '';
+                const username = item.username ? item.username.toLowerCase() : '';
+                
+                return codigoEquipo.includes(texto) ||
+                      modelo.includes(texto) ||
+                      nroEstacion.includes(texto) ||
+                      username.includes(texto);
+            });
+            
+            paginaActualHistorial = 1;
+            renderizarTablaConDatosActual();
+            actualizarPaginacion();
+        }
+    });
+
+    // Función auxiliar para renderizar con los datos actuales (filtrados o completos)
+    function renderizarTablaConDatosActual() {
+        const datosParaRender = datosFiltradosHistorial.length > 0 ? datosFiltradosHistorial : datosHistorial;
+        renderizarTablaConDatos(datosParaRender);
+    }
+
+    // Función auxiliar para renderizar con datos específicos
+    function renderizarTablaConDatos(datos) {
+        const tbody = document.getElementById('tabla-historial-body');
+        tbody.innerHTML = '';
+
+        const inicio = (paginaActualHistorial - 1) * registrosPorPagina;
+        const fin = inicio + registrosPorPagina;
+        const datosPagina = datos.slice(inicio, fin);
+
+        if (datosPagina.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500">
+                        No se encontraron registros
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        datosPagina.forEach(item => {
+            // Manejar valores nulos de forma segura
+            const fecha = item.fecha_modificacion ? 
+                new Date(item.fecha_modificacion).toLocaleDateString('es-ES') : 'N/A';
+            
+            const nroEstacion = item.llave && item.llave.nro_estacion ? 
+                item.llave.nro_estacion : 'N/A';
+                
+            const contadorR = item.llave && item.llave.contador_r ? 
+                item.llave.contador_r : 'N/A';
+                
+            const contadorC = item.llave && item.llave.contador_c ? 
+                item.llave.contador_c : 'N/A';
+                
+            const faseNueva = item.cambios && item.cambios.fase_nueva ? 
+                item.cambios.fase_nueva : 'N/A';
+
+            const fila = `
+                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${item.codigo_equipo || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${item.modelo || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${nroEstacion}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        R:${contadorR} C:${contadorC}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${item.username || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${fecha}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ${faseNueva}
+                        </span>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+    }
+
+    // Funcion para renderizarTablaHistorial
+    function renderizarTablaHistorial() {
+        datosFiltradosHistorial = []; // Limpiar filtros al cargar datos nuevos
+        paginaActualHistorial = 1;
+        renderizarTablaConDatosActual();
+        actualizarPaginacion();
+    }
+
+    // Botón de actualizar
+    document.getElementById('btn-refresh-historial').addEventListener('click', () => {
+        const btn = document.getElementById('btn-refresh-historial');
+        const icon = btn.querySelector('i');
+        
+        icon.classList.remove('fa-sync-alt');
+        icon.classList.add('fa-spinner', 'loading');
+        
+        cargarHistorialMasterizacion().finally(() => {
+            icon.classList.remove('fa-spinner', 'loading');
+            icon.classList.add('fa-sync-alt');
+        });
+    });
+
+    // Cargar historial cuando se active el panel
+    document.querySelector('.menu-item[data-target="historial-master"]').addEventListener('click', () => {
+        if (datosHistorial.length === 0) {
+            cargarHistorialMasterizacion();
+        }
+    });
+
+
     // Actualizar el dashboard con los datos
     function updateDashboard(data) {
-      const totalEstaciones = data.length;
+      const totalEstaciones = data.filter(l => !String(l.fase).includes("En mantenimiento")).length;
       
       // Contar por fases
       const fasesCount = {};
@@ -1504,6 +1897,8 @@ function crearCardEnClonacion(item) {
 
     // Actualizar el progreso del flujo de trabajo
     function updateWorkflowProgress(data) {
+      const estacionesEnMantenimientoCounter = data.filter(e => e.fase === 'En mantenimiento').length;
+
       const estacionesRevisadasFuncionalCounter = data.filter(e => e.fase === 'Revisado funcional').length;
 
       const estacionesClonadasCounter = data.filter(e => e.fase === 'Clonado').length;
@@ -1514,24 +1909,29 @@ function crearCardEnClonacion(item) {
 
       const estacionesOperativas = data.filter(e => e.fase === 'Revisado funcional' || e.fase === 'Clonado' || e.fase === 'Masterizado' || e.fase === 'Asignado')
  
-      const totalEstaciones = data.length;
+      const totalEstaciones = data.filter(l => !String(l.fase).includes("En mantenimiento")).length;
 
-      // Recepcionado → Revisado funcional
+      // En mantenimiento
+      const progresoEnMantenimiento = totalEstaciones > 0 ? (estacionesEnMantenimientoCounter / totalEstaciones) * 100 : 0;
+      document.getElementById('count-en-mantenimiento').textContent = `${estacionesEnMantenimientoCounter}/${totalEstaciones}`;
+      document.getElementById('progress-en-mantenimiento').style.width = `${progresoEnMantenimiento}%`;
+
+      // Revisado funcional
       const progresoRevisadasFuncional = totalEstaciones > 0 ? (estacionesRevisadasFuncionalCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-revisadas-funcionales').textContent = `${estacionesRevisadasFuncionalCounter}/${totalEstaciones}`;
       document.getElementById('progress-revisadas-funcionales').style.width = `${progresoRevisadasFuncional}%`;
 
-      // Revisado → En Clonación
+      //  En Clonación
       const progresoClonacion = totalEstaciones > 0 ? (estacionesClonadasCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-clonacion').textContent = `${estacionesClonadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-clonacion').style.width = `${progresoClonacion}%`;
 
-      // Clonado → En Masterización
+      // En Masterización
       const progresoMasterizacion = totalEstaciones > 0 ? (estacionesMasterizadasCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-masterizacion').textContent = `${estacionesMasterizadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-masterizacion').style.width = `${progresoMasterizacion}%`;
 
-      // Masterizado → Asignado
+      //  Asignado
       const progresoAsignado = totalEstaciones > 0 ? (estacionesAsignadasCounter / totalEstaciones) * 100 : 0;
       document.getElementById('count-asignado').textContent = `${estacionesAsignadasCounter}/${totalEstaciones}`;
       document.getElementById('progress-asignado').style.width = `${progresoAsignado}%`;
@@ -1807,7 +2207,8 @@ function crearCardEnClonacion(item) {
                     'clonacion': 'Etapa de clonacion',
                     'masterizacion': 'Etapa de Masterización',
                     'llaves': 'Confirmación de Llave',
-                    'asignacion': 'Asignación de Estaciones'
+                    'asignacion': 'Asignación de Estaciones',
+                    'historial-master': 'Historial de Masterización'
                 };
                 document.getElementById('content-title').textContent = titleMap[target] || 'Panel';
                 
@@ -1853,7 +2254,7 @@ function crearCardEnClonacion(item) {
             refreshBtn.addEventListener('click', function() {
                 const refreshText = document.getElementById('refresh-text');
                 const icon = this.querySelector('i');
-                
+                cargarHistorialMasterizacion();
                 // Mostrar estado de carga
                 refreshText.textContent = 'Actualizando...';
                 icon.classList.remove('fa-sync-alt');

@@ -318,7 +318,7 @@ class MovimientosEstacionAdmin(admin.ModelAdmin):
 # ---------------- Coordinador ----------------
 @admin.register(Coordinador)
 class CoordinadorAdmin(admin.ModelAdmin):
-    list_display = ['user', 'estado', 'ruta', 'correo', 'celular']
+    list_display = ['user', 'estado',  'correo', 'celular']
     search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
     list_filter = ['estado', 'ruta']
 

@@ -35,7 +35,7 @@ urlpatterns = [
     #path('', views.index, name='index'),
     #path para apis
     path('api/', include(router.urls)),
-    #path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('listar-operadores/', ListarOperadoresListView.as_view(), name='listado-operadores'),
     path('api/ultimo-registro-despliegue/<int:id_operador>/',

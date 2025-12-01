@@ -16,6 +16,87 @@ class CentroEmpadronamiento(models.Model):
     def __str__(self):
         return self.punto_de_empadronamiento
 
+class Coordinador(models.Model):
+    ESTADO_CHOICES = [
+        ('postulante', 'Postulante'),
+        ('seleccionado', 'Seleccionado'),
+        ('contratado', 'Contratado'),
+        ('sin_firmar_contrato', 'Sin Firmar Contrato'),
+        ('renuncia', 'Renuncia'),
+    ]
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='postulante'
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    correo = models.EmailField(unique=True, null=True, blank=True)
+    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+class Logistico(models.Model):
+    """Mismos campos que Coordinador."""
+    ESTADO_CHOICES = Coordinador.ESTADO_CHOICES
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='postulante')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    correo = models.EmailField(unique=True, null=True, blank=True)
+    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+
+class Soporte(models.Model):
+    """Mismos campos que Coordinador."""
+    ESTADO_CHOICES = Coordinador.ESTADO_CHOICES
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='postulante')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    correo = models.EmailField(unique=True, null=True, blank=True)
+    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+class AsistenteMegacentro(models.Model):
+    """Mismos campos que Coordinador."""
+    ESTADO_CHOICES = Coordinador.ESTADO_CHOICES
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='postulante')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+    direccion = models.CharField(max_length=200, blank=True, null=True)
+    correo = models.EmailField(unique=True, null=True, blank=True)
+    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
+
+
+class Ruta(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    descripcion = models.TextField(blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    coordinador = models.ForeignKey(Coordinador, on_delete=models.SET_NULL, null=True, blank=True)
+    soporte     = models.ForeignKey(Soporte,     on_delete=models.SET_NULL, null=True, blank=True)
+    logistico     = models.ForeignKey(Logistico,     on_delete=models.SET_NULL, null=True, blank=True)
+    def __str__(self):
+        return self.nombre
+
 class Llave(models.Model):
     nro_estacion = models.IntegerField(default=0, unique=True)
     contador_r = models.IntegerField(default=0)
@@ -23,12 +104,19 @@ class Llave(models.Model):
 
     def __str__(self):
         return f"{self.nro_estacion}-C:{self.contador_c}:-R:{self.contador_r}"
-
-class Ruta(models.Model):
+        
+# ----------------- MEGACENTRO -----------------
+class Megacentro(models.Model):
+    """Misma base que Ruta + campos extra."""
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    
+    # FKs adicionales
+    coordinador = models.ForeignKey(Coordinador, on_delete=models.SET_NULL, null=True, blank=True)
+    soporte = models.ForeignKey(Soporte, on_delete=models.SET_NULL, null=True, blank=True)
+    logistico     = models.ForeignKey(Logistico,     on_delete=models.SET_NULL, null=True, blank=True)
+    asistente_megacentro = models.ForeignKey(AsistenteMegacentro, on_delete=models.SET_NULL, null=True, blank=True)
+
     def __str__(self):
         return self.nombre
 
@@ -238,30 +326,7 @@ class MovimientosEstacion(models.Model):
     def __str__(self):
         return f"Movimiento de {self.estacion.codigo_equipo} el {self.fecha_movimiento}"
     
-class Coordinador(models.Model):
-    ESTADO_CHOICES = [
-        ('postulante', 'Postulante'),
-        ('seleccionado', 'Seleccionado'),
-        ('contratado', 'Contratado'),
-        ('sin_firmar_contrato', 'Sin Firmar Contrato'),
-        ('renuncia', 'Renuncia'),
-    ]
-    estado = models.CharField(
-        max_length=20,
-        choices=ESTADO_CHOICES,
-        default='postulante'
-    )
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, null=True, blank=True)
-    nombre = models.CharField(max_length=100, null=True, blank=True)
-    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
-    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
-    direccion = models.CharField(max_length=200, blank=True, null=True)
-    correo = models.EmailField(unique=True, null=True, blank=True)
-    celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
 
-    def __str__(self):
-        return self.user.username
 
 class Operador(models.Model):
     ESTADO_CHOICES = [
@@ -286,6 +351,7 @@ class Operador(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     ruta = models.ForeignKey(Ruta, null=True, blank=True, on_delete=models.SET_NULL)
+    megacentro = models.ForeignKey(Megacentro, on_delete=models.SET_NULL, null=True, blank=True)
     coordinador = models.ForeignKey(Coordinador, null=True, blank=True, on_delete=models.SET_NULL)
     estacion = models.ForeignKey(Estacion, null=True, blank=True, on_delete=models.SET_NULL)  
     nombre = models.CharField(max_length=100, null=True, blank=True)

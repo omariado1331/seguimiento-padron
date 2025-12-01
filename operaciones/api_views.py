@@ -323,7 +323,9 @@ class HistorialMasterViewSet(APIView):
             }
             
             resultado.append(registro)
-        
+
+        resultado.sort(key=lambda x: x['codigo_equipo'] or '')
+
         return Response({
             "success": True,
             "total_registros": len(resultado),

@@ -1731,6 +1731,8 @@ function crearCardEnClonacion(item) {
             datosFiltradosHistorial = [];
             paginaActualHistorial = 1;
             renderizarTablaHistorial();
+            document.getElementById('total-registros-historial').textContent = 
+                    `Total de registros: ${datosHistorial.length}`;
         } else {
             // Filtrar datos
             datosFiltradosHistorial = datosHistorial.filter(item => {

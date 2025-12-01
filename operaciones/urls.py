@@ -15,7 +15,6 @@ from .api_views import (
     HistorialMasterizacionViewSet, HistorialMasterViewSet
 )
 from . import views
-from .coordinador_login import CoordinadorLoginView
 
 from .views import mapa_dashboard
 router = routers.DefaultRouter()

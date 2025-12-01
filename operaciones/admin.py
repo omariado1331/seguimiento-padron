@@ -320,7 +320,7 @@ class MovimientosEstacionAdmin(admin.ModelAdmin):
 class CoordinadorAdmin(admin.ModelAdmin):
     list_display = ['user', 'estado',  'correo', 'celular']
     search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
-    list_filter = ['estado', 'ruta']
+    list_filter = ['estado']
 
 # ---------------- Operador ----------------
 @admin.register(Operador)

@@ -16,6 +16,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['group'] = user.groups.first().name if user.groups.exists() else None
         return token
 
+    def _datos_personales(self, modelo, user):
+        """Devuelve el dict común de datos personales o None si no existe."""
+        try:
+            obj = modelo.objects.get(user=user)
+            return {
+                "id": obj.id,
+                "nombre": obj.nombre,
+                "apellido_paterno": obj.apellido_paterno,
+                "apellido_materno": obj.apellido_materno,
+                "celular": obj.celular,
+            }
+        except modelo.DoesNotExist:
+            return None
+
     def validate(self, attrs):
         data = super().validate(attrs)
         user = self.user
@@ -30,14 +44,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # ====== 1. CASO COORDINADOR ======
         if user.groups.filter(name='Coordinador').exists():
-            try:
-                coord = Coordinador.objects.get(user=user)
-            except Coordinador.DoesNotExist:
+            coord_data = self._datos_personales(Coordinador, user)
+            if not coord_data:
                 data['user']['coordinador'] = None
                 data['user']['operadores_asignados'] = []
                 data['user']['operador'] = None
                 return data
 
+            coord = Coordinador.objects.get(user=user)
             operadores = Operador.objects.filter(
                 coordinador=coord
             ).select_related('user', 'ruta', 'estacion__llave')
@@ -55,7 +69,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 })
 
             data['user']['coordinador'] = {
-                "id_coordinador": coord.id,
+                **coord_data,
                 "cantidad_operadores": operadores.count()
             }
             data['user']['operadores_asignados'] = operadores_list
@@ -79,10 +93,24 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         except Operador.DoesNotExist:
             data['user']['operador'] = None
 
+        # ====== 3. OTROS ROLES (Soporte, Logistico, AsistenteMegacentro) ======
+        for rol, modelo in (
+            ('Soporte', Soporte),
+            ('Logistico', Logistico),
+            ('AsistenteMegacentro', AsistenteMegacentro),
+        ):
+            if user.groups.filter(name=rol).exists():
+                data['user'][rol.lower()] = self._datos_personales(modelo, user)
+                break
+        else:
+            # si no entró a ninguno, ponemos None
+            data['user']['soporte'] = None
+            data['user']['logistico'] = None
+            data['user']['asistentemegacentro'] = None
+
         data['user']['coordinador'] = None
         data['user']['operadores_asignados'] = []
         return data
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

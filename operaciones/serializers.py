@@ -5,7 +5,7 @@ from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
     ReporteDiario, RegistroDespliegue, Item, CentroEmpadronamiento,
-    UbicacionesOperador    
+    UbicacionesOperador,Soporte, Logistico, AsistenteMegacentro     
 )
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

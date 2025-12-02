@@ -28,7 +28,7 @@ from openpyxl.utils               import get_column_letter
 from .models import (
     CentroEmpadronamiento, Coordinador, Estacion, Item,
     Llave, MovimientosEstacion, Operador, RegistroDespliegue,
-    ReporteDiario, Ruta, UbicacionesOperador
+    ReporteDiario, Ruta, UbicacionesOperador, Megacentro
 )      
 # ------------------------------------------------------------------
 #  Historico
@@ -301,13 +301,6 @@ class LlaveAdmin(admin.ModelAdmin):
     search_fields = ['nro_estacion']
     list_filter = ['nro_estacion']
 
-# ---------------- Ruta ----------------
-@admin.register(Ruta)
-class RutaAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'fecha_creacion']
-    search_fields = ['nombre']
-    list_filter = ['fecha_creacion']
-
 # ---------------- MovimientosEstacion ----------------
 @admin.register(MovimientosEstacion)
 class MovimientosEstacionAdmin(admin.ModelAdmin):
@@ -363,6 +356,7 @@ class CentroEmpadronamientoAdmin(admin.ModelAdmin):
     search_fields = ['nombre', 'provincia']
     list_filter = ['provincia']
 
+#--------------- UbicacionesOperador ---------------------
 @admin.register(UbicacionesOperador)
 class UbicacionesOperadorAdmin(admin.ModelAdmin):
     list_display = [f.name for f in UbicacionesOperador._meta.fields]
@@ -370,6 +364,16 @@ class UbicacionesOperadorAdmin(admin.ModelAdmin):
     list_filter = ['fecha', 'operador']
 
 
-# @admin.register(Estacion)
-# class EstacionHistoricoAdmin(SimpleHistoryAdmin):
-#     list_display = ['__all__']
+#--------------- Megacentro ---------------------
+@admin.register(Megacentro)
+class MegacentroAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'descripcion', 'fecha_creacion', 'coordinador', 'soporte', 'logistico', 'asistente_megacentro']
+    search_fields = ['nombre']
+    list_filter = ['fecha_creacion']
+
+# ---------------- Ruta ---------------------
+@admin.register(Ruta)
+class RutaAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'descripcion', 'fecha_creacion', 'coordinador', 'soporte', 'logistico']
+    search_fields = ['nombre']
+    list_filter = ['fecha_creacion']

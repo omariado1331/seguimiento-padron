@@ -12,7 +12,8 @@ from .api_views import (
     CentroEmpadronamientoViewSet, UbicacionesOperadorViewSet,
     ListarPuntosEmpadronamientoView, ListasEstacionesLlavesView,
     LlavesSinAsignarView, OperadoresSinEstacionAsignadaView, EstacionesCambioFaseConLlaveViewSet,
-    HistorialMasterizacionViewSet, HistorialMasterViewSet
+    HistorialMasterizacionViewSet, HistorialMasterViewSet, EstacionesMasterizadasOrdenadasViewSet,
+    MegacentroViewSet
 )
 from . import views
 
@@ -30,6 +31,7 @@ router.register(r'registrosdespliegue', RegistroDespliegueViewSet)
 router.register(r'items', ItemViewSet)
 router.register(r'centros-empadronamiento', CentroEmpadronamientoViewSet)
 router.register(r'ubicaciones-operador', UbicacionesOperadorViewSet)
+router.register(r'megacentros', MegacentroViewSet)
 
 urlpatterns = [
     #path('', views.index, name='index'),
@@ -56,4 +58,5 @@ urlpatterns = [
     path('historico-master/', EstacionesCambioFaseConLlaveViewSet.as_view(), name='historico-masterizacion'),
     path('historial-master/', HistorialMasterViewSet.as_view(), name='historial-master'),
     path('historial-masterizacion/', HistorialMasterizacionViewSet.as_view(), name='historial-masterizacion'),
+    path('estaciones-despliegue/', EstacionesMasterizadasOrdenadasViewSet.as_view(), name='estaciones-despliegue'),
 ]

@@ -521,55 +521,127 @@
                 </div>
             </div>
 
-            <!-- PANEL DE ASIGNACION -->
-            <div id="asignacion" class="content-panel">
-                <!-- 🔍 Buscador -->
-                <input
-                    type="text"
-                    id="buscador-asignacion"
-                    placeholder="Buscar estacion por código de equipo o número de estación..."
-                    class="w-full p-2 my-3 border border-gray-300 rounded"
-                />
-
-                <!-- Contador de registros -->
-              <div class="mb-4">
-                  <p class="text-sm text-gray-600" id="total-registros-asignacion">Total de registros: 0</p>
+            <!-- PANEL DE ASIGNACION DE ESTACIONES -->
+          <div id="asignacion" class="content-panel hidden flex-col">
+              <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-4">
+                  <div class="flex flex-col sm:flex-row gap-2 w-full">
+                      <input 
+                          type="text" 
+                          id="buscador-asignacion" 
+                          placeholder="Buscar por código equipo, llave, destino, operador..."
+                          class="p-2 border border-gray-300 rounded text-sm flex-1"
+                      >
+                      <div class="flex gap-2">
+                          <button id="btn-refresh-asignacion" class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark text-sm">
+                              <i class="fas fa-sync-alt"></i> 
+                              <span class="hidden sm:inline">Actualizar</span>
+                          </button>
+                      </div>
+                  </div>
               </div>
-                <div class="stats-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="asignacion-container">
-                    <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
-                    <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
-                        <div class="stat-icon w-14 h-14 rounded-lg bg-blue-50 text-primary flex items-center justify-center mr-4 text-xl">
-                            <i class="fas fa-laptop"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h4 class="text-lg font-medium" id="Codigo equipo">LLAVE</h4>
-                            <p class="text-sm text-gray-600" id="llave">CODIGO EQUIPO</p>
-                        </div>
-                    </div>
-                    <!-- CONTENIDO DINAMICO SE LLENA AL RENDERIZAR -->
-                </div>
-            </div>
 
-            <!-- PANEL DE HISTORIAL DE MASTERIZACION -->
+              <!-- Contador y ordenamiento -->
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                  <p class="text-sm text-gray-600" id="total-estaciones-asignacion">
+                      <span id="total-estaciones-count">0</span> estaciones masterizadas
+                  </p>
+                  <p class="text-xs text-gray-500 italic" id="ordenamiento-info">
+                      Orden: Por Megacentro → Ruta → Código Equipo
+                  </p>
+              </div>
+
+              <!-- Tabla de asignación -->
+              <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                  <div class="overflow-x-auto">
+                      <table class="min-w-full divide-y divide-gray-200">
+                          <thead class="bg-gray-50">
+                              <tr>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="cod_equipo">
+                                      Código Equipo <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="modelo">
+                                      Modelo <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="nro_estacion">
+                                      Llave <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="contadores">
+                                      Contadores <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="destino">
+                                      Destino
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="operador">
+                                      Operador
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="carnet">
+                                      Carnet <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="fecha_asignacion">
+                                      Fecha Asignación <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="tipo_estacion">
+                                      Tipo <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                              </tr>
+                          </thead>
+                          <tbody id="tabla-asignacion-body" class="bg-white divide-y divide-gray-200">
+                              <!-- Los datos se cargarán aquí dinámicamente -->
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+
+              <!-- Paginación -->
+              <div class="flex justify-between items-center mt-4 pb-6 sm:pb-4 safe-area-padding" id="paginacion-asignacion">
+                  <button id="btn-prev-asignacion" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                      <i class="fas fa-chevron-left"></i> 
+                      <span class="hidden sm:inline">Anterior</span>
+                      <span class="sm:hidden">Ant.</span>
+                  </button>
+                  
+                  <span class="text-sm text-gray-600 px-2 text-center flex-1" id="info-pagina-asignacion">Página 1 de 1</span>
+                  
+                  <button id="btn-next-asignacion" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                      <span class="hidden sm:inline">Siguiente</span>
+                      <span class="sm:hidden">Sig.</span>
+                      <i class="fas fa-chevron-right"></i>
+                  </button>
+              </div>
+          </div>
+
+
+          <!-- PANEL DE HISTORIAL DE MASTERIZACION -->
           <div id="historial-master" class="content-panel hidden flex-col">
               <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-4">
-                  <div class="flex gap-2">
+                  <div class="flex flex-col sm:flex-row gap-2 w-full">
                       <input 
                           type="text" 
                           id="buscador-historial" 
-                          placeholder="Buscar por código equipo..."
-                          class="p-2 border border-gray-300 rounded text-sm"
+                          placeholder="Buscar por código equipo, llave, usuario..."
+                          class="p-2 border border-gray-300 rounded text-sm flex-1"
                       >
-                      <!-- DESARROLLAR BOTON DE EXPORTAR REGISTROS -->
-                       <button id="btn-refresh-historial" class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark">
-                          <i class="fas fa-sync-alt"></i> <span class="hidden sm:inline">Actualizar</span>
-                      </button> 
+                      <div class="flex gap-2">
+                          <button id="btn-seleccionar-todos" class="btn btn-outline py-2 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 text-sm">
+                              <i class="fas fa-check-square"></i> 
+                              <span class="hidden sm:inline">Seleccionar</span>
+                          </button>
+                          <button id="btn-exportar-excel" class="btn btn-primary py-2 px-4 bg-green-600 text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-green-700 text-sm" disabled>
+                              <i class="fas fa-file-excel"></i> 
+                              <span class="hidden sm:inline">Exportar</span>
+                              <span id="contador-seleccionados" class="ml-1 bg-white text-green-600 rounded-full w-5 h-5 flex items-center justify-center text-xs">0</span>
+                          </button>
+                      </div>
                   </div>
               </div>
 
               <!-- Contador de registros -->
-              <div class="mb-4">
+              <div class="flex justify-between items-center mb-4">
                   <p class="text-sm text-gray-600" id="total-registros-historial">Total de registros: 0</p>
+                  <p class="text-sm text-blue-600 hidden" id="registros-seleccionados-info">
+                      <i class="fas fa-check-circle mr-1"></i>
+                      <span id="contador-seleccionados-text">0</span> seleccionados
+                  </p>
               </div>
 
               <!-- Tabla de historial -->
@@ -578,13 +650,30 @@
                       <table class="min-w-full divide-y divide-gray-200">
                           <thead class="bg-gray-50">
                               <tr>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código Equipo</th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modelo</th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Llave</th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contadores</th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fase</th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                                      <input type="checkbox" id="checkbox-todos" class="rounded border-gray-300 text-primary focus:ring-primary">
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="codigo_equipo">
+                                      Código Equipo <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="modelo">
+                                      Modelo <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="nro_estacion">
+                                      Llave <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="contador_r">
+                                      Contadores <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="username">
+                                      Usuario <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="fecha_modificacion">
+                                      Fecha <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-sort="fase_nueva">
+                                      Fase <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                  </th>
                               </tr>
                           </thead>
                           <tbody id="tabla-historial-body" class="bg-white divide-y divide-gray-200">
@@ -594,25 +683,23 @@
                   </div>
               </div>
 
-             <!-- Paginación - ALTERNATIVA SIMPLE -->
-            <div class="flex justify-between items-center mt-4 pb-6 sm:pb-4 safe-area-padding" id="paginacion-historial">
-                <button id="btn-prev" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
-                    <i class="fas fa-chevron-left"></i> 
-                    <span class="hidden sm:inline">Anterior</span>
-                    <span class="sm:hidden">Ant.</span>
-                </button>
-                
-                <span class="text-sm text-gray-600 px-2 text-center flex-1" id="info-pagina">Página 1 de 1</span>
-                
-                <button id="btn-next" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
-                    <span class="hidden sm:inline">Siguiente</span>
-                    <span class="sm:hidden">Sig.</span>
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
+              <!-- Paginación -->
+              <div class="flex justify-between items-center mt-4 pb-6 sm:pb-4 safe-area-padding" id="paginacion-historial">
+                  <button id="btn-prev" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                      <i class="fas fa-chevron-left"></i> 
+                      <span class="hidden sm:inline">Anterior</span>
+                      <span class="sm:hidden">Ant.</span>
+                  </button>
+                  
+                  <span class="text-sm text-gray-600 px-2 text-center flex-1" id="info-pagina">Página 1 de 1</span>
+                  
+                  <button id="btn-next" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                      <span class="hidden sm:inline">Siguiente</span>
+                      <span class="sm:hidden">Sig.</span>
+                      <i class="fas fa-chevron-right"></i>
+                  </button>
+              </div>
           </div>
-
-        </div>
     </div>
 
     <!-- Modal para asignar llaves -->
@@ -679,6 +766,60 @@
             </button>
         </div>
     </div>
+<!-- Modal para asignar megacentro -->
+<div id="modal-megacentro" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="modal-content bg-white p-5 w-11/12 sm:w-96 rounded-lg shadow-lg">
+        <span class="close-modal-megacentro float-right text-2xl cursor-pointer mb-1">&times;</span>
+        <h3 class="mb-3 text-lg font-semibold" id="titulo-modal-megacentro">Asignar Megacentro</h3>
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Estación: <span id="estacion-megacentro" class="font-semibold"></span></p>
+            <div class="flex items-center gap-2 mb-2">
+                <input type="checkbox" id="checkbox-brigada-movil" class="rounded border-gray-300 text-primary focus:ring-primary">
+                <label for="checkbox-brigada-movil" class="text-sm text-gray-700">Es brigada móvil</label>
+            </div>
+            <select id="select-megacentro" class="w-full p-2 border border-gray-300 rounded">
+                <option value="">Seleccionar megacentro...</option>
+            </select>
+        </div>
+        <button id="btn-confirmar-megacentro" class="w-full mt-4 p-3 bg-primary text-white text-lg border-none rounded cursor-pointer hover:bg-primary-dark">
+            Asignar Megacentro
+        </button>
+    </div>
+</div>
+
+<!-- Modal para asignar ruta -->
+<div id="modal-ruta" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="modal-content bg-white p-5 w-11/12 sm:w-96 rounded-lg shadow-lg">
+        <span class="close-modal-ruta float-right text-2xl cursor-pointer mb-1">&times;</span>
+        <h3 class="mb-3 text-lg font-semibold" id="titulo-modal-ruta">Asignar Ruta</h3>
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Estación: <span id="estacion-ruta" class="font-semibold"></span></p>
+            <select id="select-ruta" class="w-full p-2 border border-gray-300 rounded">
+                <option value="">Seleccionar ruta...</option>
+            </select>
+        </div>
+        <button id="btn-confirmar-ruta" class="w-full mt-4 p-3 bg-green-600 text-white text-lg border-none rounded cursor-pointer hover:bg-green-700">
+            Asignar Ruta
+        </button>
+    </div>
+</div>
+
+<!-- Modal para asignar operador -->
+<div id="modal-operador" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="modal-content bg-white p-5 w-11/12 sm:w-96 rounded-lg shadow-lg">
+        <span class="close-modal-operador float-right text-2xl cursor-pointer mb-1">&times;</span>
+        <h3 class="mb-3 text-lg font-semibold" id="titulo-modal-operador">Asignar Operador</h3>
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Estación: <span id="estacion-operador" class="font-semibold"></span></p>
+            <select id="select-operador" class="w-full p-2 border border-gray-300 rounded">
+                <option value="">Seleccionar operador...</option>
+            </select>
+        </div>
+        <button id="btn-confirmar-operador" class="w-full mt-4 p-3 bg-blue-600 text-white text-lg border-none rounded cursor-pointer hover:bg-blue-700">
+            Asignar Operador
+        </button>
+    </div>
+</div>
   
   <script>
      // JavaScript para la funcionalidad de la interfaz
@@ -824,7 +965,7 @@
       console.log('Inicializando dashboard...');
       loadEstacionesData();
       cargarLlaves();
-      cargarOperadoresSinEstacion();
+      //cargarOperadoresSinEstacion();
       
       // Configurar botones
       document.getElementById('refresh-data').addEventListener('click', loadEstacionesData, cargarHistorialMasterizacion);
@@ -875,7 +1016,7 @@
         //estacionesMasterizadasData = data.filter(l => String(l.fase).includes("Masterizado"));
         updateDashboard(data);
         createCharts(data);
-        cargarEstacionesLlaves();
+        //cargarEstacionesLlaves(); BORRAR FUNCION NO SE IMPLEMENTA
         cargarLlaves();
         
         document.getElementById('total-registros-masterizacion').textContent = 
@@ -1250,9 +1391,6 @@ function crearCardEnClonacion(item) {
         }
         const estacionesMasterizadas = await response.json();
         estacionesMasterizadasData = estacionesMasterizadas;
-        // renderizar estaciones listas para signar
-        renderAsignacion(estacionesMasterizadasData.slice(0,32));
-        //renderLlaves(estacionesLlaveData.slice(0, 20));
         
 
       } catch (error) {
@@ -1519,6 +1657,7 @@ function crearCardEnClonacion(item) {
         }
 
         alert("Llave asignada con exito")
+        // funcion para imprimir el ticket de la estacion
         // try {
         //   window.open(`/api/estaciones/${idEstacion}/ticket/`, "_blank");
         // } catch (error) {
@@ -1534,86 +1673,687 @@ function crearCardEnClonacion(item) {
 
     // ASIGNACION ******************************************
     //******************************************************
-
+    // Variables para la tabla de asignación
+    let datosAsignacion = [];
+    let datosFiltradosAsignacion = [];
+    let paginaActualAsignacion = 1;
+    let registrosPorPaginaAsignacion = 10;
+    let columnaOrdenAsignacion = 'cod_equipo';
+    let ordenAscendenteAsignacion = true;
+    // modales
+    let estacionActualIDAsignacion = null;
+    let estacionActualCodigoAsignacion = null;
     
-    // Actualizar las llaves y equipos
-    async function cargarOperadoresSinEstacion(){
-      try {
-        console.log('Cargando operadores sin estacion asignada')
-        const response = await fetch('/operadores-sin-estacion/', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'same-origin'
-        });
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
-          //console.log(`Error HTTP: ${response.status} - ${response.statusText}`)
+    // Función para cargar datos de asignación
+    async function cargarDatosAsignacion() {
+        try {
+            const response = await fetch('/estaciones-despliegue/');
+            const data = await response.json();
+            
+            if (data.success) {
+                datosAsignacion = data.data;
+                datosFiltradosAsignacion = [];
+                
+                document.getElementById('total-estaciones-count').textContent = data.total_estaciones_masterizadas;
+                document.getElementById('ordenamiento-info').textContent = `Orden: ${data.ordenamiento}`;
+                
+                // Ordenar según la especificación del backend
+                ordenarDatosAsignacion('cod_equipo');
+                actualizarPaginacionAsignacion();
+            } else {
+                throw new Error('Error al cargar datos de asignación');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al cargar los datos de asignación');
         }
-        const operadoresSinEstacion = await response.json();
-        operadoresSinEstacionData = operadoresSinEstacion;
-        console.log(operadoresSinEstacionData)
-      } catch (error) {
-        console.error("error al cargar operadores sin estacion asignada");
-        console.log(error);
-      }
     }
 
-    // Render para seccion ASIGNACION DE ESTACIONES TAILWIND
-    function renderAsignacion(data) {
-        const contenedor = document.getElementById('asignacion-container');
-        contenedor.innerHTML = "";
-        
-        data.forEach(item => {
-            // Determinar icono y colores según el tipo de estación
-            let icono = "fa-laptop"; // por defecto laptop
-            let bgColor = "bg-blue-50";
-            let textColor = "text-primary";
+    // Función para cargar megacentros en el modal
+    async function cargarMegacentros() {
+        try {
+            const response = await fetch('/api/megacentros/');
+            const data = await response.json();
             
-            if (item.tipo_estacion === "MOVIL") {
-                icono = "fa-mobile-alt";
-                bgColor = "bg-green-50";
-                textColor = "text-green-500";
+            const select = document.getElementById('select-megacentro');
+            select.innerHTML = '<option value="">Seleccionar megacentro...</option>';
+            
+            if (data.success && data.data) {
+                data.data.forEach(megacentro => {
+                    const option = document.createElement('option');
+                    option.value = megacentro.id;
+                    option.textContent = megacentro.nombre;
+                    select.appendChild(option);
+                });
             }
+        } catch (error) {
+            console.error('Error al cargar megacentros:', error);
+        }
+    }
+
+    // Función para cargar rutas en el modal
+    async function cargarRutas() {
+        try {
+            const response = await fetch('/api/rutas/');
+            const data = await response.json();
             
-            const card = `
-                <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer" 
-                    onclick="abrirModalAsignacion(${item.id}, '${item.codigo_equipo}', '${item.modelo}', '${item.tipo_estacion}')">
-                    <div class="stat-icon w-14 h-14 rounded-lg ${bgColor} ${textColor} flex items-center justify-center mr-4 text-xl">
-                        <i class="fas ${icono}"></i>
+            const select = document.getElementById('select-ruta');
+            select.innerHTML = '<option value="">Seleccionar ruta...</option>';
+            
+            if (data.success && data.data) {
+                data.data.forEach(ruta => {
+                    const option = document.createElement('option');
+                    option.value = ruta.id;
+                    option.textContent = ruta.nombre;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar rutas:', error);
+        }
+    }
+
+    // Función para cargar operadores en el modal
+    async function cargarOperadores() {
+        try {
+            const response = await fetch('/operadores-sin-estacion/');
+            const data = await response.json();
+            
+            const select = document.getElementById('select-operador');
+            select.innerHTML = '<option value="">Seleccionar operador...</option>';
+            
+            if (data.success && data.data) {
+                data.data.forEach(operador => {
+                    const option = document.createElement('option');
+                    option.value = operador.id;
+                    const nombreCompleto = `${operador.nombre} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
+                    option.textContent = `${nombreCompleto} (${operador.carnet || 'Sin carnet'})`;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar operadores:', error);
+        }
+    }
+
+    // Función para renderizar la tabla de asignación
+    function renderizarTablaAsignacion(datos) {
+        const tbody = document.getElementById('tabla-asignacion-body');
+        tbody.innerHTML = '';
+
+        const inicio = (paginaActualAsignacion - 1) * registrosPorPaginaAsignacion;
+        const fin = inicio + registrosPorPaginaAsignacion;
+        const datosPagina = datos.slice(inicio, fin);
+
+        if (datosPagina.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="px-4 py-8 text-center text-sm text-gray-500">
+                        No se encontraron registros
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        datosPagina.forEach(item => {
+            // Contadores
+            const contadorR = item.llave?.contador_r || 0;
+            const contadorC = item.llave?.contador_c || 0;
+            
+            // Destino
+            const destinoHTML = formatearDestino(item);
+            
+            // Operador
+            const operadorHTML = formatearOperador(item);
+            
+            // Carnet
+            const carnet = item.operador?.carnet || 
+                          `<span class="text-gray-400 italic">N/A</span>`;
+            
+            // Fecha de asignación
+            const fechaAsignacionHTML = formatearFecha(item.fecha_asignacion);
+            
+            // Tipo de estación con icono
+            const tipoEstacion = item.tipo_estacion || 'N/A';
+            const tipoIcono = tipoEstacion === 'MOVIL' ? 
+                '<i class="fas fa-mobile-alt text-green-500 mr-1"></i>' : 
+                '<i class="fas fa-laptop text-blue-500 mr-1"></i>';
+            const tipoColor = tipoEstacion === 'MOVIL' ? 'text-green-700' : 'text-blue-700';
+
+            const fila = `
+                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${item.cod_equipo || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${item.modelo || 'N/A'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${item.llave?.nro_estacion ? 'text-gray-900' : 'text-gray-400'}">
+                        ${item.llave?.nro_estacion || 
+                          '<span class="italic text-gray-400">Sin llave</span>'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        R:<span class="font-medium">${contadorR}</span> 
+                        C:<span class="font-medium">${contadorC}</span>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        ${destinoHTML}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                        ${operadorHTML}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${carnet}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                        ${fechaAsignacionHTML}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm ${tipoColor}">
+                        ${tipoIcono}
+                        <span class="font-medium">${tipoEstacion}</span>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+    }
+
+    // Función para ordenar datos de asignación
+    function ordenarDatosAsignacion(columna) {
+        // Si se hace click en la misma columna, invertir el orden
+        if (columnaOrdenAsignacion === columna) {
+            ordenAscendenteAsignacion = !ordenAscendenteAsignacion;
+        } else {
+            columnaOrdenAsignacion = columna;
+            ordenAscendenteAsignacion = true;
+        }
+
+        // Actualizar iconos en los headers
+        document.querySelectorAll('.sortable-asignacion i').forEach(icon => {
+            icon.className = 'fas fa-sort ml-1 text-gray-400';
+        });
+        
+        const headerActual = document.querySelector(`[data-sort="${columna}"] i`);
+        if (headerActual) {
+            headerActual.className = ordenAscendenteAsignacion ? 
+                'fas fa-sort-up ml-1 text-primary' : 
+                'fas fa-sort-down ml-1 text-primary';
+        }
+
+        // Ordenar los datos
+        const datosParaOrdenar = datosFiltradosAsignacion.length > 0 ? 
+            datosFiltradosAsignacion : datosAsignacion;
+
+        datosParaOrdenar.sort((a, b) => {
+            let valorA, valorB;
+
+            switch(columna) {
+                case 'cod_equipo':
+                    valorA = a.cod_equipo || '';
+                    valorB = b.cod_equipo || '';
+                    break;
+                case 'modelo':
+                    valorA = a.modelo || '';
+                    valorB = b.modelo || '';
+                    break;
+                case 'nro_estacion':
+                    valorA = a.llave?.nro_estacion || 0;
+                    valorB = b.llave?.nro_estacion || 0;
+                    break;
+                case 'contadores':
+                    valorA = (a.llave?.contador_r || 0) + (a.llave?.contador_c || 0);
+                    valorB = (b.llave?.contador_r || 0) + (b.llave?.contador_c || 0);
+                    break;
+                case 'destino':
+                    const destinoA = formatearDestino(a).toLowerCase();
+                    const destinoB = formatearDestino(b).toLowerCase();
+                    valorA = destinoA.includes('conflicto') ? '!!!' + destinoA : destinoA;
+                    valorB = destinoB.includes('conflicto') ? '!!!' + destinoB : destinoB;
+                    break;
+                case 'operador':
+                    const operadorA = formatearOperador(a).toLowerCase();
+                    const operadorB = formatearOperador(b).toLowerCase();
+                    valorA = operadorA.includes('no asignada') ? 'zzz' + operadorA : operadorA;
+                    valorB = operadorB.includes('no asignada') ? 'zzz' + operadorB : operadorB;
+                    break;
+                case 'carnet':
+                    valorA = a.operador?.carnet || '';
+                    valorB = b.operador?.carnet || '';
+                    break;
+                case 'fecha_asignacion':
+                    valorA = new Date(a.fecha_asignacion || 0);
+                    valorB = new Date(b.fecha_asignacion || 0);
+                    break;
+                case 'tipo_estacion':
+                    valorA = a.tipo_estacion || '';
+                    valorB = b.tipo_estacion || '';
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (valorA < valorB) return ordenAscendenteAsignacion ? -1 : 1;
+            if (valorA > valorB) return ordenAscendenteAsignacion ? 1 : -1;
+            return 0;
+        });
+
+        // Actualizar los datos y renderizar
+        if (datosFiltradosAsignacion.length > 0) {
+            datosFiltradosAsignacion = datosParaOrdenar;
+        } else {
+            datosAsignacion = datosParaOrdenar;
+        }
+        
+        paginaActualAsignacion = 1;
+        renderizarTablaAsignacionConDatosActuales();
+        actualizarPaginacionAsignacion();
+    }
+
+    // Función para renderizar con datos actuales
+    function renderizarTablaAsignacionConDatosActuales() {
+        const datosParaRender = datosFiltradosAsignacion.length > 0 ? 
+            datosFiltradosAsignacion : datosAsignacion;
+        renderizarTablaAsignacion(datosParaRender);
+    }
+
+    // Función para actualizar paginación
+    function actualizarPaginacionAsignacion() {
+        const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
+            datosFiltradosAsignacion : datosAsignacion;
+        const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
+        const infoPagina = document.getElementById('info-pagina-asignacion');
+        const btnPrev = document.getElementById('btn-prev-asignacion');
+        const btnNext = document.getElementById('btn-next-asignacion');
+
+        infoPagina.textContent = `Página ${paginaActualAsignacion} de ${totalPaginas}`;
+        
+        btnPrev.disabled = paginaActualAsignacion === 1;
+        btnPrev.classList.toggle('disabled:opacity-50', paginaActualAsignacion === 1);
+        btnPrev.classList.toggle('disabled:cursor-not-allowed', paginaActualAsignacion === 1);
+        
+        btnNext.disabled = paginaActualAsignacion === totalPaginas;
+        btnNext.classList.toggle('disabled:opacity-50', paginaActualAsignacion === totalPaginas);
+        btnNext.classList.toggle('disabled:cursor-not-allowed', paginaActualAsignacion === totalPaginas);
+    }
+
+    // Event listeners para asignación
+    document.addEventListener('DOMContentLoaded', function() {
+        // Event listeners para ordenamiento
+        document.querySelectorAll('.sortable-asignacion').forEach(header => {
+            header.addEventListener('click', () => {
+                const columna = header.getAttribute('data-sort');
+                ordenarDatosAsignacion(columna);
+            });
+        });
+
+        // Event listener para búsqueda
+        document.getElementById('buscador-asignacion').addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            
+            if (texto === '') {
+                datosFiltradosAsignacion = [];
+                paginaActualAsignacion = 1;
+                renderizarTablaAsignacionConDatosActuales();
+                actualizarPaginacionAsignacion();
+            } else {
+                datosFiltradosAsignacion = datosAsignacion.filter(item => {
+                    const codEquipo = item.cod_equipo ? item.cod_equipo.toLowerCase() : '';
+                    const modelo = item.modelo ? item.modelo.toLowerCase() : '';
+                    const nroEstacion = item.llave?.nro_estacion ? item.llave.nro_estacion.toString() : '';
+                    const destino = formatearDestino(item).toLowerCase();
+                    const operador = formatearOperador(item).toLowerCase();
+                    const carnet = item.operador?.carnet ? item.operador.carnet.toLowerCase() : '';
+                    
+                    return codEquipo.includes(texto) ||
+                          modelo.includes(texto) ||
+                          nroEstacion.includes(texto) ||
+                          destino.includes(texto) ||
+                          operador.includes(texto) ||
+                          carnet.includes(texto);
+                });
+                
+                paginaActualAsignacion = 1;
+                renderizarTablaAsignacionConDatosActuales();
+                actualizarPaginacionAsignacion();
+            }
+        });
+
+        // Botón de actualizar
+        document.getElementById('btn-refresh-asignacion').addEventListener('click', () => {
+            const btn = document.getElementById('btn-refresh-asignacion');
+            const icon = btn.querySelector('i');
+            
+            icon.classList.remove('fa-sync-alt');
+            icon.classList.add('fa-spinner', 'loading');
+            
+            cargarDatosAsignacion().finally(() => {
+                icon.classList.remove('fa-spinner', 'loading');
+                icon.classList.add('fa-sync-alt');
+            });
+        });
+
+        // Paginación
+        document.getElementById('btn-prev-asignacion').addEventListener('click', () => {
+            if (paginaActualAsignacion > 1) {
+                paginaActualAsignacion--;
+                renderizarTablaAsignacionConDatosActuales();
+                actualizarPaginacionAsignacion();
+            }
+        });
+
+        document.getElementById('btn-next-asignacion').addEventListener('click', () => {
+            const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
+                datosFiltradosAsignacion : datosAsignacion;
+            const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
+            
+            if (paginaActualAsignacion < totalPaginas) {
+                paginaActualAsignacion++;
+                renderizarTablaAsignacionConDatosActuales();
+                actualizarPaginacionAsignacion();
+            }
+        });
+
+        // Cargar datos cuando se active el panel
+        document.querySelector('.menu-item[data-target="asignacion"]').addEventListener('click', () => {
+            if (datosAsignacion.length === 0) {
+                cargarDatosAsignacion();
+            }
+        });
+    });
+
+    // Función para formatear destino con botones
+    function formatearDestino(item) {
+        const tieneMegacentro = item.megacentro && item.megacentro.nombre;
+        const tieneRuta = item.ruta && item.ruta.nombre;
+        
+        // Si ambos tienen valores, mostrar aviso
+        if (tieneMegacentro && tieneRuta) {
+            return `
+                <div class="space-y-2">
+                    <div class="flex items-center gap-1 text-red-600 text-xs" title="¡ADVERTENCIA! Tiene tanto megacentro como ruta asignados">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Conflicto de destino</span>
                     </div>
-                    <div class="stat-info">
-                        <h4 class="text-lg font-medium">${item.codigo_equipo}</h4>
-                        <p class="text-sm text-gray-600">${item.nro_estacion} R:${item.contador_r} C:${item.contador_c}</p>
+                    <div class="flex flex-wrap gap-1">
+                        <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-building mr-1"></i>Megacentro
+                        </button>
+                        <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-route mr-1"></i>Ruta
+                        </button>
+                        <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
                     </div>
                 </div>
             `;
-            contenedor.innerHTML += card;
-        });
+        }
+        
+        // Si es megacentro
+        if (tieneMegacentro) {
+            let nombre = item.megacentro.nombre;
+            if (item.brigada_movil) {
+                nombre += ' BG';
+            }
+            return `
+                <div class="space-y-2">
+                    <span class="text-blue-600 text-sm">${nombre}</span>
+                    <div class="flex flex-wrap gap-1">
+                        <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-edit mr-1"></i>Cambiar
+                        </button>
+                        <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-route mr-1"></i>Ruta
+                        </button>
+                        <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Si es ruta
+        if (tieneRuta) {
+            return `
+                <div class="space-y-2">
+                    <span class="text-green-600 text-sm">${item.ruta.nombre}</span>
+                    <div class="flex flex-wrap gap-1">
+                        <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-building mr-1"></i>Megacentro
+                        </button>
+                        <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-edit mr-1"></i>Cambiar
+                        </button>
+                        <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-trash mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Si no tiene destino
+        return `
+            <div class="space-y-2">
+                <span class="text-gray-400 italic text-sm">No asignada</span>
+                <div class="flex flex-wrap gap-1">
+                    <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                            data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                        <i class="fas fa-building mr-1"></i>Megacentro
+                    </button>
+                    <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
+                            data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                        <i class="fas fa-route mr-1"></i>Ruta
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 
-        if (filtradosAsignacion.length > 0){
-          document.getElementById('total-registros-asignacion').textContent = 
-                    `Total de registros: ${filtradosAsignacion.length}`;
-        } else {
-          document.getElementById('total-registros-asignacion').textContent = 
-                    `Total de registros: ${estacionesMasterizadasData.length}`;
+    // Función para formatear operador con botones
+    function formatearOperador(item) {
+        if (item.operador && item.operador.nombre) {
+            const nombre = item.operador.nombre || '';
+            const apellidoPaterno = item.operador.apellido_paterno || '';
+            const apellidoMaterno = item.operador.apellido_materno || '';
+            
+            const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+            return `
+                <div class="space-y-2">
+                    <span class="text-gray-700 text-sm">${nombreCompleto}</span>
+                    <div class="flex flex-wrap gap-1">
+                        <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-user-edit mr-1"></i>Cambiar
+                        </button>
+                        <button class="btn-eliminar-operador px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            <i class="fas fa-user-times mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="space-y-2">
+                <span class="text-gray-400 italic text-sm">No asignado</span>
+                <div class="flex flex-wrap gap-1">
+                    <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                            data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                        <i class="fas fa-user-plus mr-1"></i>Asignar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+    // Función para formatear fecha
+    function formatearFecha(fecha) {
+        if (!fecha) {
+            return `<span class="text-gray-400 italic">Sin fecha</span>`;
+        }
+        
+        try {
+            const fechaObj = new Date(fecha);
+            return fechaObj.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return `<span class="text-gray-400 italic">Fecha inválida</span>`;
         }
     }
 
-    // Abrir modal de asignacion a operador
-    function abrirModalAsignacion(idEstacion, codigoEquipo, modelo, tipoEstacion){
-      
-      alert("En desarrollo")
-    }
+    // Event listeners para los botones
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delegación de eventos para botones dinámicos
+        document.addEventListener('click', function(e) {
+            // Botones de destino
+            if (e.target.classList.contains('btn-asignar-megacentro') || 
+                e.target.closest('.btn-asignar-megacentro')) {
+                const button = e.target.classList.contains('btn-asignar-megacentro') ? 
+                    e.target : e.target.closest('.btn-asignar-megacentro');
+                
+                estacionActualID = button.getAttribute('data-id');
+                estacionActualCodigo = button.getAttribute('data-codigo');
+                
+                document.getElementById('estacion-megacentro').textContent = estacionActualCodigo;
+                document.getElementById('checkbox-brigada-movil').checked = false;
+                cargarMegacentros();
+                document.getElementById('modal-megacentro').classList.remove('hidden');
+            }
+            
+            else if (e.target.classList.contains('btn-asignar-ruta') || 
+                    e.target.closest('.btn-asignar-ruta')) {
+                const button = e.target.classList.contains('btn-asignar-ruta') ? 
+                    e.target : e.target.closest('.btn-asignar-ruta');
+                
+                estacionActualID = button.getAttribute('data-id');
+                estacionActualCodigo = button.getAttribute('data-codigo');
+                
+                document.getElementById('estacion-ruta').textContent = estacionActualCodigo;
+                cargarRutas();
+                document.getElementById('modal-ruta').classList.remove('hidden');
+            }
+            
+            else if (e.target.classList.contains('btn-eliminar-destino') || 
+                    e.target.closest('.btn-eliminar-destino')) {
+                const button = e.target.classList.contains('btn-eliminar-destino') ? 
+                    e.target : e.target.closest('.btn-eliminar-destino');
+                
+                const estacionId = button.getAttribute('data-id');
+                eliminarDestino(estacionId);
+            }
+            
+            // Botones de operador
+            else if (e.target.classList.contains('btn-asignar-operador') || 
+                    e.target.closest('.btn-asignar-operador')) {
+                const button = e.target.classList.contains('btn-asignar-operador') ? 
+                    e.target : e.target.closest('.btn-asignar-operador');
+                
+                estacionActualID = button.getAttribute('data-id');
+                estacionActualCodigo = button.getAttribute('data-codigo');
+                
+                document.getElementById('estacion-operador').textContent = estacionActualCodigo;
+                cargarOperadores();
+                document.getElementById('modal-operador').classList.remove('hidden');
+            }
+            
+            else if (e.target.classList.contains('btn-eliminar-operador') || 
+                    e.target.closest('.btn-eliminar-operador')) {
+                const button = e.target.classList.contains('btn-eliminar-operador') ? 
+                    e.target : e.target.closest('.btn-eliminar-operador');
+                
+                const estacionId = button.getAttribute('data-id');
+                eliminarOperador(estacionId);
+            }
+        });
+        
+        // Confirmar asignación de megacentro
+        document.getElementById('btn-confirmar-megacentro').addEventListener('click', () => {
+            const megacentroId = document.getElementById('select-megacentro').value;
+            const brigadaMovil = document.getElementById('checkbox-brigada-movil').checked;
+            
+            if (!megacentroId) {
+                alert('Por favor seleccione un megacentro');
+                return;
+            }
+            
+            asignarMegacentro(estacionActualID, megacentroId, brigadaMovil);
+        });
+        
+        // Confirmar asignación de ruta
+        document.getElementById('btn-confirmar-ruta').addEventListener('click', () => {
+            const rutaId = document.getElementById('select-ruta').value;
+            
+            if (!rutaId) {
+                alert('Por favor seleccione una ruta');
+                return;
+            }
+            
+            asignarRuta(estacionActualID, rutaId);
+        });
+        
+        // Confirmar asignación de operador
+        document.getElementById('btn-confirmar-operador').addEventListener('click', () => {
+            const operadorId = document.getElementById('select-operador').value;
+            
+            if (!operadorId) {
+                alert('Por favor seleccione un operador');
+                return;
+            }
+            
+            asignarOperador(estacionActualID, operadorId);
+        });
+        
+        // Cerrar modales
+        document.querySelectorAll('.close-modal-megacentro, .close-modal-ruta, .close-modal-operador').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.modal').classList.add('hidden');
+            });
+        });
+        
+        // Cerrar modales al hacer click fuera
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    
 
     //************HISTORIAL MASTERIZACION*********************************
     //********************************************************************
     // Variables para el historial
+    let datosFiltradosHistorial = [];
+    let registrosPorPagina = 35;
+    let columnaOrden = 'fecha_modificacion';
+    let ordenAscendente = false;
+    let registrosSeleccionados = new Set();
     let datosHistorial = [];
     let paginaActualHistorial = 1;
-    const registrosPorPagina = 15;
+
+    // Cargar historial cuando se active el panel
+    document.querySelector('.menu-item[data-target="historial-master"]').addEventListener('click', () => {
+        if (datosHistorial.length === 0) {
+            cargarHistorialMasterizacion();
+        }
+    });
 
     // Función para cargar el historial
     async function cargarHistorialMasterizacion() {
@@ -1637,7 +2377,7 @@ function crearCardEnClonacion(item) {
         }
     }
 
-    // Función para renderizar la tabla
+    // Función para renderizar la tabla HISTORIAL
     function renderizarTablaHistorial() {
         const tbody = document.getElementById('tabla-historial-body');
         tbody.innerHTML = '';
@@ -1645,12 +2385,21 @@ function crearCardEnClonacion(item) {
         const inicio = (paginaActualHistorial - 1) * registrosPorPagina;
         const fin = inicio + registrosPorPagina;
         const datosPagina = datosHistorial.slice(inicio, fin);
+        
 
-        datosPagina.forEach(item => {
+        datosPagina.forEach((item, index) => {
             const fecha = new Date(item.fecha_modificacion).toLocaleDateString('es-ES');
+            const idUnico = `${item.codigo_equipo}_${item.fecha_modificacion}`;
+            const estaSeleccionado = registrosSeleccionados.has(idUnico);
             
             const fila = `
-                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                <tr class="hover:bg-gray-50 transition-colors duration-150 ${estaSeleccionado ? 'bg-blue-50' : ''}">
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <input type="checkbox" 
+                              class="checkbox-registro rounded border-gray-300 text-primary focus:ring-primary" 
+                              data-id="${idUnico}"
+                              ${estaSeleccionado ? 'checked' : ''}>
+                    </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         ${item.codigo_equipo}
                     </td>
@@ -1679,7 +2428,88 @@ function crearCardEnClonacion(item) {
             `;
             tbody.innerHTML += fila;
         });
+        // Agregar event listeners a los checkboxes
+        document.querySelectorAll('.checkbox-registro').forEach(checkbox => {
+          checkbox.addEventListener('change', manejarSeleccionRegistro);
+        });
     }
+
+    // Función para manejar la selección de registros
+    function manejarSeleccionRegistro(e) {
+        const checkbox = e.target;
+        const id = checkbox.getAttribute('data-id');
+        
+        if (checkbox.checked) {
+            registrosSeleccionados.add(id);
+            // Agregar clase de selección a la fila
+            checkbox.closest('tr').classList.add('bg-blue-50');
+        } else {
+            registrosSeleccionados.delete(id);
+            // Remover clase de selección de la fila
+            checkbox.closest('tr').classList.remove('bg-blue-50');
+            document.getElementById('checkbox-todos').checked = false;
+        }
+        
+        actualizarContadorSeleccionados();
+    }
+
+    // Función para seleccionar/deseleccionar todos
+    function manejarSeleccionTodos() {
+        const checkboxTodos = document.getElementById('checkbox-todos');
+        const checkboxes = document.querySelectorAll('.checkbox-registro');
+        const datosActuales = datosFiltradosHistorial.length > 0 ? datosFiltradosHistorial : datosHistorial;
+        const datosPagina = datosActuales.slice(
+            (paginaActualHistorial - 1) * registrosPorPagina,
+            paginaActualHistorial * registrosPorPagina
+        );
+
+        if (checkboxTodos.checked) {
+            // Seleccionar todos los registros de la página actual
+            datosPagina.forEach(item => {
+                const idUnico = `${item.codigo_equipo}_${item.fecha_modificacion}`;
+                registrosSeleccionados.add(idUnico);
+            });
+            checkboxes.forEach(cb => cb.checked = true);
+            document.querySelectorAll('#tabla-historial-body tr').forEach(tr => {
+                tr.classList.add('bg-blue-50');
+            });
+        } else {
+            // Deseleccionar todos los registros de la página actual
+            datosPagina.forEach(item => {
+                const idUnico = `${item.codigo_equipo}_${item.fecha_modificacion}`;
+                registrosSeleccionados.delete(idUnico);
+            });
+            checkboxes.forEach(cb => cb.checked = false);
+            document.querySelectorAll('#tabla-historial-body tr').forEach(tr => {
+                tr.classList.remove('bg-blue-50');
+            });
+        }
+        
+        actualizarContadorSeleccionados();
+    }
+
+    // Función para actualizar el contador de seleccionados
+    function actualizarContadorSeleccionados() {
+        const contador = registrosSeleccionados.size;
+        const contadorElement = document.getElementById('contador-seleccionados');
+        const contadorTexto = document.getElementById('contador-seleccionados-text');
+        const btnExportar = document.getElementById('btn-exportar-excel');
+        const infoSeleccionados = document.getElementById('registros-seleccionados-info');
+
+        contadorElement.textContent = contador;
+        contadorTexto.textContent = contador;
+        
+        if (contador > 0) {
+            btnExportar.disabled = false;
+            btnExportar.classList.remove('opacity-50', 'cursor-not-allowed');
+            infoSeleccionados.classList.remove('hidden');
+        } else {
+            btnExportar.disabled = true;
+            btnExportar.classList.add('opacity-50', 'cursor-not-allowed');
+            infoSeleccionados.classList.add('hidden');
+        }
+    }
+
 
     // Función para actualizar la paginación 
     function actualizarPaginacion() {
@@ -1781,7 +2611,7 @@ function crearCardEnClonacion(item) {
             return;
         }
 
-        datosPagina.forEach(item => {
+        datosPagina.forEach((item, index) => {
             // Manejar valores nulos de forma segura
             const fecha = item.fecha_modificacion ? 
                 new Date(item.fecha_modificacion).toLocaleDateString('es-ES') : 'N/A';
@@ -1797,11 +2627,20 @@ function crearCardEnClonacion(item) {
                 
             const faseNueva = item.fase_actual ? 
                 item.fase_actual : 'N/A';
+            
+            const idUnico = `${item.codigo_equipo}_${item.fecha_modificacion}`;
+            const estaSeleccionado = registrosSeleccionados.has(idUnico);
 
             const fila = `
-                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                <tr class="hover:bg-gray-50 transition-colors duration-150 ${estaSeleccionado ? 'bg-blue-50' : ''}">
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <input type="checkbox" 
+                              class="checkbox-registro rounded border-gray-300 text-primary focus:ring-primary" 
+                              data-id="${idUnico}"
+                              ${estaSeleccionado ? 'checked' : ''}>
+                    </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${item.codigo_equipo || 'N/A'}
+                        ${item.codigo_equipo}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         ${item.modelo || 'N/A'}
@@ -1827,6 +2666,10 @@ function crearCardEnClonacion(item) {
             `;
             tbody.innerHTML += fila;
         });
+        // Agregar event listeners a los checkboxes
+        document.querySelectorAll('.checkbox-registro').forEach(checkbox => {
+          checkbox.addEventListener('change', manejarSeleccionRegistro);
+        });
     }
 
     // Funcion para renderizarTablaHistorial
@@ -1837,26 +2680,186 @@ function crearCardEnClonacion(item) {
         actualizarPaginacion();
     }
 
-    // Botón de actualizar
-    document.getElementById('btn-refresh-historial').addEventListener('click', () => {
-        const btn = document.getElementById('btn-refresh-historial');
-        const icon = btn.querySelector('i');
+    // Función para ordenar datos
+    function ordenarDatos(columna) {
+        // Si se hace click en la misma columna, invertir el orden
+        if (columnaOrden === columna) {
+            ordenAscendente = !ordenAscendente;
+        } else {
+            columnaOrden = columna;
+            ordenAscendente = true;
+        }
+
+        // Actualizar iconos en los headers
+        document.querySelectorAll('.sortable i').forEach(icon => {
+            icon.className = 'fas fa-sort ml-1 text-gray-400';
+        });
         
-        icon.classList.remove('fa-sync-alt');
-        icon.classList.add('fa-spinner', 'loading');
+        const headerActual = document.querySelector(`[data-sort="${columna}"] i`);
+        headerActual.className = ordenAscendente ? 
+            'fas fa-sort-up ml-1 text-primary' : 
+            'fas fa-sort-down ml-1 text-primary';
+
+        // Ordenar los datos
+        const datosParaOrdenar = datosFiltradosHistorial.length > 0 ? 
+            datosFiltradosHistorial : datosHistorial;
+
+        datosParaOrdenar.sort((a, b) => {
+            let valorA, valorB;
+
+            switch(columna) {
+                case 'codigo_equipo':
+                    valorA = a.codigo_equipo || '';
+                    valorB = b.codigo_equipo || '';
+                    break;
+                case 'modelo':
+                    valorA = a.modelo || '';
+                    valorB = b.modelo || '';
+                    break;
+                case 'nro_estacion':
+                    valorA = a.llave?.nro_estacion || 0;
+                    valorB = b.llave?.nro_estacion || 0;
+                    break;
+                case 'contador_r':
+                    valorA = a.llave?.contador_r || 0;
+                    valorB = b.llave?.contador_r || 0;
+                    break;
+                case 'username':
+                    valorA = a.username || '';
+                    valorB = b.username || '';
+                    break;
+                case 'fecha_modificacion':
+                    valorA = new Date(a.fecha_modificacion || 0);
+                    valorB = new Date(b.fecha_modificacion || 0);
+                    break;
+                case 'fase_nueva':
+                    valorA = a.cambios?.fase_nueva || '';
+                    valorB = b.cambios?.fase_nueva || '';
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (valorA < valorB) return ordenAscendente ? -1 : 1;
+            if (valorA > valorB) return ordenAscendente ? 1 : -1;
+            return 0;
+        });
+
+        // Actualizar los datos y renderizar
+        if (datosFiltradosHistorial.length > 0) {
+            datosFiltradosHistorial = datosParaOrdenar;
+        } else {
+            datosHistorial = datosParaOrdenar;
+        }
         
-        cargarHistorialMasterizacion().finally(() => {
-            icon.classList.remove('fa-spinner', 'loading');
-            icon.classList.add('fa-sync-alt');
+        paginaActualHistorial = 1;
+        renderizarTablaConDatosActual();
+        actualizarPaginacion();
+    }
+    // Agregar event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Event listeners para ordenamiento
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', () => {
+                const columna = header.getAttribute('data-sort');
+                ordenarDatos(columna);
+            });
+        });
+
+        // Event listener para seleccionar todos
+        document.getElementById('checkbox-todos').addEventListener('change', manejarSeleccionTodos);
+        
+        // Event listener para botón de seleccionar todos
+        document.getElementById('btn-seleccionar-todos').addEventListener('click', () => {
+            const checkboxTodos = document.getElementById('checkbox-todos');
+            checkboxTodos.checked = !checkboxTodos.checked;
+            manejarSeleccionTodos();
+        });
+
+        // Event listener para exportar a Excel
+        document.getElementById('btn-exportar-excel').addEventListener('click', exportarAExcel);
+
+        // Limpiar selección al cambiar de página
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            document.getElementById('checkbox-todos').checked = false;
+        });
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            document.getElementById('checkbox-todos').checked = false;
         });
     });
 
-    // Cargar historial cuando se active el panel
-    document.querySelector('.menu-item[data-target="historial-master"]').addEventListener('click', () => {
-        if (datosHistorial.length === 0) {
-            cargarHistorialMasterizacion();
-        }
-    });
+    // Función para exportar a Excel
+    function exportarAExcel() {
+        if (registrosSeleccionados.size === 0) return;
+
+        // Obtener todos los datos
+        const todosLosDatos = datosFiltradosHistorial.length > 0 ? 
+            datosFiltradosHistorial : datosHistorial;
+        
+        // Filtrar solo los seleccionados
+        const datosAExportar = todosLosDatos.filter(item => {
+            const idUnico = `${item.codigo_equipo}_${item.fecha_modificacion}`;
+            return registrosSeleccionados.has(idUnico);
+        });
+
+        // Crear CSV
+        const headers = [
+            'Código Equipo',
+            'Modelo', 
+            'Tipo Estación',
+            'Llave',
+            'Contador R',
+            'Contador C',
+            'Usuario',
+            'Fecha Modificación'
+        ];
+
+        const filas = datosAExportar.map(item => {
+            const fecha = item.fecha_modificacion ? 
+                new Date(item.fecha_modificacion).toLocaleDateString('es-ES') : '';
+            
+            return [
+                `"${item.codigo_equipo || ''}"`,
+                `"${item.modelo || ''}"`,
+                `"${item.tipo_estacion || ''}"`,
+                item.llave?.nro_estacion || '',
+                item.llave?.contador_r || '',
+                item.llave?.contador_c || '',
+                `"${item.username || ''}"`,
+                `"${fecha}"`
+            ].join(';');
+        });
+
+        const csv = [headers.join(';'), ...filas].join('\n');
+        
+        // Crear y descargar archivo
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `historial_masterizacion_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // // Botón de actualizar
+    // document.getElementById('btn-refresh-historial').addEventListener('click', () => {
+    //     const btn = document.getElementById('btn-refresh-historial');
+    //     const icon = btn.querySelector('i');
+        
+    //     icon.classList.remove('fa-sync-alt');
+    //     icon.classList.add('fa-spinner', 'loading');
+        
+    //     cargarHistorialMasterizacion().finally(() => {
+    //         icon.classList.remove('fa-spinner', 'loading');
+    //         icon.classList.add('fa-sync-alt');
+    //     });
+    // });
 
 
     // Actualizar el dashboard con los datos

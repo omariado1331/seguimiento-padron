@@ -107,7 +107,7 @@ class Llave(models.Model):
         
 # ----------------- MEGACENTRO -----------------
 class Megacentro(models.Model):
-    """Misma base que Ruta + campos extra."""
+    #"""Misma base que Ruta + campos extra."""
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -312,6 +312,11 @@ class Estacion(models.Model):
     obs_tripode        = models.TextField(blank=True)
     obs_banner         = models.TextField(blank=True)
     obs_adaptador_3a2  = models.TextField(blank=True)
+
+    megacentro = models.ForeignKey(Megacentro, on_delete=models.CASCADE, null=True, blank=True)
+    brigada_movil = models.BooleanField(default=False)
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, null=True, blank=True)
+    fecha_asignacion = models.DateField(null=True, blank=True)
 
     history = HistoricalRecords()
 

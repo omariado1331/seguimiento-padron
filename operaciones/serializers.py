@@ -5,7 +5,8 @@ from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
     ReporteDiario, RegistroDespliegue, Item, CentroEmpadronamiento,
-    UbicacionesOperador,Soporte, Logistico, AsistenteMegacentro     
+    UbicacionesOperador,Soporte, Logistico, AsistenteMegacentro,
+    Megacentro   
 )
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -122,11 +123,6 @@ class LlaveSerializer(serializers.ModelSerializer):
         model = Llave
         fields = '__all__'
 
-class RutaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ruta
-        fields = '__all__'
-
 class EstacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estacion
@@ -174,6 +170,16 @@ class ItemSerializer(serializers.ModelSerializer):
 class CentroEmpadronamientoSerializer(serializers.ModelSerializer):
     class Meta:
         model= CentroEmpadronamiento
+        fields = '__all__'
+
+class MegacentroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Megacentro
+        fields = '__all__'
+
+class RutaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Ruta
         fields = '__all__'
 
 class UbicacionesOperadorSerializer(serializers.ModelSerializer):

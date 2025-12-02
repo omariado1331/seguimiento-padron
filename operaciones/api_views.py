@@ -17,7 +17,7 @@ from .models import (
     Llave, Ruta, Estacion, 
     MovimientosEstacion, Coordinador, Operador,
     ReporteDiario, RegistroDespliegue, Item, CentroEmpadronamiento,
-    UbicacionesOperador
+    UbicacionesOperador, Megacentro, Ruta
 )
 from simple_history.utils import update_change_reason
 #from reportlab.pdfgen import canvas
@@ -32,7 +32,8 @@ from .serializers import (
     ReporteDiarioSerializer, RegistroDespliegueSerializer, 
     UserSerializer, ListarOperadoresSerializer, ItemSerializer, 
     CentroEmpadronamientoSerializer, UbicacionesOperadorSerializer, 
-    PuntoEmpadronamientoSerializer, ListarEstacionesLlavesSerializer
+    PuntoEmpadronamientoSerializer, ListarEstacionesLlavesSerializer,
+    MegacentroSerializer, RutaSerializer
 )
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -41,6 +42,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+class MegacentroViewSet(viewsets.ModelViewSet):
+    queryset = Megacentro.objects.all()
+    serializer_class = MegacentroSerializer
+
+class RutaViewSet(viewsets.ModelViewSet):
+    queryset = Ruta.objects.all()
+    serializer_class = RutaSerializer
 
 class LlaveViewSet(viewsets.ModelViewSet):
     queryset = Llave.objects.all()
@@ -420,5 +429,75 @@ class HistorialMasterizacionViewSet(APIView):
         return Response({
             "success": True,
             "total_registros": len(resultado),
+            "data": resultado
+        })
+
+
+class EstacionesMasterizadasOrdenadasViewSet(APIView):
+    def get(self, request):
+        # Obtener estaciones masterizadas ordenadas por megacentro y ruta
+        estaciones = Estacion.objects.filter(
+            fase='Masterizado',
+            llave__isnull=False
+        ).select_related(
+            'llave',
+            'megacentro',
+            'ruta'
+        ).prefetch_related(
+            Prefetch(
+                'operador_set',
+                queryset=Operador.objects.select_related('user'),
+                to_attr='operadores'
+            )
+        ).order_by(
+            'megacentro__nombre',  # Primero por nombre del megacentro
+            'ruta__nombre',        # Luego por nombre de la ruta
+            'codigo_equipo'        # Finalmente por código de equipo
+        )
+        
+        resultado = []
+        
+        for estacion in estaciones:
+            operador = estacion.operadores[0] if hasattr(estacion, 'operadores') and estacion.operadores else None
+            
+            registro = {
+                "cod_equipo": estacion.codigo_equipo,
+                "modelo": estacion.modelo,
+                "tipo_estacion": estacion.tipo_estacion,
+                "fase": estacion.fase,
+                "nro_estacion": estacion.nro_estacion,
+                "llave": {
+                    "id": estacion.llave.id if estacion.llave else None,
+                    "nro_estacion": estacion.llave.nro_estacion if estacion.llave else None,
+                    "contador_r": estacion.llave.contador_r if estacion.llave else None,
+                    "contador_c": estacion.llave.contador_c if estacion.llave else None,
+                },
+                "megacentro": {
+                    "id": estacion.megacentro.id if estacion.megacentro else None,
+                    "nombre": estacion.megacentro.nombre if estacion.megacentro else None,
+                },
+                "ruta": {
+                    "id": estacion.ruta.id if estacion.ruta else None,
+                    "nombre": estacion.ruta.nombre if estacion.ruta else None,
+                },
+                "operador": {
+                    "id": operador.id if operador else None,
+                    "nombre": operador.nombre if operador else None,
+                    "apellido_paterno": operador.apellido_paterno if operador else None,
+                    "apellido_materno": operador.apellido_materno if operador else None,
+                    "carnet": operador.carnet if operador else None,
+                    "tipo_operador": operador.tipo_operador if operador else None,
+                    "username": operador.user.username if operador and operador.user else None,
+                },
+                "fecha_asignacion": estacion.fecha_asignacion,
+                "brigada_movil": estacion.brigada_movil
+            }
+            
+            resultado.append(registro)
+        
+        return Response({
+            "success": True,
+            "total_estaciones_masterizadas": len(resultado),
+            "ordenamiento": "Por Megacentro → Ruta → Código Equipo",
             "data": resultado
         })

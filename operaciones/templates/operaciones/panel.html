@@ -545,9 +545,6 @@
                   <p class="text-sm text-gray-600" id="total-estaciones-asignacion">
                       <span id="total-estaciones-count">0</span> estaciones masterizadas
                   </p>
-                  <p class="text-xs text-gray-500 italic" id="ordenamiento-info">
-                      Orden: Por Megacentro → Ruta → Código Equipo
-                  </p>
               </div>
 
               <!-- Tabla de asignación -->
@@ -556,7 +553,7 @@
                       <table class="min-w-full divide-y divide-gray-200">
                           <thead class="bg-gray-50">
                               <tr>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="cod_equipo">
+                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="codigo_equipo">
                                       Código Equipo <i class="fas fa-sort ml-1 text-gray-400"></i>
                                   </th>
                                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="modelo">
@@ -569,10 +566,10 @@
                                       Contadores <i class="fas fa-sort ml-1 text-gray-400"></i>
                                   </th>
                                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="destino">
-                                      Destino
+                                      Destino <i class="fas fa-sort ml-1 text-gray-400"></i>
                                   </th>
                                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="operador">
-                                      Operador
+                                      Operador <i class="fas fa-sort ml-1 text-gray-400"></i>
                                   </th>
                                   <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="carnet">
                                       Carnet <i class="fas fa-sort ml-1 text-gray-400"></i>
@@ -787,19 +784,36 @@
     </div>
 </div>
 
-<!-- Modal para asignar ruta -->
-<div id="modal-ruta" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+<!-- Modal para asignar centro de empadronamiento -->
+<div id="modal-centro-empadronamiento" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
     <div class="modal-content bg-white p-5 w-11/12 sm:w-96 rounded-lg shadow-lg">
-        <span class="close-modal-ruta float-right text-2xl cursor-pointer mb-1">&times;</span>
-        <h3 class="mb-3 text-lg font-semibold" id="titulo-modal-ruta">Asignar Ruta</h3>
-        <div class="mb-4">
-            <p class="text-sm text-gray-600 mb-2">Estación: <span id="estacion-ruta" class="font-semibold"></span></p>
-            <select id="select-ruta" class="w-full p-2 border border-gray-300 rounded">
-                <option value="">Seleccionar ruta...</option>
-            </select>
+        <span class="close-modal-centro-empadronamiento float-right text-2xl cursor-pointer mb-1">&times;</span>
+
+        <h3 class="mb-1 text-lg font-semibold" id="titulo-modal-centro-empadronamiento">Asignar Punto de Empadronamiento</h3>
+
+        <!-- 🔵 CENTRO SELECCIONADO -->
+        <div id="centro-seleccionado" 
+            class="hidden p-4 border-2 border-green-500 rounded-lg mb-4">
         </div>
-        <button id="btn-confirmar-ruta" class="w-full mt-4 p-3 bg-green-600 text-white text-lg border-none rounded cursor-pointer hover:bg-green-700">
-            Asignar Ruta
+        
+        <!-- 🔍 Buscador -->
+        <input
+            type="text"
+            id="buscador-modal-centros"
+            placeholder="Buscar centro por nombre..."
+            class="w-full p-2 my-3 border border-gray-300 rounded"
+        />
+
+        <!-- Lista filtrada de centros -->
+        <div id="lista-centros" class="max-h-80 overflow-y-auto border border-gray-300 p-3 rounded">
+            <!-- Aquí se renderizan los centros filtrados -->
+        </div>
+
+        <!-- 🔵 Botón asignar -->
+        <button id="btn-confirmar-centro-empadronamiento" 
+                class="w-1/2 mt-4 p-3 bg-green-600 text-white text-lg border-none rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
+            Asignar Centro
         </button>
     </div>
 </div>
@@ -808,14 +822,31 @@
 <div id="modal-operador" class="modal fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
     <div class="modal-content bg-white p-5 w-11/12 sm:w-96 rounded-lg shadow-lg">
         <span class="close-modal-operador float-right text-2xl cursor-pointer mb-1">&times;</span>
-        <h3 class="mb-3 text-lg font-semibold" id="titulo-modal-operador">Asignar Operador</h3>
-        <div class="mb-4">
-            <p class="text-sm text-gray-600 mb-2">Estación: <span id="estacion-operador" class="font-semibold"></span></p>
-            <select id="select-operador" class="w-full p-2 border border-gray-300 rounded">
-                <option value="">Seleccionar operador...</option>
-            </select>
+
+        <h3 class="mb-1 text-lg font-semibold" id="titulo-modal-operador">Asignar Operador</h3>
+
+        <!-- 🔵 OPERADOR SELECCIONADO -->
+        <div id="operador-seleccionado" 
+            class="hidden p-4 border-2 border-blue-500 rounded-lg mb-4">
         </div>
-        <button id="btn-confirmar-operador" class="w-full mt-4 p-3 bg-blue-600 text-white text-lg border-none rounded cursor-pointer hover:bg-blue-700">
+        
+        <!-- 🔍 Buscador -->
+        <input
+            type="text"
+            id="buscador-modal-operador"
+            placeholder="Buscar operador por nombre, apellido o carnet..."
+            class="w-full p-2 my-3 border border-gray-300 rounded"
+        />
+
+        <!-- Lista filtrada de operadores -->
+        <div id="lista-operadores" class="max-h-80 overflow-y-auto border border-gray-300 p-3 rounded">
+            <!-- Aquí se renderizan los operadores filtrados -->
+        </div>
+
+        <!-- 🔵 Botón asignar -->
+        <button id="btn-confirmar-operador" 
+                class="w-1/2 mt-4 p-3 bg-blue-600 text-white text-lg border-none rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled>
             Asignar Operador
         </button>
     </div>
@@ -965,8 +996,7 @@
       console.log('Inicializando dashboard...');
       loadEstacionesData();
       cargarLlaves();
-      //cargarOperadoresSinEstacion();
-      
+     
       // Configurar botones
       document.getElementById('refresh-data').addEventListener('click', loadEstacionesData, cargarHistorialMasterizacion);
       document.getElementById('export-btn').addEventListener('click', exportData);
@@ -1677,29 +1707,62 @@ function crearCardEnClonacion(item) {
     let datosAsignacion = [];
     let datosFiltradosAsignacion = [];
     let paginaActualAsignacion = 1;
-    let registrosPorPaginaAsignacion = 10;
-    let columnaOrdenAsignacion = 'cod_equipo';
-    let ordenAscendenteAsignacion = true;
+    let registrosPorPaginaAsignacion = 25;
+    let columnaOrdenAsignacion = 'codigo_equipo';
+    let ordenAscendenteAsignacion = false;
+    // Variables para el modal de operador
+    let listaOperadoresCompleta = [];
+    let operadorSeleccionado = null;
+    // Variable para el modal de asignacion de destino
+    let listaMegacentros = [];
+    let listaCentrosEmpadronamiento = [];
     // modales
     let estacionActualIDAsignacion = null;
     let estacionActualCodigoAsignacion = null;
+    let operadorActualIDAsignacion = null;
+    // Para el modal de centros de empadronamiento
+    let centrosEmpadronamientoSeleccionado = null;
     
-    // Función para cargar datos de asignación
+    // Función para cargar datos de asignación - CORREGIDA
     async function cargarDatosAsignacion() {
         try {
+            // Guardar estado actual del orden
+            const columnaOrdenGuardada = columnaOrdenAsignacion;
+            const ordenAscendenteGuardado = ordenAscendenteAsignacion;
+            const paginaGuardada = paginaActualAsignacion;
+            
             const response = await fetch('/estaciones-despliegue/');
             const data = await response.json();
             
-            if (data.success) {
+            if (response.ok) {
                 datosAsignacion = data.data;
                 datosFiltradosAsignacion = [];
-                
                 document.getElementById('total-estaciones-count').textContent = data.total_estaciones_masterizadas;
-                document.getElementById('ordenamiento-info').textContent = `Orden: ${data.ordenamiento}`;
                 
-                // Ordenar según la especificación del backend
-                ordenarDatosAsignacion('cod_equipo');
+                // Restaurar el orden anterior
+                columnaOrdenAsignacion = columnaOrdenGuardada;
+                ordenAscendenteAsignacion = ordenAscendenteGuardado;
+                
+                // Ordenar con los parámetros guardados
+                aplicarOrdenAsignacion();
+                
+                // Restaurar la página
+                paginaActualAsignacion = paginaGuardada;
+                
+                // Verificar que la página sea válida
+                const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
+                    datosFiltradosAsignacion : datosAsignacion;
+                const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
+                
+                if (paginaActualAsignacion > totalPaginas && totalPaginas > 0) {
+                    paginaActualAsignacion = totalPaginas;
+                } else if (totalPaginas === 0) {
+                    paginaActualAsignacion = 1;
+                }
+                
+                renderizarTablaAsignacionConDatosActuales();
                 actualizarPaginacionAsignacion();
+
             } else {
                 throw new Error('Error al cargar datos de asignación');
             }
@@ -1709,49 +1772,6 @@ function crearCardEnClonacion(item) {
         }
     }
 
-    // Función para cargar megacentros en el modal
-    async function cargarMegacentros() {
-        try {
-            const response = await fetch('/api/megacentros/');
-            const data = await response.json();
-            
-            const select = document.getElementById('select-megacentro');
-            select.innerHTML = '<option value="">Seleccionar megacentro...</option>';
-            
-            if (data.success && data.data) {
-                data.data.forEach(megacentro => {
-                    const option = document.createElement('option');
-                    option.value = megacentro.id;
-                    option.textContent = megacentro.nombre;
-                    select.appendChild(option);
-                });
-            }
-        } catch (error) {
-            console.error('Error al cargar megacentros:', error);
-        }
-    }
-
-    // Función para cargar rutas en el modal
-    async function cargarRutas() {
-        try {
-            const response = await fetch('/api/rutas/');
-            const data = await response.json();
-            
-            const select = document.getElementById('select-ruta');
-            select.innerHTML = '<option value="">Seleccionar ruta...</option>';
-            
-            if (data.success && data.data) {
-                data.data.forEach(ruta => {
-                    const option = document.createElement('option');
-                    option.value = ruta.id;
-                    option.textContent = ruta.nombre;
-                    select.appendChild(option);
-                });
-            }
-        } catch (error) {
-            console.error('Error al cargar rutas:', error);
-        }
-    }
 
     // Función para cargar operadores en el modal
     async function cargarOperadores() {
@@ -1759,22 +1779,66 @@ function crearCardEnClonacion(item) {
             const response = await fetch('/operadores-sin-estacion/');
             const data = await response.json();
             
-            const select = document.getElementById('select-operador');
-            select.innerHTML = '<option value="">Seleccionar operador...</option>';
-            
-            if (data.success && data.data) {
-                data.data.forEach(operador => {
-                    const option = document.createElement('option');
-                    option.value = operador.id;
-                    const nombreCompleto = `${operador.nombre} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
-                    option.textContent = `${nombreCompleto} (${operador.carnet || 'Sin carnet'})`;
-                    select.appendChild(option);
-                });
+            if (response.ok && data.data) {
+                listaOperadoresCompleta = data.data;
             }
         } catch (error) {
             console.error('Error al cargar operadores:', error);
+            alert('Error al cargar la lista de operadores');
         }
     }
+
+    // Función para cargar megacentros en el modal
+    async function cargarMegacentros() {
+        try {
+            const response = await fetch('/api/megacentros/');
+            const data = await response.json();
+            if (data && response.ok) {
+                listaMegacentros = data;
+            }
+        } catch (error) {
+            console.error('Error al cargar megacentros:', error);
+        }
+    }
+    
+    //funcion para renderizar los megacentros
+    function renderizarMegacentros(data){
+      const select = document.getElementById('select-megacentro');
+      select.innerHTML = '<option value="">Seleccionar megacentro...</option>';
+      data.forEach(megacentro => {
+        const option = document.createElement('option');
+        option.value = megacentro.id;
+        option.textContent = megacentro.nombre;
+        select.appendChild(option);
+      });
+    }
+
+    // Función para cargar Centros de empadronamiento en el modal
+    async function cargarCentrosEmpadronamiento() {
+      try {
+        const response = await fetch('/lista-centros-empadronamiento/');
+        const data = await response.json();
+            
+        if (data) {
+          listaCentrosEmpadronamiento = data;
+        }
+      } catch (error) {
+        console.error('Error al cargar centros de empadronamiento:', error);
+      }
+    }
+    
+    function renderizarCentrosEmpadronamiento(data){
+      const select = document.getElementById('select-centro-empadronamiento');
+      select.innerHTML = '<option value="">Seleccionar centro-empadronamiento...</option>';
+  
+      data.forEach(centroEmpadronamiento => {
+        const option = document.createElement('option');
+        option.value = centroEmpadronamiento.id;
+        option.textContent = `${centroEmpadronamiento.nombre_ruta}-${centroEmpadronamiento.punto_de_empadronamiento}`;
+        select.appendChild(option);
+      });
+    }
+    
 
     // Función para renderizar la tabla de asignación
     function renderizarTablaAsignacion(datos) {
@@ -1824,7 +1888,7 @@ function crearCardEnClonacion(item) {
             const fila = `
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                     <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${item.cod_equipo || 'N/A'}
+                        ${item.codigo_equipo || 'N/A'}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                         ${item.modelo || 'N/A'}
@@ -1859,22 +1923,14 @@ function crearCardEnClonacion(item) {
         });
     }
 
-    // Función para ordenar datos de asignación
-    function ordenarDatosAsignacion(columna) {
-        // Si se hace click en la misma columna, invertir el orden
-        if (columnaOrdenAsignacion === columna) {
-            ordenAscendenteAsignacion = !ordenAscendenteAsignacion;
-        } else {
-            columnaOrdenAsignacion = columna;
-            ordenAscendenteAsignacion = true;
-        }
-
+    // Función para aplicar el orden sin cambiar el estado
+    function aplicarOrdenAsignacion() {
         // Actualizar iconos en los headers
         document.querySelectorAll('.sortable-asignacion i').forEach(icon => {
             icon.className = 'fas fa-sort ml-1 text-gray-400';
         });
         
-        const headerActual = document.querySelector(`[data-sort="${columna}"] i`);
+        const headerActual = document.querySelector(`[data-sort="${columnaOrdenAsignacion}"] i`);
         if (headerActual) {
             headerActual.className = ordenAscendenteAsignacion ? 
                 'fas fa-sort-up ml-1 text-primary' : 
@@ -1888,10 +1944,10 @@ function crearCardEnClonacion(item) {
         datosParaOrdenar.sort((a, b) => {
             let valorA, valorB;
 
-            switch(columna) {
-                case 'cod_equipo':
-                    valorA = a.cod_equipo || '';
-                    valorB = b.cod_equipo || '';
+            switch(columnaOrdenAsignacion) {
+                case 'codigo_equipo':
+                    valorA = a.codigo_equipo || '';
+                    valorB = b.codigo_equipo || '';
                     break;
                 case 'modelo':
                     valorA = a.modelo || '';
@@ -1933,22 +1989,32 @@ function crearCardEnClonacion(item) {
                     return 0;
             }
 
-            if (valorA < valorB) return ordenAscendenteAsignacion ? -1 : 1;
-            if (valorA > valorB) return ordenAscendenteAsignacion ? 1 : -1;
+            if (valorA > valorB) return ordenAscendenteAsignacion ? -1 : 1;
+            if (valorA < valorB) return ordenAscendenteAsignacion ? 1 : -1;
             return 0;
         });
+    }
 
-        // Actualizar los datos y renderizar
-        if (datosFiltradosAsignacion.length > 0) {
-            datosFiltradosAsignacion = datosParaOrdenar;
+    // Función para ordenar datos de asignación
+    function ordenarDatosAsignacion(columna) {
+        // Si se hace click en la misma columna, invertir el orden
+        if (columnaOrdenAsignacion === columna) {
+            ordenAscendenteAsignacion = !ordenAscendenteAsignacion;
         } else {
-            datosAsignacion = datosParaOrdenar;
+            columnaOrdenAsignacion = columna;
+            ordenAscendenteAsignacion = false;
         }
+
+        // Aplicar el nuevo orden
+        aplicarOrdenAsignacion();
         
-        paginaActualAsignacion = 1;
+        // Mantener la página actual en lugar de volver a la primera
+        // paginaActualAsignacion = 1; // <-- ESTO SE ELIMINA
+        
         renderizarTablaAsignacionConDatosActuales();
         actualizarPaginacionAsignacion();
     }
+
 
     // Función para renderizar con datos actuales
     function renderizarTablaAsignacionConDatosActuales() {
@@ -1998,7 +2064,7 @@ function crearCardEnClonacion(item) {
                 actualizarPaginacionAsignacion();
             } else {
                 datosFiltradosAsignacion = datosAsignacion.filter(item => {
-                    const codEquipo = item.cod_equipo ? item.cod_equipo.toLowerCase() : '';
+                    const codEquipo = item.codigo_equipo ? item.codigo_equipo.toLowerCase() : '';
                     const modelo = item.modelo ? item.modelo.toLowerCase() : '';
                     const nroEstacion = item.llave?.nro_estacion ? item.llave.nro_estacion.toString() : '';
                     const destino = formatearDestino(item).toLowerCase();
@@ -2058,6 +2124,9 @@ function crearCardEnClonacion(item) {
         document.querySelector('.menu-item[data-target="asignacion"]').addEventListener('click', () => {
             if (datosAsignacion.length === 0) {
                 cargarDatosAsignacion();
+                cargarOperadores();
+                cargarCentrosEmpadronamiento();
+                cargarMegacentros();
             }
         });
     });
@@ -2065,28 +2134,20 @@ function crearCardEnClonacion(item) {
     // Función para formatear destino con botones
     function formatearDestino(item) {
         const tieneMegacentro = item.megacentro && item.megacentro.nombre;
-        const tieneRuta = item.ruta && item.ruta.nombre;
+        const tieneCentroEmpadronamiento = item.centro_empadronamiento && item.centro_empadronamiento.nombre;
         
         // Si ambos tienen valores, mostrar aviso
-        if (tieneMegacentro && tieneRuta) {
+        if (tieneMegacentro && tieneCentroEmpadronamiento) {
             return `
                 <div class="space-y-2">
-                    <div class="flex items-center gap-1 text-red-600 text-xs" title="¡ADVERTENCIA! Tiene tanto megacentro como ruta asignados">
+                    <div class="flex items-center gap-1 text-red-600 text-xs" title="¡ADVERTENCIA! Tiene tanto megacentro como centro de empadronamiento asignados">
                         <i class="fas fa-exclamation-triangle"></i>
                         <span>Conflicto de destino</span>
                     </div>
                     <div class="flex flex-wrap gap-1">
-                        <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
-                            <i class="fas fa-building mr-1"></i>Megacentro
-                        </button>
-                        <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
-                            <i class="fas fa-route mr-1"></i>Ruta
-                        </button>
                         <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
-                            <i class="fas fa-trash mr-1"></i>Eliminar
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
+                            <i class="fas fa-trash mr-1"></i>Eliminar registro
                         </button>
                     </div>
                 </div>
@@ -2097,22 +2158,17 @@ function crearCardEnClonacion(item) {
         if (tieneMegacentro) {
             let nombre = item.megacentro.nombre;
             if (item.brigada_movil) {
-                nombre += ' BG';
+                nombre += ' BM';
             }
             return `
                 <div class="space-y-2">
                     <span class="text-blue-600 text-sm">${nombre}</span>
                     <div class="flex flex-wrap gap-1">
                         <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                             <i class="fas fa-edit mr-1"></i>Cambiar
-                        </button>
-                        <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
-                            <i class="fas fa-route mr-1"></i>Ruta
-                        </button>
                         <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                             <i class="fas fa-trash mr-1"></i>Eliminar
                         </button>
                     </div>
@@ -2120,22 +2176,18 @@ function crearCardEnClonacion(item) {
             `;
         }
         
-        // Si es ruta
-        if (tieneRuta) {
+        // Si es centro-empadronamiento
+        if (tieneCentroEmpadronamiento) {
             return `
                 <div class="space-y-2">
-                    <span class="text-green-600 text-sm">${item.ruta.nombre}</span>
+                    <span class="text-green-600 text-sm">${item.centro_empadronamiento.nombre}</span>
                     <div class="flex flex-wrap gap-1">
-                        <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
-                            <i class="fas fa-building mr-1"></i>Megacentro
-                        </button>
-                        <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                        <button class="btn-asignar-centro-empadronamiento px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                             <i class="fas fa-edit mr-1"></i>Cambiar
                         </button>
                         <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                             <i class="fas fa-trash mr-1"></i>Eliminar
                         </button>
                     </div>
@@ -2149,12 +2201,12 @@ function crearCardEnClonacion(item) {
                 <span class="text-gray-400 italic text-sm">No asignada</span>
                 <div class="flex flex-wrap gap-1">
                     <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                            data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                         <i class="fas fa-building mr-1"></i>Megacentro
                     </button>
-                    <button class="btn-asignar-ruta px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
-                            data-id="${item.id}" data-codigo="${item.cod_equipo}">
-                        <i class="fas fa-route mr-1"></i>Ruta
+                    <button class="btn-asignar-centro-empadronamiento px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
+                            data-id="${item.id}" data-codigo="${item.codigo_equipo}">
+                        <i class="fas fa-map-marker-alt mr-1"></i>Punto Emp.
                     </button>
                 </div>
             </div>
@@ -2174,11 +2226,11 @@ function crearCardEnClonacion(item) {
                     <span class="text-gray-700 text-sm">${nombreCompleto}</span>
                     <div class="flex flex-wrap gap-1">
                         <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                             <i class="fas fa-user-edit mr-1"></i>Cambiar
                         </button>
                         <button class="btn-eliminar-operador px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                             <i class="fas fa-user-times mr-1"></i>Eliminar
                         </button>
                     </div>
@@ -2191,7 +2243,7 @@ function crearCardEnClonacion(item) {
                 <span class="text-gray-400 italic text-sm">No asignado</span>
                 <div class="flex flex-wrap gap-1">
                     <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                            data-id="${item.id}" data-codigo="${item.cod_equipo}">
+                            data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                         <i class="fas fa-user-plus mr-1"></i>Asignar
                     </button>
                 </div>
@@ -2226,26 +2278,14 @@ function crearCardEnClonacion(item) {
                 const button = e.target.classList.contains('btn-asignar-megacentro') ? 
                     e.target : e.target.closest('.btn-asignar-megacentro');
                 
-                estacionActualID = button.getAttribute('data-id');
-                estacionActualCodigo = button.getAttribute('data-codigo');
+                estacionActualIDAsignacion = button.getAttribute('data-id');
+                console.log(estacionActualIDAsignacion)
+                estacionActualCodigoAsignacion = button.getAttribute('data-codigo');
                 
-                document.getElementById('estacion-megacentro').textContent = estacionActualCodigo;
+                document.getElementById('estacion-megacentro').textContent = estacionActualCodigoAsignacion;
                 document.getElementById('checkbox-brigada-movil').checked = false;
-                cargarMegacentros();
+                renderizarMegacentros(listaMegacentros);
                 document.getElementById('modal-megacentro').classList.remove('hidden');
-            }
-            
-            else if (e.target.classList.contains('btn-asignar-ruta') || 
-                    e.target.closest('.btn-asignar-ruta')) {
-                const button = e.target.classList.contains('btn-asignar-ruta') ? 
-                    e.target : e.target.closest('.btn-asignar-ruta');
-                
-                estacionActualID = button.getAttribute('data-id');
-                estacionActualCodigo = button.getAttribute('data-codigo');
-                
-                document.getElementById('estacion-ruta').textContent = estacionActualCodigo;
-                cargarRutas();
-                document.getElementById('modal-ruta').classList.remove('hidden');
             }
             
             else if (e.target.classList.contains('btn-eliminar-destino') || 
@@ -2256,33 +2296,11 @@ function crearCardEnClonacion(item) {
                 const estacionId = button.getAttribute('data-id');
                 eliminarDestino(estacionId);
             }
-            
-            // Botones de operador
-            else if (e.target.classList.contains('btn-asignar-operador') || 
-                    e.target.closest('.btn-asignar-operador')) {
-                const button = e.target.classList.contains('btn-asignar-operador') ? 
-                    e.target : e.target.closest('.btn-asignar-operador');
-                
-                estacionActualID = button.getAttribute('data-id');
-                estacionActualCodigo = button.getAttribute('data-codigo');
-                
-                document.getElementById('estacion-operador').textContent = estacionActualCodigo;
-                cargarOperadores();
-                document.getElementById('modal-operador').classList.remove('hidden');
-            }
-            
-            else if (e.target.classList.contains('btn-eliminar-operador') || 
-                    e.target.closest('.btn-eliminar-operador')) {
-                const button = e.target.classList.contains('btn-eliminar-operador') ? 
-                    e.target : e.target.closest('.btn-eliminar-operador');
-                
-                const estacionId = button.getAttribute('data-id');
-                eliminarOperador(estacionId);
-            }
         });
         
         // Confirmar asignación de megacentro
         document.getElementById('btn-confirmar-megacentro').addEventListener('click', () => {
+
             const megacentroId = document.getElementById('select-megacentro').value;
             const brigadaMovil = document.getElementById('checkbox-brigada-movil').checked;
             
@@ -2291,40 +2309,16 @@ function crearCardEnClonacion(item) {
                 return;
             }
             
-            asignarMegacentro(estacionActualID, megacentroId, brigadaMovil);
-        });
-        
-        // Confirmar asignación de ruta
-        document.getElementById('btn-confirmar-ruta').addEventListener('click', () => {
-            const rutaId = document.getElementById('select-ruta').value;
-            
-            if (!rutaId) {
-                alert('Por favor seleccione una ruta');
-                return;
-            }
-            
-            asignarRuta(estacionActualID, rutaId);
-        });
-        
-        // Confirmar asignación de operador
-        document.getElementById('btn-confirmar-operador').addEventListener('click', () => {
-            const operadorId = document.getElementById('select-operador').value;
-            
-            if (!operadorId) {
-                alert('Por favor seleccione un operador');
-                return;
-            }
-            
-            asignarOperador(estacionActualID, operadorId);
+            asignarMegacentro(estacionActualIDAsignacion, megacentroId, brigadaMovil);
         });
         
         // Cerrar modales
-        document.querySelectorAll('.close-modal-megacentro, .close-modal-ruta, .close-modal-operador').forEach(btn => {
+        document.querySelectorAll('.close-modal-megacentro').forEach(btn => {
             btn.addEventListener('click', function() {
                 this.closest('.modal').classList.add('hidden');
             });
         });
-        
+     
         // Cerrar modales al hacer click fuera
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', function(e) {
@@ -2334,8 +2328,599 @@ function crearCardEnClonacion(item) {
             });
         });
     });
+    // Función para cerrar modal
+    function cerrarModalAsignacion(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
 
+    // Función para abrir modal de centro de empadronamiento
+    async function abrirModalCentroEmpadronamiento(estacionId, estacionCodigo) {
+        estacionActualIDAsignacion = estacionId;
+        estacionActualCodigoAsignacion = estacionCodigo;
+        
+        document.getElementById('titulo-modal-centro-empadronamiento').textContent = 
+            `Asignar Punto de Empadronamiento a ${estacionCodigo}`;
+        document.getElementById('centro-seleccionado').classList.add('hidden');
+        document.getElementById('centro-seleccionado').innerHTML = '';
+        document.getElementById('buscador-modal-centros').value = '';
+        document.getElementById('btn-confirmar-centro-empadronamiento').disabled = true;
+        centrosEmpadronamientoSeleccionado = null;
+        
+        // Renderizar primeros 20 centros
+        renderizarCentrosEmpadronamientoLista(listaCentrosEmpadronamiento.slice(0, 20));
+        
+        // Mostrar modal
+        document.getElementById('modal-centro-empadronamiento').classList.remove('hidden');
+    }
+
+    // Función para renderizar centros en la lista (máximo 20)
+    function renderizarCentrosEmpadronamientoLista(centros) {
+        const lista = document.getElementById('lista-centros');
+        lista.innerHTML = '';
+        
+        if (centros.length === 0) {
+            lista.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    No se encontraron centros de empadronamiento
+                </div>
+            `;
+            return;
+        }
+        
+        // Mostrar máximo 20 centros
+        const centrosAMostrar = centros.slice(0, 20);
+        
+        centrosAMostrar.forEach(centro => {
+            const item = document.createElement('div');
+            item.className = 'centro-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200';
+            
+            item.innerHTML = `
+                <div class="font-medium">${centro.nombre_ruta} ${centro.punto_de_empadronamiento}</div>
+                <div class="text-sm text-gray-600">Provincia: ${centro.provincia}</div>
+                <div class="text-xs text-gray-500">Municipio: ${centro.municipio}</div>
+            `;
+            
+            item.onclick = () => seleccionarCentroEmpadronamiento(centro);
+            lista.appendChild(item);
+        });
+        
+        // Si hay más de 20 centros, mostrar mensaje
+        if (centros.length > 19) {
+            const mensaje = document.createElement('div');
+            mensaje.className = 'p-2 text-center text-xs text-gray-500 border-t';
+            mensaje.textContent = `Mostrando 20 de ${centros.length} centros. Use la búsqueda para encontrar más.`;
+            lista.appendChild(mensaje);
+        }
+    }
+
+    // Función para seleccionar centro de empadronamiento
+    function seleccionarCentroEmpadronamiento(centro) {
+        centrosEmpadronamientoSeleccionado = centro;
+        
+        // Remover selección anterior
+        document.querySelectorAll('.centro-item').forEach(item => {
+            item.classList.remove('bg-green-50', 'border-l-4', 'border-l-green-500');
+        });
+        
+        // Agregar clase al item seleccionado
+        const selectedItem = Array.from(document.querySelectorAll('.centro-item')).find(item => {
+            return item.textContent.includes(centro.nombre);
+        });
+        
+        if (selectedItem) {
+            selectedItem.classList.add('bg-green-50', 'border-l-4', 'border-l-green-500');
+        }
+        
+        // Mostrar centro seleccionado
+        const panelSeleccionado = document.getElementById('centro-seleccionado');
+        panelSeleccionado.classList.remove('hidden');
+        
+        panelSeleccionado.innerHTML = `
+            <div>
+                <h4 class="font-bold text-lg">${centro.nombre_ruta} ${centro.punto_de_empadronamiento}</h4>
+                <p class="text-sm text-gray-600">Provincia: <b>${centro.provincia}</b></p>
+                <p class="text-sm text-gray-600">Municipio: <b>${centro.municipio}</b></p>
+            </div>
+        `;
+        
+        // Habilitar botón de asignar
+        const btnAsignar = document.getElementById('btn-confirmar-centro-empadronamiento');
+        btnAsignar.disabled = false;
+        btnAsignar.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+    }
+
+    // Actualizar el event listener para centros de empadronamiento
+    document.addEventListener('DOMContentLoaded', function() {
+        // Buscador en tiempo real para centros de empadronamiento
+        document.getElementById('buscador-modal-centros').addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            
+            if (texto === '') {
+                // Mostrar primeros 15 centros cuando no hay búsqueda
+                renderizarCentrosEmpadronamientoLista(listaCentrosEmpadronamiento.slice(0, 20));
+            } else {
+                // Filtrar centros
+                const centrosFiltrados = listaCentrosEmpadronamiento.filter(centro => {
+                    const nombre = centro.nombre_ruta ? centro.nombre_ruta.toLowerCase() : '';
+                    const puntoDeEmpadronamiento = centro.punto_de_empadronamiento ? centro.punto_de_empadronamiento.toLowerCase() : '';
+                    
+                    return nombre.includes(texto) || puntoDeEmpadronamiento.includes(texto);
+                });
+                
+                // Mostrar máximo 20 resultados filtrados
+                renderizarCentrosEmpadronamientoLista(centrosFiltrados.slice(0, 20));
+            }
+        });
+        
+        // Botón confirmar centro de empadronamiento
+        document.getElementById('btn-confirmar-centro-empadronamiento').addEventListener('click', () => {
+            if (!centrosEmpadronamientoSeleccionado) {
+                alert('Por favor seleccione un centro de empadronamiento');
+                return;
+            }
+            
+            // Guardar página actual
+            const paginaGuardada = paginaActualAsignacion;
+            
+            asignarCentroEmpadronamiento(
+                estacionActualIDAsignacion, 
+                centrosEmpadronamientoSeleccionado.id
+            ).then(() => {
+                // Restaurar página después de la operación
+                if (paginaGuardada) {
+                    cargarDatosAsignacionConPagina(paginaGuardada);
+                }
+            });
+        });
+        
+        // Cerrar modal de centro de empadronamiento
+        document.querySelector('.close-modal-centro-empadronamiento').addEventListener('click', () => {
+            document.getElementById('modal-centro-empadronamiento').classList.add('hidden');
+        });
+        
+        // Cerrar modal al hacer click fuera
+        document.getElementById('modal-centro-empadronamiento').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+    });
+  
+    // Actualizar event listener para botones de centro de empadronamiento
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-asignar-centro-empadronamiento') || 
+                e.target.closest('.btn-asignar-centro-empadronamiento')) {
+                const button = e.target.classList.contains('btn-asignar-centro-empadronamiento') ? 
+                    e.target : e.target.closest('.btn-asignar-centro-empadronamiento');
+                
+                const estacionId = button.getAttribute('data-id');
+                const estacionCodigo = button.getAttribute('data-codigo');
+                
+                abrirModalCentroEmpadronamiento(estacionId, estacionCodigo);
+            }
+        });
+    });
     
+    // Función para abrir modal de operador
+    async function abrirModalOperador(estacionId, estacionCodigo) {
+        estacionActualIDAsignacion = estacionId;
+        const codigoEstacion = estacionCodigo;
+        
+        document.getElementById('titulo-modal-operador').textContent = `Asignar Operador a ${codigoEstacion}`;
+        document.getElementById('operador-seleccionado').classList.add('hidden');
+        document.getElementById('operador-seleccionado').innerHTML = '';
+        document.getElementById('buscador-modal-operador').value = '';
+        document.getElementById('btn-confirmar-operador').disabled = true;
+        operadorSeleccionado = null;
+        
+        // Cargar operadores
+        renderizarOperadores(listaOperadoresCompleta);
+        
+        // Mostrar modal
+        document.getElementById('modal-operador').classList.remove('hidden');
+    }
+
+    // Función para renderizar operadores en la lista
+    function renderizarOperadores(operadores) {
+        const lista = document.getElementById('lista-operadores');
+        lista.innerHTML = '';
+        
+        if (operadores.length === 0) {
+            lista.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    No se encontraron operadores
+                </div>
+            `;
+            return;
+        }
+        
+        operadores.forEach(operador => {
+            const item = document.createElement('div');
+            item.className = 'operador-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200';
+            
+            const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
+            const carnet = operador.carnet || 'Sin carnet';
+            const tipo = operador.tipo_operador || 'N/A';
+            
+            item.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-medium">${nombreCompleto}</div>
+                        <div class="text-sm text-gray-600">Carnet: ${carnet}</div>
+                        <div class="text-xs text-gray-500">Tipo: ${tipo}</div>
+                    </div>
+                    <div class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+                        ${operador.username || 'N/A'}
+                    </div>
+                </div>
+            `;
+            
+            item.onclick = () => seleccionarOperador(operador);
+            lista.appendChild(item);
+        });
+    }
+
+    // Función para seleccionar operador
+    function seleccionarOperador(operador) {
+        operadorSeleccionado = operador;
+        
+        // Remover selección anterior
+        document.querySelectorAll('.operador-item').forEach(item => {
+            item.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+        });
+        
+        // Agregar clase al item seleccionado
+        const selectedItem = Array.from(document.querySelectorAll('.operador-item')).find(item => {
+            const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
+            return item.textContent.includes(nombreCompleto);
+        });
+        
+        if (selectedItem) {
+            selectedItem.classList.add('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+        }
+        
+        // Mostrar operador seleccionado
+        const panelSeleccionado = document.getElementById('operador-seleccionado');
+        panelSeleccionado.classList.remove('hidden');
+        
+        const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
+        const carnet = operador.carnet || 'Sin carnet';
+        const tipo = operador.tipo_operador || 'N/A';
+        
+        panelSeleccionado.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div>
+                    <h4 class="font-bold text-lg">${nombreCompleto}</h4>
+                    <p class="text-sm text-gray-600">Carnet: <b>${carnet}</b></p>
+                    <p class="text-sm text-gray-600">Tipo: <b>${tipo}</b></p>
+                </div>
+                <div class="text-sm text-gray-500">
+                    ${operador.username || ''}
+                </div>
+            </div>
+        `;
+        
+        // Habilitar botón de asignar
+        const btnAsignar = document.getElementById('btn-confirmar-operador');
+        btnAsignar.disabled = false;
+        btnAsignar.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+    }
+
+    // Función para asignar estacion a operador
+    async function confirmarAsignacionOperador() {
+        if (!operadorSeleccionado) {
+            alert('Por favor seleccione un operador');
+            return;
+        }
+        const payload = {
+          estacion: estacionActualIDAsignacion 
+        }
+        try {
+            const response = await fetch(`/api/operadores/${operadorSeleccionado.id}/`, {
+            method: "PATCH",
+            headers: {
+              'Accept': 'application/json',
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+              body: JSON.stringify(payload),
+              credentials: "include",
+            });
+            
+            if (response.ok) {
+                alert('Estacion asignada a operador exitosamente');
+                cargarDatosAsignacion();
+                cerrarModalOperador();
+            } else {
+                throw new Error(response.status || 'Error al asignar al operador');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al asignar operador: ' + error.message);
+        }
+    }
+
+    // Función para eliminar estacion de operador
+    async function eliminarOperador(estacionId, operadorId) {
+        if (!confirm('¿Está seguro de eliminar el operador de esta estación?')) {
+            return;
+        }
+        const payload = {
+          estacion: null 
+        }
+        try {
+            const response = await fetch(`/api/operadores/${operadorId}/`, {
+            method: "PATCH",
+            headers: {
+              'Accept': 'application/json',
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+              body: JSON.stringify(payload),
+              credentials: "include",
+            });
+      
+            if (response.ok) {
+                alert('Operador eliminado correctamente');
+                cargarDatosAsignacion();
+            } else {
+                throw new Error(response.status || 'Error al eliminar estacion de operador');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al eliminar operador: ' + error.message);
+        }
+    }
+
+    // Función para cerrar modal de operador
+    function cerrarModalOperador() {
+        document.getElementById('modal-operador').classList.add('hidden');
+    }
+
+    // Actualizar la función formatearOperador para usar el modal
+    function formatearOperador(item) {
+        if (item.operador && item.operador.nombre) {
+            const nombre = item.operador.nombre || '';
+            const apellidoPaterno = item.operador.apellido_paterno || '';
+            const apellidoMaterno = item.operador.apellido_materno || '';
+            const idOperador = item.operador.id || 0 ;
+            
+            const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
+            return `
+                <div class="space-y-2">
+                    <span class="text-gray-700 text-sm">${nombreCompleto}</span>
+                    <div class="flex flex-wrap gap-1">
+                        <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                                data-id="${item.id}" data-operador="${idOperador}">
+                            <i class="fas fa-user-edit mr-1"></i>Cambiar
+                        </button>
+                        <button class="btn-eliminar-operador px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
+                                data-id="${item.id}" data-operador="${idOperador}">
+                            <i class="fas fa-user-times mr-1"></i>Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="space-y-2">
+                <span class="text-gray-400 italic text-sm">No asignado</span>
+                <div class="flex flex-wrap gap-1">
+                    <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+                            data-id="${item.id}" data-operador="${item.codigo_equipo}">
+                        <i class="fas fa-user-plus mr-1"></i>Asignar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Actualizar event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delegación de eventos para botones dinámicos
+        document.addEventListener('click', function(e) {
+            // Botones de operador
+            if (e.target.classList.contains('btn-asignar-operador') || 
+                e.target.closest('.btn-asignar-operador')) {
+                const button = e.target.classList.contains('btn-asignar-operador') ? 
+                    e.target : e.target.closest('.btn-asignar-operador');
+                
+                const estacionId = button.getAttribute('data-id');
+                const codigoEstacion = button.getAttribute('data-operador');
+                abrirModalOperador(estacionId, codigoEstacion);
+            }
+            
+            else if (e.target.classList.contains('btn-eliminar-operador') || 
+                    e.target.closest('.btn-eliminar-operador')) {
+                const button = e.target.classList.contains('btn-eliminar-operador') ? 
+                    e.target : e.target.closest('.btn-eliminar-operador');
+
+                const estacionId = button.getAttribute('data-id');
+                const operadorId = button.getAttribute('data-operador');
+                eliminarOperador(estacionId, operadorId);
+            }
+        });
+        
+        // Confirmar asignación de operador
+        document.getElementById('btn-confirmar-operador').addEventListener('click', confirmarAsignacionOperador);
+        
+        // Buscador en tiempo real para operadores
+        document.getElementById('buscador-modal-operador').addEventListener('input', (e) => {
+            const texto = e.target.value.toLowerCase();
+            
+            const operadoresFiltrados = listaOperadoresCompleta.filter(operador => {
+                const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.toLowerCase();
+                const carnet = operador.carnet ? operador.carnet.toLowerCase() : '';
+                const username = operador.username ? operador.username.toLowerCase() : '';
+                const tipo = operador.tipo_operador ? operador.tipo_operador.toLowerCase() : '';
+                
+                return nombreCompleto.includes(texto) ||
+                      carnet.includes(texto) ||
+                      username.includes(texto) ||
+                      tipo.includes(texto);
+            });
+            
+            renderizarOperadores(operadoresFiltrados);
+        });
+        
+        // Cerrar modal de operador
+        document.querySelector('.close-modal-operador').addEventListener('click', cerrarModalOperador);
+        
+        // Cerrar modal al hacer click fuera
+        document.getElementById('modal-operador').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModalOperador();
+            }
+        });
+    });
+
+    // Función para asignar megacentro a estacion - CORREGIDA
+    async function asignarMegacentro(estacionId, megacentroId, brigadaMovil)  {
+        console.log(estacionId)
+        const payload = {
+            megacentro: megacentroId,
+            brigada_movil: brigadaMovil 
+        }
+        
+        try {
+            // Guardar página actual
+            const paginaGuardada = paginaActualAsignacion;
+            
+            const response = await fetch(`/api/estaciones/${estacionId}/`, {
+                method: "PATCH",
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify(payload),
+                credentials: "include",
+            });
+            
+            if (response.ok) {
+                // Recargar datos manteniendo orden y página
+                await cargarDatosAsignacionConPagina(paginaGuardada);
+                
+                alert('Megacentro asignado correctamente');
+                cerrarModalAsignacion('modal-megacentro');
+            } else {
+                throw new Error(response.status || 'Error al asignar megacentro');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al asignar megacentro: ' + error.message);
+        }
+    }
+
+    // Función para cargar datos manteniendo página específica
+    async function cargarDatosAsignacionConPagina(paginaEspecifica) {
+        // Guardar estado actual
+        const columnaOrdenGuardada = columnaOrdenAsignacion;
+        const ordenAscendenteGuardado = ordenAscendenteAsignacion;
+        
+        try {
+            const response = await fetch('/estaciones-despliegue/');
+            const data = await response.json();
+            
+            if (response.ok) {
+                datosAsignacion = data.data;
+                datosFiltradosAsignacion = [];
+                document.getElementById('total-estaciones-count').textContent = data.total_estaciones_masterizadas;
+                
+                // Restaurar el orden anterior
+                columnaOrdenAsignacion = columnaOrdenGuardada;
+                ordenAscendenteAsignacion = ordenAscendenteGuardado;
+                
+                // Aplicar orden
+                aplicarOrdenAsignacion();
+                
+                // Usar la página específica
+                paginaActualAsignacion = paginaEspecifica;
+                
+                // Verificar que la página sea válida
+                const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
+                    datosFiltradosAsignacion : datosAsignacion;
+                const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
+                
+                if (paginaActualAsignacion > totalPaginas && totalPaginas > 0) {
+                    paginaActualAsignacion = totalPaginas;
+                } else if (totalPaginas === 0) {
+                    paginaActualAsignacion = 1;
+                }
+                
+                renderizarTablaAsignacionConDatosActuales();
+                actualizarPaginacionAsignacion();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+        // Función para asignar centro-empadronamiento a estacion
+    async function asignarCentroEmpadronamiento(estacionId, centroEmpadronamientoId)  {
+        const payload = {
+          centro_empadronamiento: centroEmpadronamientoId
+        }
+        try {
+            const response = await fetch(`/api/estaciones/${estacionId}/`, {
+            method: "PATCH",
+            headers: {
+              'Accept': 'application/json',
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+              body: JSON.stringify(payload),
+              credentials: "include",
+            });
+            
+            if (response.ok) {
+                alert('Centro de empadronaniento asignado correctamente');
+                cargarDatosAsignacion();
+                cerrarModalAsignacion('modal-centro-empadronamiento');
+                
+            } else {
+                throw new Error(response.status || 'Error al asignar Centro de empadronaniento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al asignar Centro de empadronaniento: ' + error.message);
+        }
+    }
+
+    // Función para eliminar centro-empadronamiento - megacentro de la estacion
+    async function eliminarDestino(estacionId) {
+        if (!confirm('¿Está seguro de eliminar el operador de esta estación?')) {
+            return;
+        }
+        const payload = {
+          megacentro: null,
+          centro_empadronamiento: null
+        }
+        try {
+            const response = await fetch(`/api/estaciones/${estacionId}/`, {
+            method: "PATCH",
+            headers: {
+              'Accept': 'application/json',
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+              body: JSON.stringify(payload),
+              credentials: "include",
+            });
+      
+            if (response.ok) {
+                alert('Destino liberado correctamente');
+                cargarDatosAsignacion();
+            } else {
+                throw new Error(response.status || 'Error al eliminar destino');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al eliminar destino: ' + error.message);
+        }
+    }
+
 
     //************HISTORIAL MASTERIZACION*********************************
     //********************************************************************

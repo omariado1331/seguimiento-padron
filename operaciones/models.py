@@ -3,19 +3,6 @@ from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
 
 # Create your models here.
-class CentroEmpadronamiento(models.Model):
-    punto_de_empadronamiento = models.CharField(max_length=100, blank=True, null=True)
-    direccion = models.CharField(max_length=512, blank=True, null=True)
-    localidad = models.CharField(max_length=100, blank=True, null=True)
-    municipio = models.CharField(max_length=100, blank=True, null=True)
-    provincia = models.CharField(max_length=50, blank=True, null=True)
-    departamento = models.CharField(max_length=50, blank=True, null=True)
-    latitud = models.CharField(max_length=100, blank=True, null=True)
-    longitud = models.CharField(max_length=100, blank=True, null=True)
-
-    def __str__(self):
-        return self.punto_de_empadronamiento
-
 class Coordinador(models.Model):
     ESTADO_CHOICES = [
         ('postulante', 'Postulante'),
@@ -89,13 +76,29 @@ class AsistenteMegacentro(models.Model):
 
 class Ruta(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
-    descripcion = models.TextField(blank=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     coordinador = models.ForeignKey(Coordinador, on_delete=models.SET_NULL, null=True, blank=True)
     soporte     = models.ForeignKey(Soporte,     on_delete=models.SET_NULL, null=True, blank=True)
     logistico     = models.ForeignKey(Logistico,     on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return self.nombre
+
+class CentroEmpadronamiento(models.Model):
+    punto_de_empadronamiento = models.CharField(max_length=100, blank=True, null=True)
+    direccion = models.CharField(max_length=512, blank=True, null=True)
+    municipio = models.CharField(max_length=100, blank=True, null=True)
+    provincia = models.CharField(max_length=50, blank=True, null=True)
+    departamento = models.CharField(max_length=50, blank=True, null=True)
+    latitud = models.CharField(max_length=100, blank=True, null=True)
+    longitud = models.CharField(max_length=100, blank=True, null=True)
+    fecha_inicio = models.DateField(blank=True, null=True)
+    fecha_fin = models.DateField(blank=True, null=True)
+    movimiento = models.IntegerField(default=0, null=True, blank=True)
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.punto_de_empadronamiento
 
 class Llave(models.Model):
     nro_estacion = models.IntegerField(default=0, unique=True)
@@ -315,7 +318,7 @@ class Estacion(models.Model):
 
     megacentro = models.ForeignKey(Megacentro, on_delete=models.CASCADE, null=True, blank=True)
     brigada_movil = models.BooleanField(default=False)
-    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, null=True, blank=True)
+    centro_empadronamiento = models.ForeignKey(CentroEmpadronamiento, on_delete=models.CASCADE, null=True, blank=True)
     fecha_asignacion = models.DateField(null=True, blank=True)
 
     history = HistoricalRecords()

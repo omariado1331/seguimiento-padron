@@ -435,14 +435,14 @@ class HistorialMasterizacionViewSet(APIView):
 
 class EstacionesMasterizadasOrdenadasViewSet(APIView):
     def get(self, request):
-        # Obtener estaciones masterizadas ordenadas por megacentro y ruta
+        # Obtener estaciones masterizadas ordenadas por megacentro y centro empadronamiento
         estaciones = Estacion.objects.filter(
             fase='Masterizado',
             llave__isnull=False
         ).select_related(
             'llave',
             'megacentro',
-            'ruta'
+            'centro_empadronamiento'
         ).prefetch_related(
             Prefetch(
                 'operador_set',
@@ -450,9 +450,9 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
                 to_attr='operadores'
             )
         ).order_by(
-            'megacentro__nombre',  # Primero por nombre del megacentro
-            'ruta__nombre',        # Luego por nombre de la ruta
-            'codigo_equipo'        # Finalmente por código de equipo
+            #'megacentro__nombre',  # Primero por nombre del megacentro
+            #'centro_empadronamiento__nombre',        # Luego por nombre de la ruta
+            'codigo_equipo'       # Finalmente por código de equipo
         )
         
         resultado = []
@@ -461,7 +461,8 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
             operador = estacion.operadores[0] if hasattr(estacion, 'operadores') and estacion.operadores else None
             
             registro = {
-                "cod_equipo": estacion.codigo_equipo,
+                "id": estacion.id,
+                "codigo_equipo": estacion.codigo_equipo,
                 "modelo": estacion.modelo,
                 "tipo_estacion": estacion.tipo_estacion,
                 "fase": estacion.fase,
@@ -476,9 +477,9 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
                     "id": estacion.megacentro.id if estacion.megacentro else None,
                     "nombre": estacion.megacentro.nombre if estacion.megacentro else None,
                 },
-                "ruta": {
-                    "id": estacion.ruta.id if estacion.ruta else None,
-                    "nombre": estacion.ruta.nombre if estacion.ruta else None,
+                "centro_empadronamiento": {
+                    "id": estacion.centro_empadronamiento.id if estacion.centro_empadronamiento else None,
+                    "nombre": estacion.centro_empadronamiento.punto_de_empadronamiento if estacion.centro_empadronamiento else None,
                 },
                 "operador": {
                     "id": operador.id if operador else None,
@@ -498,6 +499,24 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
         return Response({
             "success": True,
             "total_estaciones_masterizadas": len(resultado),
-            "ordenamiento": "Por Megacentro → Ruta → Código Equipo",
+            "ordenamiento": "→ Código Equipo",
             "data": resultado
         })
+
+class ListaCentrosEmpadronamientoViewSet(APIView):
+    def get(self, request):
+        centros = CentroEmpadronamiento.objects.select_related('ruta').all()
+
+        resultado = []
+
+        for centro in centros:
+            registro = {
+                "id": centro.id,
+                "provincia": centro.provincia,
+                "municipio": centro.municipio,
+                "punto_de_empadronamiento": centro.punto_de_empadronamiento,
+                "id_ruta": centro.ruta.id if centro.ruta else None,
+                "nombre_ruta": centro.ruta.nombre if centro.ruta else None
+            }
+            resultado.append(registro)
+        return Response(resultado)

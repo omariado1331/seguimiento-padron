@@ -4,6 +4,8 @@
    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Seguimiento</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -146,6 +148,10 @@
                 <i class="fas fa-file-alt mr-3 text-lg w-6 text-center"></i>
                 <span class="font-medium">Asignación de Estaciones</span>
             </div>
+            <div class="menu-item py-4 px-6 flex items-center cursor-pointer transition-all duration-300 border-l-4 border-transparent hover:bg-white/10" data-target="informaciones">
+                <i class="fas fa-info-circle mr-3 text-lg w-6 text-center"></i>
+                <span class="font-medium">Informaciones Despliegue Estaciones</span>
+            </div>
             <div class="menu-item py-4 px-6 flex items-center cursor-pointer transition-all duration-300 border-l-4 border-transparent hover:bg-white/10" data-target="historial-master">
                   <i class="fas fa-history mr-3 text-lg w-6 text-center"></i>
                   <span class="font-medium">Historial Masterización</span>
@@ -182,10 +188,10 @@
                 <a href="/soporte/" class="btn btn-outline py-2 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50" id="soporte-btn">
                     <i class="fas fa-headset"></i> <span class="hidden sm:inline">Soporte</span>
                 </a>
-                <button class="btn btn-outline py-2 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50" id="export-btn">
+                <button class="hidden btn btn-outline py-2 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50" id="export-btn">
                     <i class="fas fa-download"></i> <span class="hidden sm:inline">Exportar</span>
                 </button>
-                <button class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark" id="refresh-data">
+                <button class="hidden btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark" id="refresh-data">
                     <i class="fas fa-sync-alt"></i> <span id="refresh-text" class="hidden sm:inline">Actualizar</span>
                 </button>
             </div>
@@ -607,6 +613,159 @@
               </div>
           </div>
 
+<!-- PANEL DE INFORMACIONES -->
+<div id="informaciones" class="content-panel hidden flex-col">
+    <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">Informaciones de Despliegue</h3>
+        <button id="btn-exportar-excel-reporte-despliegue" class="btn btn-primary py-2 px-4 bg-green-600 text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-green-700 text-sm">
+            <i class="fas fa-file-excel"></i> 
+            <span class="hidden sm:inline">Exportar</span>
+        </button>
+        <button id="btn-refresh-informaciones" class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark text-sm">
+            <i class="fas fa-sync-alt"></i> 
+            <span class="hidden sm:inline">Actualizar</span>
+        </button>
+    </div>
+
+    <!-- Estadísticas Principales -->
+    <div class="stats-container grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div class="stat-icon w-14 h-14 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mr-4 text-xl">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="text-3xl font-bold text-gray-800 mb-1" id="total-asignadas-megacentro">0</h3>
+                <p class="text-sm text-gray-600">Estaciones en Megacentro</p>
+                <div class="text-xs text-gray-500">
+                    <span id="restante-megacentro">0</span> de 112 por asignar
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div class="stat-icon w-14 h-14 rounded-lg bg-green-50 text-green-600 flex items-center justify-center mr-4 text-xl">
+                <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="text-3xl font-bold text-gray-800 mb-1" id="total-asignadas-centro">0</h3>
+                <p class="text-sm text-gray-600">Estaciones en Punto de Empadronamiento</p>
+                <div class="text-xs text-gray-500">
+                    <span id="restante-centro">0</span> de 225 por asignar
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card bg-white rounded-lg p-5 shadow-sm flex items-center transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div class="stat-icon w-14 h-14 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mr-4 text-xl">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-info">
+                <h3 class="text-3xl font-bold text-gray-800 mb-1" id="total-estaciones-asignadas">0</h3>
+                <p class="text-sm text-gray-600">Estaciones Completamente Asignadas</p>
+                <div class="text-xs text-gray-500">Con operador y destino</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distribución por Tipo - TABLAS DEL MISMO TAMAÑO -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Distribución por Megacentro -->
+        <div class="bg-white rounded-lg shadow-sm p-5 h-full">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-building text-blue-500 mr-2"></i>
+                    Asignación por Megacentro
+                </h4>
+                <div class="text-sm text-gray-500">
+                    <span class="font-semibold" id="asignadas-megacentro-count">0</span> / 112
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Megacentro</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estaciones</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operador</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-megacentros" class="bg-white divide-y divide-gray-200">
+                        <!-- Datos dinámicos -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 text-xs text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i>
+                <span id="resumen-megacentros">Cargando datos...</span>
+            </div>
+        </div>
+
+        <!-- Distribución por Ruta -->
+        <div class="bg-white rounded-lg shadow-sm p-5 h-full">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-route text-green-500 mr-2"></i>
+                    Asignación por Ruta
+                </h4>
+                <div class="text-sm text-gray-500">
+                    <span class="font-semibold" id="asignadas-ruta-count">0</span> / 225
+                </div>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruta</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estaciones</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Operador</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-rutas" class="bg-white divide-y divide-gray-200">
+                        <!-- Datos dinámicos -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 text-xs text-gray-500">
+                <i class="fas fa-info-circle mr-1"></i>
+                <span id="resumen-rutas">Cargando datos...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado del Despliegue -->
+    <div class="bg-white rounded-lg shadow-sm p-5">
+        <h4 class="text-lg font-semibold text-gray-800 mb-4">
+            <i class="fas fa-chart-bar text-orange-500 mr-2"></i>
+            Estado del Despliegue
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border rounded-lg p-4 border-blue-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h5 class="font-medium text-blue-700">Total Masterizadas</h5>
+                    <span class="text-xl font-bold text-blue-700" id="total-masterizadas">0</span>
+                </div>
+                <div class="text-sm text-blue-600">Estaciones en fase "Masterizado"</div>
+            </div>
+            
+            <div class="border rounded-lg p-4 border-green-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h5 class="font-medium text-green-700">Total Asignadas</h5>
+                    <span class="text-xl font-bold text-green-700" id="total-estaciones-con-destino">0</span>
+                </div>
+                <div class="text-sm text-green-600">Estaciones con megacentro o centro</div>
+            </div>
+            
+            <div class="border rounded-lg p-4 border-purple-200">
+                <div class="flex items-center justify-between mb-2">
+                    <h5 class="font-medium text-purple-700">Pendientes</h5>
+                    <span class="text-xl font-bold text-purple-700" id="total-pendientes">0</span>
+                </div>
+                <div class="text-sm text-purple-600">Estaciones sin destino asignado</div>
+            </div>
+        </div>
+    </div>
+</div>
 
           <!-- PANEL DE HISTORIAL DE MASTERIZACION -->
           <div id="historial-master" class="content-panel hidden flex-col">
@@ -1772,7 +1931,6 @@ function crearCardEnClonacion(item) {
         }
     }
 
-
     // Función para cargar operadores en el modal
     async function cargarOperadores() {
         try {
@@ -2664,6 +2822,7 @@ function crearCardEnClonacion(item) {
             if (response.ok) {
                 alert('Operador eliminado correctamente');
                 cargarDatosAsignacion();
+                cargarOperadores();
             } else {
                 throw new Error(response.status || 'Error al eliminar estacion de operador');
             }
@@ -2781,7 +2940,9 @@ function crearCardEnClonacion(item) {
         console.log(estacionId)
         const payload = {
             megacentro: megacentroId,
-            brigada_movil: brigadaMovil 
+            brigada_movil: brigadaMovil,
+            // asignar la fecha automaticamente 
+            fecha_asignacion: new Date().toISOString().split('T')[0]
         }
         
         try {
@@ -2860,7 +3021,8 @@ function crearCardEnClonacion(item) {
         // Función para asignar centro-empadronamiento a estacion
     async function asignarCentroEmpadronamiento(estacionId, centroEmpadronamientoId)  {
         const payload = {
-          centro_empadronamiento: centroEmpadronamientoId
+          centro_empadronamiento: centroEmpadronamientoId,
+          fecha_asignacion: new Date().toISOString().split('T')[0]
         }
         try {
             const response = await fetch(`/api/estaciones/${estacionId}/`, {
@@ -2921,6 +3083,408 @@ function crearCardEnClonacion(item) {
         }
     }
 
+    //*************** INFORMACION DE ASISGNACION DE ESTACIONES *********************
+    //******************************************************************************
+    // Variables para el panel de informaciones
+    let datosInformaciones = [];
+    let megacentrosData = [];
+    let rutasData = [];
+
+    // Totales fijos
+    const TOTAL_MEGACENTROS = 112;
+    const TOTAL_CENTROS = 225;
+
+    // Función para cargar datos del panel de informaciones
+    async function cargarInformaciones() {
+        try {
+            const response = await fetch('/estaciones-despliegue/');
+            const data = await response.json();
+            
+            if (response.ok) {
+                datosInformaciones = data.data;
+                await cargarMegacentrosInformaciones();
+                await cargarRutasInformaciones();
+                procesarInformaciones();
+            } else {
+                throw new Error('Error al cargar datos de informaciones');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al cargar las informaciones');
+        }
+    }
+
+    // Función para cargar megacentros
+    async function cargarMegacentrosInformaciones() {
+        try {
+            const response = await fetch('/api/megacentros/');
+            if (response.ok) {
+                megacentrosData = await response.json();
+                // Ordenar alfabéticamente por nombre
+                megacentrosData.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            }
+        } catch (error) {
+            console.error('Error al cargar megacentros:', error);
+        }
+    }
+
+    // Función para cargar rutas
+    async function cargarRutasInformaciones() {
+        try {
+            const response = await fetch('/api/rutas/');
+            if (response.ok) {
+                rutasData = await response.json();
+                // Ordenar alfabéticamente por nombre
+                rutasData.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            }
+        } catch (error) {
+            console.error('Error al cargar rutas:', error);
+        }
+    }
+
+    // Función para procesar y mostrar las informaciones
+    function procesarInformaciones() {
+        const totalEstaciones = datosInformaciones.length;
+        
+        // 1. Calcular estaciones por tipo de destino
+        let totalAsignadasMegacentro = 0;
+        let totalAsignadasCentro = 0;
+        let totalConOperador = 0;
+        let totalConDestino = 0;
+        
+        // Contadores detallados
+        const contadorMegacentros = {};
+        const contadorRutas = {};
+        
+        // Inicializar contadores para todos los megacentros
+        megacentrosData.forEach(megacentro => {
+            contadorMegacentros[megacentro.id] = {
+                nombre: megacentro.nombre,
+                count: 0,
+                conOperador: 0
+            };
+        });
+        
+        // Inicializar contadores para todas las rutas
+        rutasData.forEach(ruta => {
+            contadorRutas[ruta.id] = {
+                nombre: ruta.nombre,
+                count: 0,
+                conOperador: 0
+            };
+        });
+        
+        // Procesar cada estación
+        datosInformaciones.forEach(item => {
+            const tieneOperador = item.operador && item.operador.id;
+            const tieneMegacentro = item.megacentro && item.megacentro.id;
+            const tieneCentroEmp = item.centro_empadronamiento && item.centro_empadronamiento.id;
+            const rutaId = item.centro_empadronamiento?.ruta;
+            
+            if (tieneMegacentro) {
+                totalAsignadasMegacentro++;
+                totalConDestino++;
+                
+                if (contadorMegacentros[item.megacentro.id]) {
+                    contadorMegacentros[item.megacentro.id].count++;
+                    if (tieneOperador) {
+                        contadorMegacentros[item.megacentro.id].conOperador++;
+                    }
+                }
+                
+                if (tieneOperador) {
+                    totalConOperador++;
+                }
+            }
+            
+            if (tieneCentroEmp && rutaId) {
+                totalAsignadasCentro++;
+                totalConDestino++;
+                
+                // Buscar la ruta por nombre en rutasData
+                const ruta = rutasData.find(r => r.nombre === rutaId);
+                if (ruta && contadorRutas[ruta.id]) {
+                    contadorRutas[ruta.id].count++;
+                    if (tieneOperador) {
+                        contadorRutas[ruta.id].conOperador++;
+                    }
+                }
+                
+                if (tieneOperador) {
+                    totalConOperador++;
+                }
+            }
+        });
+        
+        // 2. Actualizar estadísticas principales
+        document.getElementById('total-asignadas-megacentro').textContent = totalAsignadasMegacentro;
+        document.getElementById('restante-megacentro').textContent = TOTAL_MEGACENTROS - totalAsignadasMegacentro;
+        
+        document.getElementById('total-asignadas-centro').textContent = totalAsignadasCentro;
+        document.getElementById('restante-centro').textContent = TOTAL_CENTROS - totalAsignadasCentro;
+        
+        // Estaciones completamente asignadas (con operador y destino)
+        const estacionesCompletas = datosInformaciones.filter(item => {
+            const tieneOperador = item.operador && item.operador.id;
+            const tieneDestino = (item.megacentro && item.megacentro.id) || 
+                                (item.centro_empadronamiento && item.centro_empadronamiento.id);
+            return tieneOperador && tieneDestino;
+        }).length;
+        
+        document.getElementById('total-estaciones-asignadas').textContent = estacionesCompletas;
+        
+        // 3. Estado del despliegue
+        document.getElementById('total-masterizadas').textContent = totalEstaciones;
+        document.getElementById('total-estaciones-con-destino').textContent = totalConDestino;
+        document.getElementById('total-pendientes').textContent = totalEstaciones - totalConDestino;
+        
+        // 4. Distribución por megacentro
+        procesarDistribucionMegacentros(contadorMegacentros, totalAsignadasMegacentro);
+        
+        // 5. Distribución por ruta
+        procesarDistribucionRutas(contadorRutas, totalAsignadasCentro);
+    }
+
+    // Función para procesar distribución por megacentro
+    function procesarDistribucionMegacentros(contador, totalAsignadas) {
+        const tbody = document.getElementById('tabla-megacentros');
+        tbody.innerHTML = '';
+        
+        let asignadasCount = 0;
+        
+        // Mostrar todos los megacentros ordenados alfabéticamente
+        megacentrosData.forEach(megacentro => {
+            const datos = contador[megacentro.id] || { nombre: megacentro.nombre, count: 0, conOperador: 0 };
+            asignadasCount += datos.count;
+            
+            const brigadasText = datos.brigadasMoviles > 0 ? 
+                `<span class="text-xs text-blue-600">(${datos.brigadasMoviles} BM)</span>` : '';
+            
+            const fila = `
+                <tr class="${datos.count > 0 ? 'bg-blue-50' : ''}">
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-medium ${datos.count > 0 ? 'text-blue-900' : 'text-gray-900'}">
+                        ${datos.nombre}
+                        ${brigadasText}
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm ${datos.count > 0 ? 'text-blue-700 font-semibold' : 'text-gray-500'}">
+                        ${datos.count}
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm ${datos.conOperador > 0 ? 'text-green-600' : 'text-gray-400'}">
+                        ${datos.conOperador > 0 ? 
+                            `<i class="fas fa-check-circle mr-1"></i>${datos.conOperador}` : 
+                            '<span class="italic">Sin operador</span>'}
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+        
+        // Actualizar contador
+        document.getElementById('asignadas-megacentro-count').textContent = totalAsignadas;
+        
+        // Actualizar resumen
+        const resumenText = `${totalAsignadas} estaciones asignadas de ${TOTAL_MEGACENTROS} (${asignadasCount} en tabla)`;
+        document.getElementById('resumen-megacentros').textContent = resumenText;
+    }
+
+    // Función para procesar distribución por ruta
+    function procesarDistribucionRutas(contador, totalAsignadas) {
+        const tbody = document.getElementById('tabla-rutas');
+        tbody.innerHTML = '';
+        
+        let asignadasCount = 0;
+        
+        // Mostrar todas las rutas ordenadas alfabéticamente
+        rutasData.forEach(ruta => {
+            const datos = contador[ruta.id] || { nombre: ruta.nombre, count: 0, conOperador: 0 };
+            asignadasCount += datos.count;
+            const nombre = datos.nombre === "CM" ? "Capital Municipio" : datos.nombre;
+            const fila = `
+                <tr class="${datos.count > 0 ? 'bg-green-50' : ''}">
+                    <td class="px-4 py-2 whitespace-nowrap text-sm font-medium ${datos.count > 0 ? 'text-green-900' : 'text-gray-900'}">
+                        ${nombre}
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm ${datos.count > 0 ? 'text-green-700 font-semibold' : 'text-gray-500'}">
+                        ${datos.count}
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap text-sm ${datos.conOperador > 0 ? 'text-green-600' : 'text-gray-400'}">
+                        ${datos.conOperador > 0 ? 
+                            `<i class="fas fa-check-circle mr-1"></i>${datos.conOperador}` : 
+                            '<span class="italic">Sin operador</span>'}
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+        
+        // Actualizar contador
+        document.getElementById('asignadas-ruta-count').textContent = totalAsignadas;
+        
+        // Actualizar resumen
+        const resumenText = `${totalAsignadas} estaciones asignadas de ${TOTAL_CENTROS} (${asignadasCount} en tabla)`;
+        document.getElementById('resumen-rutas').textContent = resumenText;
+    }
+
+    // Event listeners para el panel de informaciones
+    document.addEventListener('DOMContentLoaded', function() {
+        // Botón de actualizar
+        document.getElementById('btn-refresh-informaciones').addEventListener('click', () => {
+            const btn = document.getElementById('btn-refresh-informaciones');
+            const icon = btn.querySelector('i');
+            
+            icon.classList.remove('fa-sync-alt');
+            icon.classList.add('fa-spinner', 'loading');
+            
+            cargarInformaciones().finally(() => {
+                icon.classList.remove('fa-spinner', 'loading');
+                icon.classList.add('fa-sync-alt');
+            });
+        });
+        
+        // Cargar datos cuando se active el panel
+        const menuItem = document.querySelector('.menu-item[data-target="informaciones"]');
+        if (menuItem) {
+            menuItem.addEventListener('click', () => {
+                if (datosInformaciones.length === 0) {
+                    cargarInformaciones();
+                }
+            });
+        }
+    });
+
+    // Función para exportar reporte de despliegue a Excel
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportButton = document.getElementById('btn-exportar-excel-reporte-despliegue');
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                exportarReporteDespliegue();
+            });
+        }
+    });
+
+    // Exportar a excel
+    function exportarReporteDespliegue() {
+        // Mostrar animacion loader
+        const exportButton = document.getElementById('btn-exportar-excel-reporte-despliegue');
+        const originalContent = exportButton.innerHTML;
+        exportButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="hidden sm:inline">Generando...</span>';
+        exportButton.disabled = true;
+        
+        // Obtener token CSRF (importante para Django)
+        const csrfToken = getCookie('csrftoken');
+        
+        // URL del endpoint de exportación - Asegúrate que sea correcta
+        const exportUrl = '/exportar-reporte-despliegue-estaciones/'; 
+        
+        // CORRECCIÓN: Headers simplificados
+        const headers = {
+            'Accept': 'application/json, text/plain, */*',
+        };
+        
+        // Agregar CSRF token si existe
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken;
+            headers['X-CSRF-Token'] = csrfToken;
+        }
+        
+        // Crear fetch request
+        fetch(exportUrl, {
+            method: 'GET',
+            headers: headers,
+            credentials: 'same-origin'  // Importante para enviar cookies de sesión
+        })
+        .then(response => {
+            // Restaurar botón
+            exportButton.innerHTML = originalContent;
+            exportButton.disabled = false;
+            
+            // Verificar si la respuesta es OK
+            if (!response.ok) {
+                // Intentar obtener más detalles del error
+                return response.text().then(text => {
+                    console.error('Error del servidor:', text);
+                    throw new Error(`Error ${response.status}: ${response.statusText}. ${text}`);
+                });
+            }
+            
+            // Verificar el content-type para ver si es un archivo
+            const contentType = response.headers.get('content-type');
+            console.log('Content-Type recibido:', contentType);
+            
+            // Para archivos Excel, el content-type debe incluir 'spreadsheet' o 'excel'
+            if (contentType && contentType.includes('spreadsheetml')) {
+                return response.blob();
+            } else {
+                // Si no es un blob, intentar como texto primero para debug
+                return response.text().then(text => {
+                    console.log('Respuesta del servidor:', text);
+                    throw new Error('La respuesta no es un archivo Excel válido. Respuesta: ' + text.substring(0, 200));
+                });
+            }
+        })
+        .then(data => {
+            if (data instanceof Blob) {
+                // Crear URL para el blob
+                const url = window.URL.createObjectURL(data);
+                
+                // Crear enlace temporal para descarga
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Generar nombre de archivo con fecha
+                const now = new Date();
+                const fecha = now.toISOString().slice(0,10).replace(/-/g, '');
+                const hora = now.toTimeString().slice(0,8).replace(/:/g, '');
+                a.download = `reporte_despliegue_${fecha}_${hora}.xlsx`;
+                
+                // Agregar al DOM y hacer click
+                document.body.appendChild(a);
+                a.click();
+                
+                // Limpiar
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }, 100);
+                
+                // Mostrar notificación de éxito
+                showNotification('success', '✅ Reporte exportado correctamente', 'El archivo Excel se ha descargado con éxito.');
+            } else {
+                throw new Error('Datos recibidos no son un archivo válido');
+            }
+        })
+        .catch(error => {
+            console.error('Error completo al exportar:', error);
+            
+            // Restaurar botón
+            exportButton.innerHTML = originalContent;
+            exportButton.disabled = false;
+            
+            // Mostrar error detallado
+            showNotification('error', '❌ Error al exportar', 
+                error.message || 'Ocurrió un error al generar el reporte. Verifica la consola para más detalles.');
+        });
+    }
+    // Función para mostrar notificaciones
+    function showNotification(type, title, message) {
+        // Si usas Toastify
+        if (typeof Toastify === 'function') {
+            Toastify({
+                text: message,
+                duration: 5000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: type === 'success' ? "#10B981" : "#EF4444",
+            }).showToast();
+        }
+        // Notificación nativa
+        else {
+            alert(`${title}: ${message}`);
+        }
+    }
 
     //************HISTORIAL MASTERIZACION*********************************
     //********************************************************************
@@ -3815,6 +4379,7 @@ function crearCardEnClonacion(item) {
                     'masterizacion': 'Etapa de Masterización',
                     'llaves': 'Confirmación de Llave',
                     'asignacion': 'Asignación de Estaciones',
+                    'informaciones': 'Informacion de Asignacion de estaciones',
                     'historial-master': 'Historial de Masterización'
                 };
                 document.getElementById('content-title').textContent = titleMap[target] || 'Panel';

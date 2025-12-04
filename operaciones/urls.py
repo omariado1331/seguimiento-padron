@@ -13,7 +13,7 @@ from .api_views import (
     ListarPuntosEmpadronamientoView, ListasEstacionesLlavesView,
     LlavesSinAsignarView, OperadoresSinEstacionAsignadaView, EstacionesCambioFaseConLlaveViewSet,
     HistorialMasterizacionViewSet, HistorialMasterViewSet, EstacionesMasterizadasOrdenadasViewSet,
-    MegacentroViewSet, ListaCentrosEmpadronamientoViewSet
+    MegacentroViewSet, ListaCentrosEmpadronamientoViewSet, ExportarReporteDespliegueEstacionesExcelViewSet
 )
 from . import views
 
@@ -60,4 +60,5 @@ urlpatterns = [
     path('historial-masterizacion/', HistorialMasterizacionViewSet.as_view(), name='historial-masterizacion'),
     path('estaciones-despliegue/', EstacionesMasterizadasOrdenadasViewSet.as_view(), name='estaciones-despliegue'),
     path('lista-centros-empadronamiento/', ListaCentrosEmpadronamientoViewSet.as_view(), name='lista-centros-empadronamiento'),
+    path('exportar-reporte-despliegue-estaciones/', ExportarReporteDespliegueEstacionesExcelViewSet.as_view(), name='exportar-reporte-despliegue-estaciones'),
 ]

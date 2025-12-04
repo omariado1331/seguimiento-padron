@@ -2,12 +2,13 @@ from django.contrib.auth.models import User
 from rest_framework import viewsets, generics
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
+import pandas as pd
 #from rest_framework import generics, status
 from rest_framework.response import Response
 from django.db import connection
-from django.db.models import Prefetch, OuterRef, Subquery
+from django.db.models import Prefetch, OuterRef, Subquery, Case, When, Value, CharField
 #from rest_framework.decorators import action
-#from django.http import HttpResponse
+from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .models import RegistroDespliegue
@@ -24,7 +25,9 @@ from simple_history.utils import update_change_reason
 #from reportlab.lib.utils import ImageReader
 #from reportlab.lib.pagesizes import landscape, A5
 #import qrcode
-#from io import BytesIO
+from datetime import datetime
+import pytz
+from io import BytesIO
 from .serializers import (
     LlaveSerializer, RutaSerializer,
     EstacionSerializer, MovimientosEstacionSerializer, 
@@ -48,7 +51,7 @@ class MegacentroViewSet(viewsets.ModelViewSet):
     serializer_class = MegacentroSerializer
 
 class RutaViewSet(viewsets.ModelViewSet):
-    queryset = Ruta.objects.all()
+    queryset = Ruta.objects.all().order_by('nombre')
     serializer_class = RutaSerializer
 
 class LlaveViewSet(viewsets.ModelViewSet):
@@ -450,8 +453,6 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
                 to_attr='operadores'
             )
         ).order_by(
-            #'megacentro__nombre',  # Primero por nombre del megacentro
-            #'centro_empadronamiento__nombre',        # Luego por nombre de la ruta
             'codigo_equipo'       # Finalmente por código de equipo
         )
         
@@ -480,6 +481,7 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
                 "centro_empadronamiento": {
                     "id": estacion.centro_empadronamiento.id if estacion.centro_empadronamiento else None,
                     "nombre": estacion.centro_empadronamiento.punto_de_empadronamiento if estacion.centro_empadronamiento else None,
+                    "ruta": estacion.centro_empadronamiento.ruta.nombre if estacion.centro_empadronamiento and estacion.centro_empadronamiento.ruta else None,
                 },
                 "operador": {
                     "id": operador.id if operador else None,
@@ -520,3 +522,107 @@ class ListaCentrosEmpadronamientoViewSet(APIView):
             }
             resultado.append(registro)
         return Response(resultado)
+
+
+class ExportarReporteDespliegueEstacionesExcelViewSet(APIView):
+    def get(self, request):
+        # Obtener estaciones masterizadas
+        estaciones = Estacion.objects.filter(
+            fase='Masterizado',
+            llave__isnull=False
+        ).select_related(
+            'llave',
+            'megacentro',
+            'centro_empadronamiento',
+            'centro_empadronamiento__ruta'
+        ).prefetch_related(
+            Prefetch(
+                'operador_set',
+                queryset=Operador.objects.select_related('user'),
+                to_attr='operadores'
+            )
+        ).order_by(
+            'megacentro__nombre',  # Primero megacentros
+            'centro_empadronamiento__punto_de_empadronamiento',  # Luego centros
+            'codigo_equipo'  # Finalmente código
+        )
+        
+        # Preparar datos para Excel
+        excel_data = []
+        
+        for estacion in estaciones:
+            operador = estacion.operadores[0] if hasattr(estacion, 'operadores') and estacion.operadores else None
+            
+            # Determinar destino
+            if estacion.megacentro:
+                destino = "MEGACENTRO"
+                nombre_destino = estacion.megacentro.nombre if estacion.megacentro else ""
+                orden_destino = 1  # Para ordenar después
+            elif estacion.centro_empadronamiento:
+                destino = "CENTRO_EMPADRONAMIENTO"
+                nombre_destino = estacion.centro_empadronamiento.punto_de_empadronamiento if estacion.centro_empadronamiento else ""
+                orden_destino = 2
+            else:
+                destino = "SIN DESTINO"
+                nombre_destino = ""
+                orden_destino = 3
+            
+            # Obtener ruta si es centro de empadronamiento
+            ruta_destino = ""
+            if estacion.centro_empadronamiento and estacion.centro_empadronamiento.ruta:
+                ruta_destino = estacion.centro_empadronamiento.ruta.nombre
+            
+            excel_row = {
+                'ORDEN': orden_destino,  # Columna oculta para ordenar
+                'CODIGO EQUIPO': estacion.codigo_equipo,
+                'LLAVE': estacion.llave.nro_estacion if estacion.llave else "",
+                'CONTADOR_R': estacion.llave.contador_r if estacion.llave else "",
+                'CONTADOR_C': estacion.llave.contador_c if estacion.llave else "",
+                'TIPO_ESTACION': estacion.tipo_estacion,
+                'DESTINO': destino,
+                'NOMBRE_DESTINO': nombre_destino,
+                'RUTA_DESTINO': ruta_destino,
+                'BRIGADA_MOVIL': 'SÍ' if estacion.brigada_movil else 'NO',
+                'OPERADOR_NOMBRE': operador.nombre if operador else "",
+                'OPERADOR_APELLIDO_PATERNO': operador.apellido_paterno if operador else "",
+                'OPERADOR_APELLIDO_MATERNO': operador.apellido_materno if operador else "",
+                'OPERADOR_CARNET': operador.carnet if operador else "",
+                'FECHA_ASIGNACION': estacion.fecha_asignacion.strftime('%d/%m/%Y') if estacion.fecha_asignacion else "",
+            }
+            
+            excel_data.append(excel_row)
+        
+        if not excel_data:
+            return HttpResponse("No hay estaciones masterizadas para exportar", status=404)
+        
+        # Crear DataFrame y ordenar por destino
+        df = pd.DataFrame(excel_data)
+        df = df.sort_values(['ORDEN', 'NOMBRE_DESTINO', 'CODIGO EQUIPO'])
+        df = df.drop('ORDEN', axis=1)  # Eliminar columna de ordenamiento
+        
+        # Nombre del archivo
+        zona_horaria_bolivia = pytz.timezone('America/La_Paz')
+        fecha_actual = datetime.now(zona_horaria_bolivia)
+        nombre_archivo = f"reporte_despliegue_{fecha_actual.strftime('%Y%m%d_%H%M%S')}.xlsx"
+        
+        # Crear Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name='Reporte Despliegue', index=False)
+            
+            # Ajustar columnas
+            worksheet = writer.sheets['Reporte Despliegue']
+            for column in df:
+                column_width = max(df[column].astype(str).map(len).max(), len(column)) + 2
+                col_idx = df.columns.get_loc(column)
+                worksheet.column_dimensions[chr(65 + col_idx)].width = min(column_width, 50)
+        
+        output.seek(0)
+        
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+        
+        return response

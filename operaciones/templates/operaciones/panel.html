@@ -1779,8 +1779,8 @@ function crearCardEnClonacion(item) {
             const response = await fetch('/operadores-sin-estacion/');
             const data = await response.json();
             
-            if (response.ok && data.data) {
-                listaOperadoresCompleta = data.data;
+            if (response.ok && data) {
+                listaOperadoresCompleta = data;
             }
         } catch (error) {
             console.error('Error al cargar operadores:', error);

@@ -373,6 +373,16 @@ class Operador(models.Model):
     def __str__(self):
         return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
 
+class ReporteDiarioLogistico(models.Model):
+    operador = models.ForeignKey(Operador, on_delete=models.CASCADE, null=True, blank=True)
+    estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE, null=True, blank=True)
+    cantidad_de_formulario_faltantes = models.IntegerField(default=0, blank=True, null=True)
+    r_inicial = models.IntegerField(default=0)
+    r_final = models.IntegerField(default=0)
+    obervaciones_counter_r = models.TextField(blank=True, null=True)
+    c_inicial = models.IntegerField(default=0)
+    c_final = models.IntegerField(default=0)
+    observaciones_c =models.TextField(blank=True, null=True)
 
 class ReporteDiario(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)

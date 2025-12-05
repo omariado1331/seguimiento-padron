@@ -532,7 +532,7 @@ class ExportarReporteDespliegueEstacionesExcelViewSet(APIView):
             llave__isnull=False
         ).select_related(
             'llave',
-            'megacentro',
+            #'megacentro',
             'centro_empadronamiento',
             'centro_empadronamiento__ruta'
         ).prefetch_related(
@@ -542,7 +542,7 @@ class ExportarReporteDespliegueEstacionesExcelViewSet(APIView):
                 to_attr='operadores'
             )
         ).order_by(
-            'megacentro__nombre',  # Primero megacentros
+            #'megacentro__nombre',  # Primero megacentros
             'centro_empadronamiento__punto_de_empadronamiento',  # Luego centros
             'codigo_equipo'  # Finalmente código
         )
@@ -554,18 +554,18 @@ class ExportarReporteDespliegueEstacionesExcelViewSet(APIView):
             operador = estacion.operadores[0] if hasattr(estacion, 'operadores') and estacion.operadores else None
             
             # Determinar destino
-            if estacion.megacentro:
-                destino = "MEGACENTRO"
-                nombre_destino = estacion.megacentro.nombre if estacion.megacentro else ""
-                orden_destino = 1  # Para ordenar después
-            elif estacion.centro_empadronamiento:
+            #if estacion.megacentro:
+            #    destino = "MEGACENTRO"
+            #    nombre_destino = estacion.megacentro.nombre if estacion.megacentro else ""
+            #    orden_destino = 1  # Para ordenar después
+            if estacion.centro_empadronamiento:
                 destino = "CENTRO_EMPADRONAMIENTO"
                 nombre_destino = estacion.centro_empadronamiento.punto_de_empadronamiento if estacion.centro_empadronamiento else ""
-                orden_destino = 2
+                orden_destino = 1
             else:
                 destino = "SIN DESTINO"
                 nombre_destino = ""
-                orden_destino = 3
+                orden_destino = 2
             
             # Obtener ruta si es centro de empadronamiento
             ruta_destino = ""
@@ -579,7 +579,7 @@ class ExportarReporteDespliegueEstacionesExcelViewSet(APIView):
                 'CONTADOR_R': estacion.llave.contador_r if estacion.llave else "",
                 'CONTADOR_C': estacion.llave.contador_c if estacion.llave else "",
                 'TIPO_ESTACION': estacion.tipo_estacion,
-                'DESTINO': destino,
+                #'DESTINO': destino,
                 'NOMBRE_DESTINO': nombre_destino,
                 'RUTA_DESTINO': ruta_destino,
                 'BRIGADA_MOVIL': 'SÍ' if estacion.brigada_movil else 'NO',

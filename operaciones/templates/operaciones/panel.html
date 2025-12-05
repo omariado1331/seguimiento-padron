@@ -2354,14 +2354,15 @@ function crearCardEnClonacion(item) {
         }
         
         // Si no tiene destino
+        // se elimino el registro de megacentro por lo tanto el boton de megacentro no se mostrara
+        // <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
+        //      data-id="${item.id}" data-codigo="${item.codigo_equipo}">
+        //      <i class="fas fa-building mr-1"></i>Megacentro
+        // </button>
         return `
             <div class="space-y-2">
                 <span class="text-gray-400 italic text-sm">No asignada</span>
                 <div class="flex flex-wrap gap-1">
-                    <button class="btn-asignar-megacentro px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                            data-id="${item.id}" data-codigo="${item.codigo_equipo}">
-                        <i class="fas fa-building mr-1"></i>Megacentro
-                    </button>
                     <button class="btn-asignar-centro-empadronamiento px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
                             data-id="${item.id}" data-codigo="${item.codigo_equipo}">
                         <i class="fas fa-map-marker-alt mr-1"></i>Punto Emp.

@@ -2255,6 +2255,9 @@ function crearCardEnClonacion(item) {
                 icon.classList.remove('fa-spinner', 'loading');
                 icon.classList.add('fa-sync-alt');
             });
+            cargarOperadores();
+            cargarCentrosEmpadronamiento();
+            cargarMegacentros();
         });
 
         // Paginación
@@ -2974,7 +2977,7 @@ function crearCardEnClonacion(item) {
             console.error('Error:', error);
             alert('Error al asignar megacentro: ' + error.message);
         }
-    }
+    }cargarDatosAsignacion
 
     // Función para cargar datos manteniendo página específica
     async function cargarDatosAsignacionConPagina(paginaEspecifica) {

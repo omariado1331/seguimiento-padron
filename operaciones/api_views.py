@@ -444,7 +444,6 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
             llave__isnull=False
         ).select_related(
             'llave',
-            'megacentro',
             'centro_empadronamiento'
         ).prefetch_related(
             Prefetch(
@@ -474,10 +473,6 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
                     "contador_r": estacion.llave.contador_r if estacion.llave else None,
                     "contador_c": estacion.llave.contador_c if estacion.llave else None,
                 },
-                "megacentro": {
-                    "id": estacion.megacentro.id if estacion.megacentro else None,
-                    "nombre": estacion.megacentro.nombre if estacion.megacentro else None,
-                },
                 "centro_empadronamiento": {
                     "id": estacion.centro_empadronamiento.id if estacion.centro_empadronamiento else None,
                     "nombre": estacion.centro_empadronamiento.punto_de_empadronamiento if estacion.centro_empadronamiento else None,
@@ -491,9 +486,9 @@ class EstacionesMasterizadasOrdenadasViewSet(APIView):
                     "carnet": operador.carnet if operador else None,
                     "tipo_operador": operador.tipo_operador if operador else None,
                     "username": operador.user.username if operador and operador.user else None,
+                    "celular": operador.celular if operador else None,
                 },
                 "fecha_asignacion": estacion.fecha_asignacion,
-                "brigada_movil": estacion.brigada_movil
             }
             
             resultado.append(registro)

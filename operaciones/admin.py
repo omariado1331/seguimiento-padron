@@ -28,7 +28,8 @@ from openpyxl.utils               import get_column_letter
 from .models import (
     CentroEmpadronamiento, Coordinador, Estacion, Item,
     Llave, MovimientosEstacion, Operador, RegistroDespliegue,
-    ReporteDiario, Ruta, UbicacionesOperador, Megacentro
+    ReporteDiario, Ruta, UbicacionesOperador, Megacentro,
+    ReporteDiarioLogistico
 )      
 # ------------------------------------------------------------------
 #  Historico
@@ -310,6 +311,14 @@ class CoordinadorAdmin(admin.ModelAdmin):
     list_display = ['user', 'estado',  'correo', 'celular']
     search_fields = ['user__username', 'nombre', 'apellido_paterno', 'correo', 'celular']
     list_filter = ['estado']
+
+#------------------ Reporte diario Logistico
+@admin.register(ReporteDiarioLogistico)
+class ReporteDiarioLogisticoAdmin(admin.ModelAdmin):
+    list_display = ['nro_estacion', 'cantidad_de_formulario_faltantes', 'r_inicial', 'r_final', 'c_inicial', 'c_final', 'fecha_reporte']
+    search_fields = ['nro_estacion']
+    list_filter = ['nro_estacion', 'operador', 'fecha_reporte']
+    date_hierarchy = 'fecha_reporte'
 
 # ---------------- Operador ----------------
 @admin.register(Operador)

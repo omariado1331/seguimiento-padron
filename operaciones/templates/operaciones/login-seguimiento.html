@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Iniciar Sesión – Sistema de Seguimiento Equipos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .animate-fadeIn {
+      animation: fadeIn 0.6s ease-out;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ffffff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    .bg-gradient-custom {
+      background: linear-gradient(135deg, #0b74b9 0%, #085a93 100%);
+    }
+    
+    .btn-gradient {
+      background: linear-gradient(135deg, #0b74b9 0%, #085a93 100%);
+    }
+    
+    .btn-gradient:hover {
+      background: linear-gradient(135deg, #0c7fd1 0%, #0969a9 100%);
+    }
+    
+    .input-focus:focus {
+      box-shadow: 0 0 0 3px rgba(11, 116, 185, 0.1);
+    }
+    
+    .logo-bg {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body class="bg-gradient-custom flex items-center justify-center min-h-screen p-5">
+  <div class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-md animate-fadeIn">
+    <!-- Encabezado -->
+    <div class="bg-gradient-custom text-white p-10 text-center relative overflow-hidden">
+      <div class="absolute inset-0 opacity-10">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-full">
+          <path d="M0,0 L100,0 L100,100 Z" fill="white"/>
+        </svg>
+      </div>
+      
+      <div class="logo-bg w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 border-2 border-white/30">
+        <i class="fas fa-shield-alt text-3xl"></i>
+      </div>
+      
+      <h1 class="text-2xl font-semibold mb-2 relative z-10">Sistema de Seguimiento</h1>
+      <p class="text-white/90 relative z-10">Ingrese sus credenciales para continuar</p>
+    </div>
+    
+    <!-- Cuerpo del formulario -->
+    <div class="p-8">
+      {% if error %}
+      <div class="bg-red-50 text-red-800 p-4 rounded-lg border border-red-200 mb-6 flex items-center gap-3">
+        <i class="fas fa-exclamation-triangle text-red-600"></i>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+      
+      <form method="post" id="loginForm">
+        {% csrf_token %}
+        
+        <!-- Campo de usuario -->
+        <div class="mb-6">
+          <label for="username" class="block text-gray-700 font-medium mb-2 text-sm">
+            <i class="fas fa-user mr-1"></i> Nombre de Usuario
+          </label>
+          <div class="relative">
+            <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 input-focus transition-colors"
+              placeholder="Ingrese su usuario"
+              required
+              autocomplete="username"
+            >
+          </div>
+        </div>
+        
+        <!-- Campo de contraseña -->
+        <div class="mb-6">
+          <label for="password" class="block text-gray-700 font-medium mb-2 text-sm">
+            <i class="fas fa-lock mr-1"></i> Contraseña
+          </label>
+          <div class="relative">
+            <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 input-focus transition-colors"
+              placeholder="Ingrese su contraseña"
+              required
+              autocomplete="current-password"
+            >
+          </div>
+        </div>
+        
+        <!-- Selector de Rol -->
+        <div class="mb-8">
+          <label for="role" class="block text-gray-700 font-medium mb-2 text-sm">
+            <i class="fas fa-user-tag mr-1"></i> Seleccionar Rol
+          </label>
+          <div class="relative">
+            <i class="fas fa-user-tag absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 z-10"></i>
+            <select 
+              id="role" 
+              name="role"
+              class="w-full pl-12 pr-10 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-600 input-focus transition-colors appearance-none cursor-pointer"
+            >
+              <option value="" disabled selected>Seleccione su rol</option>
+              <option value="operador">Operador</option>
+              <option value="soporte">Soporte</option>
+              <option value="logistico">Logístico</option>
+              <option value="asistente">Asistente Megacentro</option>
+              <option value="coordinador">Coordinador</option>
+            </select>
+            <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+          </div>
+          
+          <!-- Indicadores visuales de roles -->
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="role-indicator px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full cursor-default" data-role="operador">Operador</span>
+            <span class="role-indicator px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full cursor-default" data-role="soporte">Soporte</span>
+            <span class="role-indicator px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full cursor-default" data-role="logistico">Logístico</span>
+            <span class="role-indicator px-3 py-1 bg-amber-100 text-amber-800 text-xs rounded-full cursor-default" data-role="asistente">Asistente</span>
+            <span class="role-indicator px-3 py-1 bg-red-100 text-red-800 text-xs rounded-full cursor-default" data-role="coordinador">Coordinador</span>
+          </div>
+        </div>
+        
+        <!-- Botón de envío -->
+        <button 
+          type="submit" 
+          class="btn-gradient w-full text-white font-semibold py-4 px-6 rounded-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-3"
+          id="submitBtn"
+        >
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Iniciar Sesión</span>
+        </button>
+      </form>
+      
+      <!-- Pie de página -->
+      <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+        <p class="text-gray-600 text-sm">Sistema seguro de autenticación</p>
+        <div class="flex items-center justify-center gap-2 mt-3 text-green-600 text-sm">
+          <i class="fas fa-shield-check"></i>
+          <span>Conexión segura SSL</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.getElementById('loginForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const submitText = submitBtn.querySelector('span');
+      const roleSelect = document.getElementById('role');
+      const roleIndicators = document.querySelectorAll('.role-indicator');
+      
+      // Prevenir envío múltiple
+      let isSubmitting = false;
+      
+      // Manejar clic en indicadores de rol
+      roleIndicators.forEach(indicator => {
+        indicator.addEventListener('click', function() {
+          const role = this.getAttribute('data-role');
+          roleSelect.value = role;
+          
+          // Resaltar el indicador seleccionado
+          roleIndicators.forEach(ind => {
+            ind.classList.remove('ring-2', 'ring-offset-1');
+            ind.classList.remove('ring-blue-500', 'ring-green-500', 'ring-purple-500', 'ring-amber-500', 'ring-red-500');
+          });
+          
+          // Añadir anillo de selección según el color del rol
+          switch(role) {
+            case 'operador':
+              this.classList.add('ring-2', 'ring-offset-1', 'ring-blue-500');
+              break;
+            case 'soporte':
+              this.classList.add('ring-2', 'ring-offset-1', 'ring-green-500');
+              break;
+            case 'logistico':
+              this.classList.add('ring-2', 'ring-offset-1', 'ring-purple-500');
+              break;
+            case 'asistente':
+              this.classList.add('ring-2', 'ring-offset-1', 'ring-amber-500');
+              break;
+            case 'coordinador':
+              this.classList.add('ring-2', 'ring-offset-1', 'ring-red-500');
+              break;
+          }
+        });
+      });
+      
+      // Actualizar indicadores cuando cambia el select
+      roleSelect.addEventListener('change', function() {
+        const selectedRole = this.value;
+        
+        // Resaltar el indicador correspondiente
+        roleIndicators.forEach(indicator => {
+          indicator.classList.remove('ring-2', 'ring-offset-1');
+          indicator.classList.remove('ring-blue-500', 'ring-green-500', 'ring-purple-500', 'ring-amber-500', 'ring-red-500');
+          
+          if (indicator.getAttribute('data-role') === selectedRole) {
+            switch(selectedRole) {
+              case 'operador':
+                indicator.classList.add('ring-2', 'ring-offset-1', 'ring-blue-500');
+                break;
+              case 'soporte':
+                indicator.classList.add('ring-2', 'ring-offset-1', 'ring-green-500');
+                break;
+              case 'logistico':
+                indicator.classList.add('ring-2', 'ring-offset-1', 'ring-purple-500');
+                break;
+              case 'asistente':
+                indicator.classList.add('ring-2', 'ring-offset-1', 'ring-amber-500');
+                break;
+              case 'coordinador':
+                indicator.classList.add('ring-2', 'ring-offset-1', 'ring-red-500');
+                break;
+            }
+          }
+        });
+      });
+      
+      // Manejar envío del formulario
+      loginForm.addEventListener('submit', function(e) {
+        if (isSubmitting) {
+          e.preventDefault();
+          return;
+        }
+        
+        // Validación básica
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const role = document.getElementById('role').value;
+        
+        if (!username || !password || !role) {
+          e.preventDefault();
+          
+          // Mostrar mensajes de error específicos
+          if (!username) {
+            document.getElementById('username').classList.add('border-red-500');
+          }
+          if (!password) {
+            document.getElementById('password').classList.add('border-red-500');
+          }
+          if (!role) {
+            document.getElementById('role').classList.add('border-red-500');
+          }
+          
+          // Remover clases de error después de 3 segundos
+          setTimeout(() => {
+            document.getElementById('username').classList.remove('border-red-500');
+            document.getElementById('password').classList.remove('border-red-500');
+            document.getElementById('role').classList.remove('border-red-500');
+          }, 3000);
+          
+          return;
+        }
+        
+        // Mostrar estado de carga
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
+        submitText.innerHTML = '<div class="loading"></div> Procesando...';
+        
+        // Simular delay de red (opcional)
+        setTimeout(() => {
+          // En una implementación real, esto no se ejecutaría
+          // ya que el formulario se enviaría al servidor
+          console.log('Enviando datos:', { username, password, role });
+        }, 1500);
+        
+        // Resetear después de 3 segundos por si hay error
+        setTimeout(() => {
+          isSubmitting = false;
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+          submitText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
+        }, 3000);
+      });
+      
+      // Mejorar focus para accesibilidad
+      const inputs = document.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.parentElement.classList.add('ring-2', 'ring-blue-300', 'ring-offset-1');
+        });
+        
+        input.addEventListener('blur', function() {
+          this.parentElement.classList.remove('ring-2', 'ring-blue-300', 'ring-offset-1');
+        });
+        
+        // Validación en tiempo real
+        input.addEventListener('input', function() {
+          if (this.value) {
+            this.classList.remove('border-red-500');
+          }
+        });
+      });
+      
+      // Efectos visuales adicionales
+      document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function() {
+          if (this.value) {
+            this.classList.add('has-value');
+          } else {
+            this.classList.remove('has-value');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

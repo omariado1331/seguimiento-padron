@@ -375,7 +375,7 @@ class Operador(models.Model):
 
 class ReporteDiarioLogistico(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE, null=True, blank=True)
-    estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE, null=True, blank=True)
+    nro_estacion = models.IntegerField(default=0, null=True, blank=True)
     cantidad_de_formulario_faltantes = models.IntegerField(default=0, blank=True, null=True)
     r_inicial = models.IntegerField(default=0)
     r_final = models.IntegerField(default=0)
@@ -383,6 +383,7 @@ class ReporteDiarioLogistico(models.Model):
     c_inicial = models.IntegerField(default=0)
     c_final = models.IntegerField(default=0)
     observaciones_c =models.TextField(blank=True, null=True)
+    fecha_reporte = models.DateField(null=True, blank=True)
 
 class ReporteDiario(models.Model):
     operador = models.ForeignKey(Operador, on_delete=models.CASCADE)

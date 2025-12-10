@@ -21,6 +21,7 @@ from .models import (
     UbicacionesOperador, Megacentro, Ruta
 )
 from simple_history.utils import update_change_reason
+from django.shortcuts import get_object_or_404
 #from reportlab.pdfgen import canvas
 #from reportlab.lib.utils import ImageReader
 #from reportlab.lib.pagesizes import landscape, A5
@@ -621,3 +622,174 @@ class ExportarReporteDespliegueEstacionesExcelViewSet(APIView):
         response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
         
         return response
+
+class InfoOperadorViewSet(APIView):
+    def get(self, request, operador_id):
+        try:
+            # Validar que el ID sea numérico
+            operador_id_int = int(operador_id)
+        except ValueError:
+            return Response({
+                "success": False,
+                "error": "ID de operador debe ser un número"
+            }, status=400)
+        
+        try:
+            # Usar get_object_or_404 para manejar automáticamente el 404
+            operador = get_object_or_404(
+                Operador.objects.select_related(
+                    'coordinador',
+                    'estacion',
+                    'estacion__llave',
+                    'estacion__centro_empadronamiento',
+                    'estacion__centro_empadronamiento__ruta'
+                ),
+                id=operador_id_int
+            )
+        
+        except Exception as e:
+            return Response({
+                "success": False,
+                "error": f"Error al obtener operador: {str(e)}"
+            }, status=500)
+        
+        estacion = operador.estacion
+        
+        # Construir respuesta exactamente como solicitaste
+        respuesta = {
+            "nombre": operador.nombre,
+            "apellido_paterno": operador.apellido_paterno,
+            "apellido_materno": operador.apellido_materno,
+            "celular": operador.celular,
+            "carnet": operador.carnet,
+            "tipo_operador": operador.tipo_operador,
+            "nombre_coordinador": f"{operador.coordinador.nombre if operador.coordinador else ''}{' ' + operador.coordinador.apellido_paterno if operador.coordinador and operador.coordinador.apellido_paterno else ''}{' ' + operador.coordinador.apellido_materno if operador.coordinador and operador.coordinador.apellido_materno else ''}" if operador.coordinador else None,
+        }
+        
+        # Solo agregar campos de estación si existe
+        if estacion:
+            respuesta['id_estacion'] = estacion.id
+            respuesta["codigo_equipo"] = estacion.codigo_equipo
+            respuesta["modelo_estacion"] = estacion.modelo
+            respuesta["tipo_estacion"] = estacion.tipo_estacion
+            
+            # Campos de llave
+            if estacion.llave:
+                respuesta["nro_estacion"] = estacion.llave.nro_estacion
+                respuesta["contador_r"] = estacion.llave.contador_r
+                respuesta["contador_c"] = estacion.llave.contador_c
+            else:
+                respuesta["contador_r"] = None
+                respuesta["contador_c"] = None
+            
+            # Campos del centro de empadronamiento
+            if estacion.centro_empadronamiento:
+                centro = estacion.centro_empadronamiento
+                respuesta['id_centro_empadronamiento'] = centro.id
+                respuesta["punto_de_empadronamiento"] = centro.punto_de_empadronamiento
+                respuesta["municipio"] = centro.municipio
+                respuesta["provincia"] = centro.provincia
+                respuesta["departamento"] = centro.departamento
+                
+                # Campo de ruta
+                if centro.ruta:
+                    respuesta["nombre_ruta"] = centro.ruta.nombre
+                else:
+                    respuesta["nombre_ruta"] = None
+            else:
+                respuesta['id_centro_empadronamiento']=None
+                respuesta["punto_de_empadronamiento"] = None
+                respuesta["municipio"] = None
+                respuesta["provincia"] = None
+                respuesta["departamento"] = None
+                respuesta["nombre_ruta"] = None
+        else:
+            # Si no tiene estación, todos estos campos son None
+            campos_estacion = [
+                "id_estacion", "codigo_equipo", "modelo_estacion", "tipo_estacion", "nro_estacion",
+                "contador_r", "contador_c", "nombre_ruta", "punto_de_empadronamiento",
+                "municipio", "provincia", "departamento"
+            ]
+            for campo in campos_estacion:
+                respuesta[campo] = None
+        
+        return Response({
+            "success": True,
+            "operador_id": operador_id,
+            "data": respuesta
+        })
+
+class HistorialReportesDiariosOperadorViewSet(APIView):
+    def get(self, request, operador_id):
+        try:
+            # Verificar que el operador existe
+            operador = get_object_or_404(Operador, id=operador_id)
+            
+            # Obtener reportes con relaciones necesarias
+            reportes = ReporteDiario.objects.filter(
+                operador_id=operador_id
+            ).select_related(
+                'estacion',
+                'estacion__llave',
+                'centro_empadronamiento',
+                'centro_empadronamiento__ruta'
+            ).order_by('-fecha_reporte')
+            
+            resultado = []
+            
+            for reporte in reportes:
+                # Información básica del reporte
+                registro = {
+                    "codigo_estacion": reporte.estacion.codigo_equipo if reporte.estacion else None,
+                    "nro_estacion": reporte.estacion.llave.nro_estacion if reporte.estacion and reporte.estacion.llave else None,
+                    "fecha_reporte": reporte.fecha_reporte.strftime('%Y-%m-%d') if reporte.fecha_reporte else None,
+                    "fecha_registro": reporte.fecha_registro.strftime('%Y-%m-%d %H:%M:%S') if reporte.fecha_registro else None,
+                    "registro_c": reporte.registro_c,
+                    "registro_r": reporte.registro_r,
+                    "incidencias": reporte.incidencias,
+                    "observaciones": reporte.observaciones,
+                }
+                
+                # Intentar obtener información del centro de empadronamiento
+                centro = None
+                
+                # Primero del reporte directo
+                if reporte.centro_empadronamiento:
+                    centro = reporte.centro_empadronamiento
+                # Si no, de la estación
+                elif reporte.estacion and reporte.estacion.centro_empadronamiento:
+                    centro = reporte.estacion.centro_empadronamiento
+                
+                # Agregar información del centro si existe
+                if centro:
+                    registro.update({
+                        "punto_empadronamiento": centro.punto_de_empadronamiento,
+                        "municipio": centro.municipio,
+                        "provincia": centro.provincia,
+                        "departamento": centro.departamento,
+                        "nombre_ruta": centro.ruta.nombre if centro.ruta else None,
+                    })
+                else:
+                    registro.update({
+                        "punto_empadronamiento": None,
+                        "municipio": None,
+                        "provincia": None,
+                        "departamento": None,
+                        "nombre_ruta": None,
+                    })
+                
+                resultado.append(registro)
+            
+            return Response({
+                "success": True,
+                "operador_id": operador_id,
+                "nombre_operador": f"{operador.nombre or ''} {operador.apellido_paterno or ''}".strip(),
+                "total_reportes": len(resultado),
+                "data": resultado
+            })
+            
+        except Operador.DoesNotExist:
+            return Response({
+                "success": False,
+                "error": f"Operador con ID {operador_id} no encontrado"
+            }, status=404)

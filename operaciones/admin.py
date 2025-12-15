@@ -97,19 +97,10 @@ def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
 
     # --- filas ---
     for r in queryset:
-        # fila = []
-        # for f in ReporteDiario._meta.fields:
-        #     valor = getattr(obj, f.name)   
+        nro_estacion = ""
+        if r.estacion and r.estacion.llave:
+            nro_estacion = r.estacion.llave.nro_estacion
 
-        #     if f.many_to_one:
-        #         valor = str(valor)
-            
-        #     from datetime import datetime
-        #     if isinstance(valor, datetime):
-        #         valor = valor.strftime("%Y-%m-%d")
-            
-        #     fila.append(valor)
-        # ws.append(fila)
         ws.append([
             r.centro_empadronamiento.departamento if r.centro_empadronamiento else "",
             r.centro_empadronamiento.provincia if r.centro_empadronamiento else "",
@@ -117,7 +108,7 @@ def exportar_a_excel_reportes_diarios(modeladmin, request, queryset):
             r.centro_empadronamiento.punto_de_empadronamiento if r.centro_empadronamiento else "",
             r.centro_empadronamiento.direccion if r.centro_empadronamiento else "",
             r.fecha_reporte.strftime("%Y-%m-%d"),
-            r.estacion.nro_estacion if r.estacion else "",
+            nro_estacion,
             r.registro_c,
             r.registro_r,
             r.estacion.tipo_estacion if r.estacion else "",

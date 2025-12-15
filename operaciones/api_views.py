@@ -793,3 +793,120 @@ class HistorialReportesDiariosOperadorViewSet(APIView):
                 "success": False,
                 "error": f"Operador con ID {operador_id} no encontrado"
             }, status=404)
+
+# API PARA LISTAR LOS OPERADORES Y SU INFORMACION DE ESTACION ASIGNADA
+class OperadoresEstacionViewSet(APIView):
+    def get(self, request):
+        # Obtener todos los operadores con todas sus relaciones
+        operadores = Operador.objects.select_related(
+            'user',
+            'estacion',
+            'estacion__llave',
+            'estacion__centro_empadronamiento',
+            'estacion__centro_empadronamiento__ruta',
+        ).all().order_by('apellido_paterno', 'apellido_materno', 'nombre')
+        
+        resultado = []
+        
+        for operador in operadores:
+            estacion = operador.estacion
+            
+            # Construir estructura base del operador
+            operador_data = {
+                "id": operador.id,
+                "nombre": operador.nombre,
+                "apellido_paterno": operador.apellido_paterno,
+                "apellido_materno": operador.apellido_materno,
+                "carnet": operador.carnet,
+                "tipo_operador": operador.tipo_operador,
+                "username": operador.user.username if operador.user else None,
+                "celular": operador.celular
+            }
+            
+            # Información de la estación (si tiene asignada)
+            if estacion:
+                operador_data["estacion"] = {
+                    "id": estacion.id,
+                    "codigo_equipo": estacion.codigo_equipo,
+                    "modelo": estacion.modelo,
+                    "tipo_estacion": estacion.tipo_estacion,
+                    "fecha_asignacion": estacion.fecha_asignacion
+                }
+                
+                # Información de la llave (si existe)
+                if estacion.llave:
+                    operador_data["llave"] = {
+                        "id": estacion.llave.id,
+                        "nro_estacion": estacion.llave.nro_estacion,
+                        "contador_r": estacion.llave.contador_r,
+                        "contador_c": estacion.llave.contador_c
+                    }
+                else:
+                    operador_data["llave"] = None
+                
+                # Información del centro de empadronamiento (si existe)
+                if estacion.centro_empadronamiento:
+                    centro = estacion.centro_empadronamiento
+                    operador_data["centro_empadronamiento"] = {
+                        "id": centro.id,
+                        "nombre": centro.punto_de_empadronamiento,
+                        "direccion": centro.direccion,
+                        "municipio": centro.municipio,
+                        "provincia": centro.provincia,
+                        "departamento": centro.departamento,
+                        "ruta": centro.ruta.nombre if centro.ruta else None,
+                        "ruta_id": centro.ruta.id if centro.ruta else None,
+                    }
+                else:
+                    operador_data["centro_empadronamiento"] = None
+            else:
+                # Si no tiene estación, todos estos campos son null
+                operador_data["estacion"] = None
+                operador_data["llave"] = None
+                operador_data["centro_empadronamiento"] = None
+            
+            resultado.append(operador_data)
+        
+        return Response({
+            "success": True,
+            "total_operadores": len(resultado),
+            "data": resultado
+        })
+
+class InfoEstacionesMasterizadasViewSet(APIView):
+    def get(self, request):
+        # Obtener estaciones masterizadas ordenadas por megacentro y centro empadronamiento
+        estaciones = Estacion.objects.filter(
+            fase='Masterizado',
+            llave__isnull=False
+        ).select_related(
+            'llave'
+        ).order_by(
+            'codigo_equipo'       # Orden por código de equipo
+        )
+        
+        resultado = []
+        
+        for estacion in estaciones:
+            registro = {
+                "id": estacion.id,
+                "codigo_equipo": estacion.codigo_equipo,
+                "modelo": estacion.modelo,
+                "tipo_estacion": estacion.tipo_estacion,
+                "fase": estacion.fase,
+                "nro_estacion": estacion.nro_estacion,
+                "llave": {
+                    "id": estacion.llave.id if estacion.llave else None,
+                    "nro_estacion": estacion.llave.nro_estacion if estacion.llave else None,
+                    "contador_r": estacion.llave.contador_r if estacion.llave else None,
+                    "contador_c": estacion.llave.contador_c if estacion.llave else None,
+                }
+            }
+            
+            resultado.append(registro)
+        
+        return Response({
+            "success": True,
+            "total_estaciones_masterizadas": len(resultado),
+            "data": resultado
+        })

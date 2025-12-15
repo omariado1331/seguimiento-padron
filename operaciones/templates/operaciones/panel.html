@@ -478,7 +478,7 @@
                 </div>
             </div>
 
-            <!-- Panel MASTERIZACION -->
+    <!-- PANEL DE MASTERIZACION -->
             <div id="masterizacion" class="content-panel">
                 <div class="flex gap-3 items-center mb-4">
                     <!-- 🔍 Buscador dinámico -->
@@ -510,7 +510,7 @@
                 </div>
             </div>
 
-            <!-- Panel de llaves  -->
+    <!-- PANEL DE LLAVES  -->
             <div id="llaves" class="content-panel">
                 <!-- 🔍 Buscador dinámico -->
                 <input 
@@ -538,101 +538,210 @@
                 </div>
             </div>
 
-            <!-- PANEL DE ASIGNACION DE ESTACIONES -->
-          <div id="asignacion" class="content-panel hidden flex-col">
-              <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-4">
-                  <div class="flex flex-col sm:flex-row gap-2 w-full">
-                      <input 
-                          type="text" 
-                          id="buscador-asignacion" 
-                          placeholder="Buscar por código equipo, llave, destino, operador..."
-                          class="p-2 border border-gray-300 rounded text-sm flex-1"
-                      >
-                      <button id="btn-exportar-excel-reporte-despliegue" class="btn btn-primary py-2 px-4 bg-green-600 text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-green-700 text-sm">
-                        <i class="fas fa-file-excel"></i> 
-                        <span class="hidden sm:inline">Exportar</span>
+    <!-- PANEL DE ASIGNACION DE OPERADORES -->
+            <div id="asignacion" class="content-panel hidden flex-col">
+                <div class="flex flex-col sm:flex-row gap-3 items-center justify-between mb-4">
+                    <div class="flex flex-col sm:flex-row gap-2 w-full">
+                        <input 
+                            type="text" 
+                            id="buscador-operadores" 
+                            placeholder="Buscar por nombre, carnet, tipo operador, estación..."
+                            class="p-2 border border-gray-300 rounded text-sm flex-1"
+                        >
+                        <button id="btn-exportar-excel-operadores" class="btn btn-primary py-2 px-4 bg-green-600 text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-green-700 text-sm">
+                            <i class="fas fa-file-excel"></i> 
+                            <span class="hidden sm:inline">Exportar</span>
+                        </button>
+                        <div class="flex gap-2">
+                            <button id="btn-refresh-operadores" class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark text-sm">
+                                <i class="fas fa-sync-alt"></i> 
+                                <span class="hidden sm:inline">Actualizar</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <select id="filtro-tipo-operador" class="p-2 border border-gray-300 rounded text-sm">
+                        <option value="">Todos los tipos</option>
+                        <option value="Operador Rural">Operador Urbano</option>
+                        <option value="Operador Urbano">Operador Urbano</option>
+                        <option value="Logistico">Logístico</option>
+                    </select>
+                    <select id="filtro-con-estacion" class="p-2 border border-gray-300 rounded text-sm">
+                        <option value="">Todos</option>
+                        <option value="con_estacion">Con estación</option>
+                        <option value="sin_estacion">Sin estación</option>
+                    </select>
+                    <select id="filtro-con-llave" class="p-2 border border-gray-300 rounded text-sm">
+                        <option value="">Todos</option>
+                        <option value="con_llave">Con llave</option>
+                        <option value="sin_llave">Sin llave</option>
+                    </select>
+                </div>
+
+                <!-- Contador -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                    <p class="text-sm text-gray-600" id="total-operadores-asignacion">
+                        <span id="total-operadores-count">0</span> operadores
+                    </p>
+                </div>
+
+                <!-- Tabla de operadores -->
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="nombre">
+                                        Operador <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="carnet">
+                                        Carnet <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="tipo_operador">
+                                        Tipo <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="celular">
+                                        Celular <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="estacion">
+                                        Estación <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="llave">
+                                        Llave <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-operador" data-sort="destino">
+                                        Destino <i class="fas fa-sort ml-1 text-gray-400"></i>
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-operadores-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Los datos se cargarán aquí dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Paginación -->
+                <div class="flex justify-between items-center mt-4 pb-6 sm:pb-4 safe-area-padding" id="paginacion-operadores">
+                    <button id="btn-prev-operadores" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                        <i class="fas fa-chevron-left"></i> 
+                        <span class="hidden sm:inline">Anterior</span>
+                        <span class="sm:hidden">Ant.</span>
                     </button>
-                      <div class="flex gap-2">
-                          <button id="btn-refresh-asignacion" class="btn btn-primary py-2 px-4 bg-primary text-white rounded font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-primary-dark text-sm">
-                              <i class="fas fa-sync-alt"></i> 
-                              <span class="hidden sm:inline">Actualizar</span>
-                          </button>
-                      </div>
-                  </div>
-              </div>
+                    
+                    <span class="text-sm text-gray-600 px-2 text-center flex-1" id="info-pagina-operadores">Página 1 de 1</span>
+                    
+                    <button id="btn-next-operadores" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
+                        <span class="hidden sm:inline">Siguiente</span>
+                        <span class="sm:hidden">Sig.</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
 
-              <!-- Contador y ordenamiento -->
-              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                  <p class="text-sm text-gray-600" id="total-estaciones-asignacion">
-                      <span id="total-estaciones-count">0</span> estaciones masterizadas
-                  </p>
-              </div>
+            <!-- Modal para asignar estación a operador -->
+            <div id="modal-estacion-operador" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="modal-container bg-white w-full md:w-3/4 lg:w-1/2 mx-auto rounded-lg shadow-xl overflow-hidden my-8">
+                    <div class="modal-header bg-primary text-white p-4">
+                        <div class="flex justify-between items-center">
+                            <h3 id="titulo-modal-estacion" class="text-lg font-semibold"></h3>
+                            <button class="close-modal-estacion text-white text-xl hover:text-gray-200 transition-colors">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-body p-6">
+                        <div class="mb-4">
+                            <input 
+                                type="text" 
+                                id="buscador-modal-estaciones"
+                                placeholder="Buscar estación por código, modelo, tipo..."
+                                class="w-full p-2 border border-gray-300 rounded"
+                            >
+                        </div>
+                        
+                        <div id="estacion-seleccionada" class="mb-4 p-3 bg-blue-50 rounded-lg hidden">
+                            <!-- Aquí se mostrará la estación seleccionada -->
+                        </div>
+                        
+                        <div id="lista-estaciones" class="max-h-64 overflow-y-auto border border-gray-200 rounded">
+                            <!-- Lista de estaciones disponibles -->
+                        </div>
+                        
+                        <div class="mt-6 text-right">
+                            <button 
+                                id="btn-cancelar-estacion"
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors mr-2"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                id="btn-confirmar-estacion-operador"
+                                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled
+                            >
+                                Asignar Estación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-              <!-- Tabla de asignación -->
-              <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div class="overflow-x-auto">
-                      <table class="min-w-full divide-y divide-gray-200">
-                          <thead class="bg-gray-50">
-                              <tr>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="codigo_equipo">
-                                      Código Equipo <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="modelo">
-                                      Modelo <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="nro_estacion">
-                                      Llave <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="contadores">
-                                      Contadores <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="destino">
-                                      Destino <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="ruta">
-                                      Ruta <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="operador">
-                                      Operador <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="carnet">
-                                      Carnet <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="celular">
-                                      Celular <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="fecha_asignacion">
-                                      Fecha Asignación <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable-asignacion" data-sort="tipo_estacion">
-                                      Tipo <i class="fas fa-sort ml-1 text-gray-400"></i>
-                                  </th>
-                              </tr>
-                          </thead>
-                          <tbody id="tabla-asignacion-body" class="bg-white divide-y divide-gray-200">
-                              <!-- Los datos se cargarán aquí dinámicamente -->
-                          </tbody>
-                      </table>
-                  </div>
-              </div>
-
-              <!-- Paginación -->
-              <div class="flex justify-between items-center mt-4 pb-6 sm:pb-4 safe-area-padding" id="paginacion-asignacion">
-                  <button id="btn-prev-asignacion" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
-                      <i class="fas fa-chevron-left"></i> 
-                      <span class="hidden sm:inline">Anterior</span>
-                      <span class="sm:hidden">Ant.</span>
-                  </button>
-                  
-                  <span class="text-sm text-gray-600 px-2 text-center flex-1" id="info-pagina-asignacion">Página 1 de 1</span>
-                  
-                  <button id="btn-next-asignacion" class="btn btn-outline py-3 px-4 border border-gray-300 rounded text-gray-700 font-medium flex items-center gap-1 transition-colors duration-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm min-w-[100px]">
-                      <span class="hidden sm:inline">Siguiente</span>
-                      <span class="sm:hidden">Sig.</span>
-                      <i class="fas fa-chevron-right"></i>
-                  </button>
-              </div>
-          </div>
+            <!-- Modal para asignar punto de empadronamiento a operador -->
+            <div id="modal-centro-operador" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="modal-container bg-white w-full md:w-3/4 lg:w-1/2 mx-auto rounded-lg shadow-xl overflow-hidden my-8">
+                    <div class="modal-header bg-primary text-white p-4">
+                        <div class="flex justify-between items-center">
+                            <h3 id="titulo-modal-centro-operador" class="text-lg font-semibold"></h3>
+                            <button class="close-modal-centro-operador text-white text-xl hover:text-gray-200 transition-colors">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-body p-6">
+                        <div class="mb-4">
+                            <input 
+                                type="text" 
+                                id="buscador-modal-centros-operador"
+                                placeholder="Buscar punto de empadronamiento..."
+                                class="w-full p-2 border border-gray-300 rounded"
+                            >
+                        </div>
+                        
+                        <div id="centro-seleccionado-operador" class="mb-4 p-3 bg-green-50 rounded-lg hidden">
+                            <!-- Aquí se mostrará el centro seleccionado -->
+                        </div>
+                        
+                        <div id="lista-centros-operador" class="max-h-64 overflow-y-auto border border-gray-200 rounded">
+                            <!-- Lista de centros de empadronamiento -->
+                        </div>
+                        
+                        <div class="mt-6 text-right">
+                            <button 
+                                id="btn-cancelar-centro-operador"
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors mr-2"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                id="btn-confirmar-centro-operador"
+                                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled
+                            >
+                                Asignar Punto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
 <!-- PANEL DE INFORMACIONES -->
  <!-- 
@@ -2618,204 +2727,214 @@ function crearCardEnClonacion(item) {
 
     // ASIGNACION ******************************************
     //******************************************************
-    // Variables para la tabla de asignación
-    let datosAsignacion = [];
-    let datosFiltradosAsignacion = [];
-    let paginaActualAsignacion = 1;
-    let registrosPorPaginaAsignacion = 25;
-    let columnaOrdenAsignacion = 'codigo_equipo';
-    let ordenAscendenteAsignacion = false;
-    // Variables para el modal de operador
-    let listaOperadoresCompleta = [];
-    let operadorSeleccionado = null;
-    // Variable para el modal de asignacion de destino
-    let listaCentrosEmpadronamiento = [];
-    // modales
-    let estacionActualIDAsignacion = null;
-    let estacionActualCodigoAsignacion = null;
-    let operadorActualIDAsignacion = null;
-    // Para el modal de centros de empadronamiento
-    let centrosEmpadronamientoSeleccionado = null;
-    
-    // Función para cargar datos de asignación - CORREGIDA
-    async function cargarDatosAsignacion() {
+    // Variables para la tabla de operadores
+    let datosOperadores = [];
+    let datosFiltradosOperadores = [];
+    let centrosEmpadronamiento = [];
+    let estaciones = [];
+    let paginaActualOperadores = 1;
+    let registrosPorPaginaOperadores = 25;
+    let columnaOrdenOperadores = 'nombre';
+    let ordenAscendenteOperadores = true;
+
+    // Variables para modales
+    let operadorActualModal = null;
+    let estacionActualModal = null;
+    let estacionSeleccionadaAsignacion = null;
+    let centroEmpadronamientoSeleccionado = null;
+
+    // Función para cargar datos de operadores
+    async function cargarDatosOperadores() {
         try {
-            // Guardar estado actual del orden
-            const columnaOrdenGuardada = columnaOrdenAsignacion;
-            const ordenAscendenteGuardado = ordenAscendenteAsignacion;
-            const paginaGuardada = paginaActualAsignacion;
+            // Guardar estado actual
+            const columnaOrdenGuardada = columnaOrdenOperadores;
+            const ordenAscendenteGuardado = ordenAscendenteOperadores;
+            const paginaGuardada = paginaActualOperadores;
             
-            const response = await fetch('/estaciones-despliegue/');
+            const response = await fetch('/api/lista-operadores-estaciones/');
             const data = await response.json();
             
-            if (response.ok) {
-                datosAsignacion = data.data;
-                datosFiltradosAsignacion = [];
-                document.getElementById('total-estaciones-count').textContent = data.total_estaciones_masterizadas;
+            if (response.ok && data.success) {
+                datosOperadores = data.data;
+                datosFiltradosOperadores = [];
+                document.getElementById('total-operadores-count').textContent = data.total_operadores;
                 
-                // Restaurar el orden anterior
-                columnaOrdenAsignacion = columnaOrdenGuardada;
-                ordenAscendenteAsignacion = ordenAscendenteGuardado;
+                // Restaurar estado anterior
+                columnaOrdenOperadores = columnaOrdenGuardada;
+                ordenAscendenteOperadores = ordenAscendenteGuardado;
                 
-                // Ordenar con los parámetros guardados
-                aplicarOrdenAsignacion();
+                // Aplicar orden
+                aplicarOrdenOperadores();
                 
-                // Restaurar la página
-                paginaActualAsignacion = paginaGuardada;
+                // Restaurar página
+                paginaActualOperadores = paginaGuardada;
                 
                 // Verificar que la página sea válida
-                const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
-                    datosFiltradosAsignacion : datosAsignacion;
-                const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
+                const datosParaPaginacion = datosFiltradosOperadores.length > 0 ? 
+                    datosFiltradosOperadores : datosOperadores;
+                const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaOperadores);
                 
-                if (paginaActualAsignacion > totalPaginas && totalPaginas > 0) {
-                    paginaActualAsignacion = totalPaginas;
+                if (paginaActualOperadores > totalPaginas && totalPaginas > 0) {
+                    paginaActualOperadores = totalPaginas;
                 } else if (totalPaginas === 0) {
-                    paginaActualAsignacion = 1;
+                    paginaActualOperadores = 1;
                 }
                 
-                renderizarTablaAsignacionConDatosActuales();
-                actualizarPaginacionAsignacion();
-
+                renderizarTablaOperadoresConDatosActuales();
+                actualizarPaginacionOperadores();
+                
             } else {
-                throw new Error('Error al cargar datos de asignación');
+                throw new Error('Error al cargar datos de operadores');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al cargar los datos de asignación');
+            alert('Error al cargar los datos de operadores');
         }
     }
 
-    // Función para cargar operadores en el modal
-    async function cargarOperadores() {
-        try {
-            const response = await fetch('/operadores-sin-estacion/');
-            const data = await response.json();
-            
-            if (response.ok && data) {
-                listaOperadoresCompleta = data;
+    // Función para aplicar orden a operadores
+    function aplicarOrdenOperadores() {
+        // Actualizar iconos en los headers
+        document.querySelectorAll('.sortable-operador i').forEach(icon => {
+            icon.className = 'fas fa-sort ml-1 text-gray-400';
+        });
+        
+        const headerActual = document.querySelector(`[data-sort="${columnaOrdenOperadores}"] i`);
+        if (headerActual) {
+            headerActual.className = ordenAscendenteOperadores ? 
+                'fas fa-sort-up ml-1 text-primary' : 
+                'fas fa-sort-down ml-1 text-primary';
+        }
+
+        // Ordenar los datos
+        const datosParaOrdenar = datosFiltradosOperadores.length > 0 ? 
+            datosFiltradosOperadores : datosOperadores;
+
+        datosParaOrdenar.sort((a, b) => {
+            let valorA, valorB;
+
+            switch(columnaOrdenOperadores) {
+                case 'nombre':
+                    valorA = `${a.nombre || ''} ${a.apellido_paterno || ''} ${a.apellido_materno || ''}`.toLowerCase();
+                    valorB = `${b.nombre || ''} ${b.apellido_paterno || ''} ${b.apellido_materno || ''}`.toLowerCase();
+                    break;
+                case 'carnet':
+                    valorA = a.carnet || '';
+                    valorB = b.carnet || '';
+                    break;
+                case 'tipo_operador':
+                    valorA = a.tipo_operador || '';
+                    valorB = b.tipo_operador || '';
+                    break;
+                case 'celular':
+                    valorA = a.celular || '';
+                    valorB = b.celular || '';
+                    break;
+                case 'estacion':
+                    const estacionA = a.estacion?.codigo_equipo || 'zzz';
+                    const estacionB = b.estacion?.codigo_equipo || 'zzz';
+                    valorA = estacionA === 'zzz' ? 'zzz' + a.id : estacionA;
+                    valorB = estacionB === 'zzz' ? 'zzz' + b.id : estacionB;
+                    break;
+                case 'llave':
+                    const llaveA = a.llave?.nro_estacion || 999999;
+                    const llaveB = b.llave?.nro_estacion || 999999;
+                    valorA = llaveA;
+                    valorB = llaveB;
+                    break;
+                case 'destino':
+                    const destinoA = a.centro_empadronamiento?.nombre || 'zzz';
+                    const destinoB = b.centro_empadronamiento?.nombre || 'zzz';
+                    valorA = destinoA === 'zzz' ? 'zzz' + a.id : destinoA;
+                    valorB = destinoB === 'zzz' ? 'zzz' + b.id : destinoB;
+                    break;
+                default:
+                    return 0;
             }
-        } catch (error) {
-            console.error('Error al cargar operadores:', error);
-            alert('Error al cargar la lista de operadores');
-        }
+
+            if (valorA > valorB) return ordenAscendenteOperadores ? 1 : -1;
+            if (valorA < valorB) return ordenAscendenteOperadores ? -1 : 1;
+            return 0;
+        });
     }
 
-    
-    // Función para cargar Centros de empadronamiento en el modal
-    async function cargarCentrosEmpadronamiento() {
-      try {
-        const response = await fetch('/lista-centros-empadronamiento/');
-        const data = await response.json();
-            
-        if (data) {
-          listaCentrosEmpadronamiento = data;
+    // Función para ordenar operadores
+    function ordenarDatosOperadores(columna) {
+        if (columnaOrdenOperadores === columna) {
+            ordenAscendenteOperadores = !ordenAscendenteOperadores;
+        } else {
+            columnaOrdenOperadores = columna;
+            ordenAscendenteOperadores = true;
         }
-      } catch (error) {
-        console.error('Error al cargar centros de empadronamiento:', error);
-      }
-    }
-    
-    function renderizarCentrosEmpadronamiento(data){
-      const select = document.getElementById('select-centro-empadronamiento');
-      select.innerHTML = '<option value="">Seleccionar centro-empadronamiento...</option>';
-  
-      data.forEach(centroEmpadronamiento => {
-        const option = document.createElement('option');
-        option.value = centroEmpadronamiento.id;
-        option.textContent = `${centroEmpadronamiento.nombre_ruta}-${centroEmpadronamiento.punto_de_empadronamiento}`;
-        select.appendChild(option);
-      });
-    }
-    
 
-    // Función para renderizar la tabla de asignación
-    function renderizarTablaAsignacion(datos) {
-        const tbody = document.getElementById('tabla-asignacion-body');
+        aplicarOrdenOperadores();
+        renderizarTablaOperadoresConDatosActuales();
+        actualizarPaginacionOperadores();
+    }
+
+    // Función para renderizar tabla de operadores
+    function renderizarTablaOperadores(datos) {
+        const tbody = document.getElementById('tabla-operadores-body');
         tbody.innerHTML = '';
 
-        const inicio = (paginaActualAsignacion - 1) * registrosPorPaginaAsignacion;
-        const fin = inicio + registrosPorPaginaAsignacion;
+        const inicio = (paginaActualOperadores - 1) * registrosPorPaginaOperadores;
+        const fin = inicio + registrosPorPaginaOperadores;
         const datosPagina = datos.slice(inicio, fin);
 
         if (datosPagina.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" class="px-4 py-8 text-center text-sm text-gray-500">
-                        No se encontraron registros
+                    <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500">
+                        No se encontraron operadores
                     </td>
                 </tr>
             `;
             return;
         }
 
-        datosPagina.forEach(item => {
-            // Contadores
-            const contadorR = item.llave?.contador_r || 0;
-            const contadorC = item.llave?.contador_c || 0;
+        datosPagina.forEach(operador => {
+            const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
             
-            // Destino
-            const destinoHTML = formatearDestino(item);
+            // Formatear estación
+            const estacionHTML = formatearEstacionOperador(operador);
             
-            // Operador
-            const operadorHTML = formatearOperador(item);
+            // Formatear llave
+            const llaveHTML = formatearLlaveOperador(operador);
             
-            // Carnet
-            const carnet = item.operador?.carnet || 
-                          `<span class="text-gray-400 italic">N/A</span>`;
-
-            // Celular
-            const celular = item.operador?.celular || 
-                          `<span class="text-gray-400 italic">N/A</span>`;
+            // Formatear destino
+            const destinoHTML = formatearDestinoOperador(operador);
             
-            // Fecha de asignación
-            const fechaAsignacionHTML = formatearFecha(item.fecha_asignacion);
-            
-            // Tipo de estación con icono
-            const tipoEstacion = item.tipo_estacion || 'N/A';
-            const tipoIcono = tipoEstacion === 'MOVIL' ? 
-                '<i class="fas fa-mobile-alt text-green-500 mr-1"></i>' : 
-                '<i class="fas fa-laptop text-blue-500 mr-1"></i>';
-            const tipoColor = tipoEstacion === 'MOVIL' ? 'text-green-700' : 'text-blue-700';
+            // Botones de acciones
+            const accionesHTML = generarAccionesOperador(operador);
 
             const fila = `
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${item.codigo_equipo || 'N/A'}
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${nombreCompleto || 'Sin nombre'}</div>
+                        <div class="text-xs text-gray-500">${operador.username || ''}</div>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        ${item.modelo || 'N/A'}
+                        ${operador.carnet || '<span class="text-gray-400 italic">N/A</span>'}
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium ${item.llave?.nro_estacion ? 'text-gray-900' : 'text-gray-400'}">
-                        ${item.llave?.nro_estacion || 
-                          '<span class="italic text-gray-400">Sin llave</span>'}
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${getTipoOperadorColor(operador.tipo_operador)}">
+                            ${operador.tipo_operador || 'N/A'}
+                        </span>
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        R:<span class="font-medium">${contadorR}</span> 
-                        C:<span class="font-medium">${contadorC}</span>
+                        ${operador.celular || '<span class="text-gray-400 italic">N/A</span>'}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        ${estacionHTML}
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        ${llaveHTML}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                         ${destinoHTML}
                     </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                        ${item.centro_empadronamiento?.ruta ||
-                          '<span class="text-gray-400 italic">No asignado</span>'} 
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                        ${operadorHTML}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        ${carnet}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        ${celular}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                        ${fechaAsignacionHTML}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-sm ${tipoColor}">
-                        ${tipoIcono}
-                        <span class="font-medium">${tipoEstacion}</span>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        ${accionesHTML}
                     </td>
                 </tr>
             `;
@@ -2823,363 +2942,509 @@ function crearCardEnClonacion(item) {
         });
     }
 
-    // Función para aplicar el orden sin cambiar el estado
-    function aplicarOrdenAsignacion() {
-        // Actualizar iconos en los headers
-        document.querySelectorAll('.sortable-asignacion i').forEach(icon => {
-            icon.className = 'fas fa-sort ml-1 text-gray-400';
-        });
-        
-        const headerActual = document.querySelector(`[data-sort="${columnaOrdenAsignacion}"] i`);
-        if (headerActual) {
-            headerActual.className = ordenAscendenteAsignacion ? 
-                'fas fa-sort-up ml-1 text-primary' : 
-                'fas fa-sort-down ml-1 text-primary';
+    // Funciones auxiliares para formatear
+    function formatearEstacionOperador(operador) {
+        if (operador.estacion) {
+            return `
+                <div class="space-y-1">
+                    <div class="font-medium text-gray-900">${operador.estacion.codigo_equipo}</div>
+                    <div class="text-xs text-gray-500">${operador.estacion.modelo || ''}</div>
+                    <div class="text-xs ${operador.estacion.tipo_estacion === 'MOVIL' ? 'text-green-600' : 'text-blue-600'}">
+                        ${operador.estacion.tipo_estacion || ''}
+                    </div>
+                    <button class="btn-liberar-estacion text-xs text-red-600 hover:text-red-800"
+                            data-id="${operador.id}" data-estacion-id="${operador.estacion.id}">
+                        <i class="fas fa-times mr-1"></i>Liberar
+                    </button>
+                </div>
+            `;
         }
+        return `
+            <div class="space-y-2">
+                <span class="text-gray-400 italic text-sm">Sin estación</span>
+                <div>
+                    <button class="btn-asignar-estacion-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                            data-id="${operador.id}" data-nombre="${operador.nombre || ''}">
+                        <i class="fas fa-laptop mr-1"></i>Asignar
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 
-        // Ordenar los datos
-        const datosParaOrdenar = datosFiltradosAsignacion.length > 0 ? 
-            datosFiltradosAsignacion : datosAsignacion;
+    function formatearLlaveOperador(operador) {
+        if (operador.llave) {
+            return `
+                <div class="space-y-1">
+                    <div class="font-medium text-gray-900">${operador.llave.nro_estacion}</div>
+                    <div class="text-xs text-gray-500">
+                        R:${operador.llave.contador_r} C:${operador.llave.contador_c}
+                    </div>
+                </div>
+            `;
+        }
+        return '<span class="text-gray-400 italic text-sm">Sin llave</span>';
+    }
 
-        datosParaOrdenar.sort((a, b) => {
-            let valorA, valorB;
-
-            switch(columnaOrdenAsignacion) {
-                case 'codigo_equipo':
-                    valorA = a.codigo_equipo || '';
-                    valorB = b.codigo_equipo || '';
-                    break;
-                case 'modelo':
-                    valorA = a.modelo || '';
-                    valorB = b.modelo || '';
-                    break;
-                case 'nro_estacion':
-                    valorA = a.llave?.nro_estacion || 0;
-                    valorB = b.llave?.nro_estacion || 0;
-                    break;
-                case 'contadores':
-                    valorA = (a.llave?.contador_r || 0) + (a.llave?.contador_c || 0);
-                    valorB = (b.llave?.contador_r || 0) + (b.llave?.contador_c || 0);
-                    break;
-                case 'destino':
-                    const destinoA = formatearDestino(a).toLowerCase();
-                    const destinoB = formatearDestino(b).toLowerCase();
-                    valorA = destinoA.includes('conflicto') ? '!!!' + destinoA : destinoA;
-                    valorB = destinoB.includes('conflicto') ? '!!!' + destinoB : destinoB;
-                    break;
-                case 'ruta':
-                    valorA = a.centro_empadronamiento?.ruta || '';
-                    valorB = b.centro_empadronamiento?.ruta || '';
-                    break;
-                case 'operador':
-                    const operadorA = formatearOperador(a).toLowerCase();
-                    const operadorB = formatearOperador(b).toLowerCase();
-                    valorA = operadorA.includes('no asignada') ? 'zzz' + operadorA : operadorA;
-                    valorB = operadorB.includes('no asignada') ? 'zzz' + operadorB : operadorB;
-                    break;
-                case 'carnet':
-                    valorA = a.operador?.carnet || '';
-                    valorB = b.operador?.carnet || '';
-                    break;
-                case 'celular':
-                    valorA = a.operador?.celular || '';
-                    valorB = b.operador?.celular || '';
-                    break;
-                case 'fecha_asignacion':
-                    valorA = new Date(a.fecha_asignacion || 0);
-                    valorB = new Date(b.fecha_asignacion || 0);
-                    break;
-                case 'tipo_estacion':
-                    valorA = a.tipo_estacion || '';
-                    valorB = b.tipo_estacion || '';
-                    break;
-                default:
-                    return 0;
+        function formatearDestinoOperador(operador) {
+            if (operador.centro_empadronamiento) {
+                return `
+                    <div class="space-y-1">
+                        <div class="font-medium text-gray-900">${operador.centro_empadronamiento.nombre}</div>
+                        <div class="text-xs text-gray-500">
+                            ${operador.centro_empadronamiento.ruta || ''}
+                        </div>
+                        <button class="btn-liberar-destino-operador text-xs text-red-600 hover:text-red-800"
+                                data-id="${operador.id}" data-id-estacion="${operador.estacion ? operador.estacion.id : ''}">
+                            <i class="fas fa-times mr-1"></i>Liberar
+                        </button>
+                    </div>
+                `;
             }
+            
+            // Verificar si tiene estación para habilitar/deshabilitar el botón
+            const tieneEstacion = operador.estacion !== null;
+            const btnClass = tieneEstacion ? 
+                'bg-green-500 hover:bg-green-600' : 
+                'bg-gray-300 cursor-not-allowed';
+            const disabledAttr = tieneEstacion ? '' : 'disabled';
+            
+            // obtener el id de estacion solo si existe
+            const estacionId = tieneEstacion && operador.estacion ? operador.estacion.id : '';
 
-            if (valorA > valorB) return ordenAscendenteAsignacion ? -1 : 1;
-            if (valorA < valorB) return ordenAscendenteAsignacion ? 1 : -1;
-            return 0;
-        });
-    }
-
-    // Función para ordenar datos de asignación
-    function ordenarDatosAsignacion(columna) {
-        // Si se hace click en la misma columna, invertir el orden
-        if (columnaOrdenAsignacion === columna) {
-            ordenAscendenteAsignacion = !ordenAscendenteAsignacion;
-        } else {
-            columnaOrdenAsignacion = columna;
-            ordenAscendenteAsignacion = false;
+            return `
+                <div class="space-y-2">
+                    <span class="text-gray-400 italic text-sm">Sin destino</span>
+                    <div>
+                        <button class="btn-asignar-destino-operador px-2 py-1 ${btnClass} text-white text-xs rounded transition-colors"
+                                data-id="${operador.id}" data-id-estacion="${estacionId}"
+                                data-nombre="${operador.nombre || ''}"
+                                ${disabledAttr}
+                                ${!tieneEstacion ? 'title="Primero asigne una estación al operador"' : ''}>
+                            <i class="fas fa-map-marker-alt mr-1"></i>Asignar
+                        </button>
+                        ${!tieneEstacion ? 
+                            '<div class="text-xs text-gray-500 mt-1">Requiere estación</div>' : 
+                            ''}
+                    </div>
+                </div>
+            `;
         }
 
-        // Aplicar el nuevo orden
-        aplicarOrdenAsignacion();
+    function generarAccionesOperador(operador) {
+        let acciones = '';
         
-        // Mantener la página actual en lugar de volver a la primera
-        // paginaActualAsignacion = 1; // <-- ESTO SE ELIMINA
+        if (operador.estacion) {
+            acciones += `
+                <button class="btn-detalles-estacion text-blue-600 hover:text-blue-800 mx-1"
+                        data-id="${operador.estacion.id}" title="Ver detalles estación">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+            `;
+        }
         
-        renderizarTablaAsignacionConDatosActuales();
-        actualizarPaginacionAsignacion();
+        acciones += `
+            <button class="btn-editar-operador text-yellow-600 hover:text-yellow-800 mx-1"
+                    data-id="${operador.id}" title="Editar operador">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-eliminar-operador-completo text-red-600 hover:text-red-800 mx-1"
+                    data-id="${operador.id}" title="Eliminar operador">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        return `<div class="flex justify-center">${acciones}</div>`;
     }
 
+    function getTipoOperadorColor(tipo) {
+        switch(tipo) {
+            case 'Operador Urbano': return 'bg-blue-100 text-blue-800';
+            case 'Logistico': return 'bg-green-100 text-green-800';
+            case 'Supervisor': return 'bg-purple-100 text-purple-800';
+            default: return 'bg-gray-100 text-gray-800';
+        }
+    }
 
     // Función para renderizar con datos actuales
-    function renderizarTablaAsignacionConDatosActuales() {
-        const datosParaRender = datosFiltradosAsignacion.length > 0 ? 
-            datosFiltradosAsignacion : datosAsignacion;
-        renderizarTablaAsignacion(datosParaRender);
+    function renderizarTablaOperadoresConDatosActuales() {
+        const datosParaRender = datosFiltradosOperadores.length > 0 ? 
+            datosFiltradosOperadores : datosOperadores;
+        renderizarTablaOperadores(datosParaRender);
     }
 
-    // Función para actualizar paginación
-    function actualizarPaginacionAsignacion() {
-        const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
-            datosFiltradosAsignacion : datosAsignacion;
-        const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
-        const infoPagina = document.getElementById('info-pagina-asignacion');
-        const btnPrev = document.getElementById('btn-prev-asignacion');
-        const btnNext = document.getElementById('btn-next-asignacion');
+    // Función para actualizar paginación de operadores
+    function actualizarPaginacionOperadores() {
+        const datosParaPaginacion = datosFiltradosOperadores.length > 0 ? 
+            datosFiltradosOperadores : datosOperadores;
+        const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaOperadores);
+        const infoPagina = document.getElementById('info-pagina-operadores');
+        const btnPrev = document.getElementById('btn-prev-operadores');
+        const btnNext = document.getElementById('btn-next-operadores');
 
-        infoPagina.textContent = `Página ${paginaActualAsignacion} de ${totalPaginas}`;
+        infoPagina.textContent = `Página ${paginaActualOperadores} de ${totalPaginas}`;
         
-        btnPrev.disabled = paginaActualAsignacion === 1;
-        btnPrev.classList.toggle('disabled:opacity-50', paginaActualAsignacion === 1);
-        btnPrev.classList.toggle('disabled:cursor-not-allowed', paginaActualAsignacion === 1);
+        btnPrev.disabled = paginaActualOperadores === 1;
+        btnPrev.classList.toggle('disabled:opacity-50', paginaActualOperadores === 1);
+        btnPrev.classList.toggle('disabled:cursor-not-allowed', paginaActualOperadores === 1);
         
-        btnNext.disabled = paginaActualAsignacion === totalPaginas;
-        btnNext.classList.toggle('disabled:opacity-50', paginaActualAsignacion === totalPaginas);
-        btnNext.classList.toggle('disabled:cursor-not-allowed', paginaActualAsignacion === totalPaginas);
+        btnNext.disabled = paginaActualOperadores === totalPaginas;
+        btnNext.classList.toggle('disabled:opacity-50', paginaActualOperadores === totalPaginas);
+        btnNext.classList.toggle('disabled:cursor-not-allowed', paginaActualOperadores === totalPaginas);
     }
 
-    // Event listeners para asignación
-    document.addEventListener('DOMContentLoaded', function() {
-        // Event listeners para ordenamiento
-        document.querySelectorAll('.sortable-asignacion').forEach(header => {
-            header.addEventListener('click', () => {
-                const columna = header.getAttribute('data-sort');
-                ordenarDatosAsignacion(columna);
-            });
-        });
-
-        // Event listener para búsqueda
-        document.getElementById('buscador-asignacion').addEventListener('input', (e) => {
-            const texto = e.target.value.toLowerCase();
-            
-            if (texto === '') {
-                datosFiltradosAsignacion = [];
-                paginaActualAsignacion = 1;
-                renderizarTablaAsignacionConDatosActuales();
-                actualizarPaginacionAsignacion();
-            } else {
-                datosFiltradosAsignacion = datosAsignacion.filter(item => {
-                    const codEquipo = item.codigo_equipo ? item.codigo_equipo.toLowerCase() : '';
-                    const modelo = item.modelo ? item.modelo.toLowerCase() : '';
-                    const nroEstacion = item.llave?.nro_estacion ? item.llave.nro_estacion.toString() : '';
-                    const destino = formatearDestino(item).toLowerCase();
-                    const operador = formatearOperador(item).toLowerCase();
-                    const carnet = item.operador?.carnet ? item.operador.carnet.toLowerCase() : '';
-                    
-                    return codEquipo.includes(texto) ||
-                          modelo.includes(texto) ||
-                          nroEstacion.includes(texto) ||
-                          destino.includes(texto) ||
-                          operador.includes(texto) ||
-                          carnet.includes(texto);
-                });
-                
-                paginaActualAsignacion = 1;
-                renderizarTablaAsignacionConDatosActuales();
-                actualizarPaginacionAsignacion();
-            }
-        });
-
-        // Botón de actualizar
-        document.getElementById('btn-refresh-asignacion').addEventListener('click', () => {
-            const btn = document.getElementById('btn-refresh-asignacion');
-            const icon = btn.querySelector('i');
-            
-            icon.classList.remove('fa-sync-alt');
-            icon.classList.add('fa-spinner', 'loading');
-            
-            cargarDatosAsignacion().finally(() => {
-                icon.classList.remove('fa-spinner', 'loading');
-                icon.classList.add('fa-sync-alt');
-            });
-            cargarOperadores();
-            cargarCentrosEmpadronamiento();
-        });
-
-        // Paginación
-        document.getElementById('btn-prev-asignacion').addEventListener('click', () => {
-            if (paginaActualAsignacion > 1) {
-                paginaActualAsignacion--;
-                renderizarTablaAsignacionConDatosActuales();
-                actualizarPaginacionAsignacion();
-            }
-        });
-
-        document.getElementById('btn-next-asignacion').addEventListener('click', () => {
-            const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
-                datosFiltradosAsignacion : datosAsignacion;
-            const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
-            
-            if (paginaActualAsignacion < totalPaginas) {
-                paginaActualAsignacion++;
-                renderizarTablaAsignacionConDatosActuales();
-                actualizarPaginacionAsignacion();
-            }
-        });
-
-        // Cargar datos cuando se active el panel
-        document.querySelector('.menu-item[data-target="asignacion"]').addEventListener('click', () => {
-            if (datosAsignacion.length === 0) {
-                cargarDatosAsignacion();
-                cargarOperadores();
-                cargarCentrosEmpadronamiento();
-            }
-        });
-    });
-
-    // Función para formatear destino con botones
-    function formatearDestino(item) {
-        const tieneCentroEmpadronamiento = item.centro_empadronamiento && item.centro_empadronamiento.nombre;
+    // Función de filtrado para incluir filtro por estación en la búsqueda
+    function filtrarOperadores() {
+        const textoBusqueda = document.getElementById('buscador-operadores').value.toLowerCase();
+        const tipoSeleccionado = document.getElementById('filtro-tipo-operador').value;
+        const estacionFiltro = document.getElementById('filtro-con-estacion').value;
+        const llaveFiltro = document.getElementById('filtro-con-llave').value;
         
-        if (tieneCentroEmpadronamiento) {
-            return `
-                <div class="space-y-2">
-                    <span class="text-green-600 text-sm">${item.centro_empadronamiento.nombre}</span>
-                    <div class="flex flex-wrap gap-1">
-                        <button class="btn-eliminar-destino px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
-                            <i class="fas fa-trash mr-1"></i>Eliminar
-                        </button>
+        datosFiltradosOperadores = datosOperadores.filter(operador => {
+            // Filtro por texto de búsqueda
+            const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.toLowerCase();
+            const carnet = operador.carnet ? operador.carnet.toLowerCase() : '';
+            const username = operador.username ? operador.username.toLowerCase() : '';
+            const estacionCodigo = operador.estacion?.codigo_equipo ? operador.estacion.codigo_equipo.toLowerCase() : '';
+            const llaveNro = operador.llave?.nro_estacion ? operador.llave.nro_estacion.toString() : '';
+            const destinoNombre = operador.centro_empadronamiento?.nombre ? operador.centro_empadronamiento.nombre.toLowerCase() : '';
+            
+            const pasaBusqueda = textoBusqueda === '' ||
+                nombreCompleto.includes(textoBusqueda) ||
+                carnet.includes(textoBusqueda) ||
+                username.includes(textoBusqueda) ||
+                estacionCodigo.includes(textoBusqueda) ||
+                llaveNro.includes(textoBusqueda) ||
+                destinoNombre.includes(textoBusqueda);
+            
+            // Filtro por tipo
+            const pasaTipo = tipoSeleccionado === '' || operador.tipo_operador === tipoSeleccionado;
+            
+            // Filtro por estación
+            let pasaEstacion = true;
+            if (estacionFiltro === 'con_estacion') {
+                pasaEstacion = operador.estacion !== null;
+            } else if (estacionFiltro === 'sin_estacion') {
+                pasaEstacion = operador.estacion === null;
+            }
+            
+            // Filtro por llave
+            let pasaLLave = true;
+            if (llaveFiltro === 'con_llave') {
+                pasaLLave = operador.llave !== null;
+            } else if (llaveFiltro === 'sin_llave') {
+                pasaLLave = operador.llave === null;
+            }
+            
+            return pasaBusqueda && pasaTipo && pasaEstacion && pasaLLave;
+        });
+        
+        paginaActualOperadores = 1;
+        renderizarTablaOperadoresConDatosActuales();
+        actualizarPaginacionOperadores();
+    }
+
+    // Funciones para modal de estación
+    async function abrirModalEstacionOperador(operadorId, nombreOperador) {
+        operadorActualModal = operadorId;
+        
+        document.getElementById('titulo-modal-estacion').textContent = 
+            `Asignar Estación a ${nombreOperador}`;
+        
+        // Limpiar selección anterior
+        estacionSeleccionadaAsignacion = null;
+        document.getElementById('estacion-seleccionada').classList.add('hidden');
+        document.getElementById('buscador-modal-estaciones').value = '';
+        document.getElementById('btn-confirmar-estacion-operador').disabled = true;
+        
+        // Cargar estaciones disponibles (sin operador asignado)
+        renderizarListaEstaciones(estaciones);
+        
+        // Mostrar modal
+        document.getElementById('modal-estacion-operador').classList.remove('hidden');
+    }
+
+    // FUNCION PARA CARGAR ESTACIONES
+    async function cargarEstacionesDisponibles() {
+        try {
+            const response = await fetch('/api/info-estaciones/');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    estaciones = data.data;
+                }
+            }
+            return [];
+        } catch (error) {
+            console.error('Error al cargar estaciones disponibles:', error);
+            return [];
+        }
+    }
+
+    // FUNCION PARA CARGAR LOS CENTROS DE EMPADRONAMIENTO
+    async function cargarCentrosEmpadronamiento(){
+        try {
+            const response = await fetch('/lista-centros-empadronamiento/');
+            if (response.ok) {
+                const data = await response.json();
+                centrosEmpadronamiento = data;
+            }
+        } catch (error) {
+            console.error('Error al cargar centros disponibles:', error);
+            return [];
+        }
+    }
+
+    // función renderizarListaEstaciones para mostrar más información
+    function renderizarListaEstaciones(estaciones) {
+        const lista = document.getElementById('lista-estaciones');
+        lista.innerHTML = '';
+        
+        if (estaciones.length === 0) {
+            lista.innerHTML = `
+                <div class="p-4 text-center text-gray-500">
+                    No hay estaciones disponibles
+                </div>
+            `;
+            return;
+        }
+        
+        // Ordenar estaciones por código
+        estaciones.sort((a, b) => a.codigo_equipo.localeCompare(b.codigo_equipo));
+        
+        estaciones.forEach(estacion => {
+            const item = document.createElement('div');
+            item.className = 'estacion-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200';
+            
+            const tipoIcono = estacion.tipo_estacion === 'MOVIL' ? 
+                '<i class="fas fa-mobile-alt text-green-500 mr-1 text-xs"></i>' : 
+                '<i class="fas fa-laptop text-blue-500 mr-1 text-xs"></i>';
+            
+            const llaveInfo = estacion.llave ? 
+                `<div class="text-xs text-gray-500">Llave: ${estacion.llave.nro_estacion}</div>` :
+                '<div class="text-xs text-red-500">Sin llave</div>';
+            
+            item.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-medium">${estacion.codigo_equipo}</div>
+                        <div class="text-sm text-gray-600">${estacion.modelo}</div>
+                        ${llaveInfo}
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs ${estacion.tipo_estacion === 'MOVIL' ? 'text-green-600' : 'text-blue-600'}">
+                            ${tipoIcono} ${estacion.tipo_estacion}
+                        </div>
+                        <div class="text-xs ${estacion.fase === 'Masterizado' ? 'text-green-600' : 'text-yellow-600'}">
+                            ${estacion.fase}
+                        </div>
                     </div>
                 </div>
             `;
-        }
-        
-        return `
-            <div class="space-y-2">
-                <span class="text-gray-400 italic text-sm">No asignada</span>
-                <div class="flex flex-wrap gap-1">
-                    <button class="btn-asignar-centro-empadronamiento px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors" 
-                            data-id="${item.id}" data-codigo="${item.codigo_equipo}">
-                        <i class="fas fa-map-marker-alt mr-1"></i>Punto Emp.
-                    </button>
-                </div>
-            </div>
-        `;
+            
+            item.onclick = () => seleccionarEstacion(estacion);
+            lista.appendChild(item);
+        });
     }
 
-    // Función para formatear operador con botones
-    function formatearOperador(item) {
-        if (item.operador && item.operador.nombre) {
-            const nombre = item.operador.nombre || '';
-            const apellidoPaterno = item.operador.apellido_paterno || '';
-            const apellidoMaterno = item.operador.apellido_materno || '';
-            
-            const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-            return `
-                <div class="space-y-2">
-                    <span class="text-gray-700 text-sm">${nombreCompleto}</span>
-                    <div class="flex flex-wrap gap-1">
-                        <button class="btn-eliminar-operador px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-codigo="${item.codigo_equipo}">
-                            <i class="fas fa-user-times mr-1"></i>Eliminar
-                        </button>
-                    </div>
-                </div>
-            `;
+    // función seleccionarEstacion para mostrar más información
+    function seleccionarEstacion(estacion) {
+        estacionSeleccionadaAsignacion = estacion;
+        
+        // Remover selección anterior
+        document.querySelectorAll('.estacion-item').forEach(item => {
+            item.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
+        });
+        
+        // Agregar clase al item seleccionado
+        const selectedItem = Array.from(document.querySelectorAll('.estacion-item')).find(item => {
+            return item.textContent.includes(estacion.codigo_equipo);
+        });
+        
+        if (selectedItem) {
+            selectedItem.classList.add('bg-blue-50', 'border-l-4', 'border-l-blue-500');
         }
         
-        return `
+        // Mostrar estación seleccionada con más información
+        const panelSeleccionado = document.getElementById('estacion-seleccionada');
+        panelSeleccionado.classList.remove('hidden');
+        
+        const tipoIcono = estacion.tipo_estacion === 'MOVIL' ? 
+            '<i class="fas fa-mobile-alt text-green-500 mr-1"></i>' : 
+            '<i class="fas fa-laptop text-blue-500 mr-1"></i>';
+        
+        const llaveInfo = estacion.llave ? 
+            `<p class="text-sm text-gray-600">Llave: <b>${estacion.llave.nro_estacion}</b> (R:${estacion.llave.contador_r} C:${estacion.llave.contador_c})</p>` :
+            '<p class="text-sm text-gray-600">Llave: <b class="text-red-500">No asignada</b></p>';
+        
+        panelSeleccionado.innerHTML = `
             <div class="space-y-2">
-                <span class="text-gray-400 italic text-sm">No asignado</span>
-                <div class="flex flex-wrap gap-1">
-                    <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                            data-id="${item.id}" data-codigo="${item.codigo_equipo}">
-                        <i class="fas fa-user-plus mr-1"></i>Asignar
-                    </button>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold text-lg">${estacion.codigo_equipo}</h4>
+                        <p class="text-sm text-gray-600">${estacion.modelo}</p>
+                    </div>
+                    <div class="text-right">
+                        ${tipoIcono} <span class="font-medium">${estacion.tipo_estacion}</span>
+                        <div class="text-xs ${estacion.fase === 'Masterizado' ? 'text-green-600' : 'text-yellow-600'}">
+                            ${estacion.fase}
+                        </div>
+                    </div>
                 </div>
+                ${llaveInfo}
             </div>
         `;
+        
+        // Habilitar botón de asignar
+        document.getElementById('btn-confirmar-estacion-operador').disabled = false;
     }
-    // Función para formatear fecha
-    function formatearFecha(fecha) {
-        if (!fecha) {
-            return `<span class="text-gray-400 italic">Sin fecha</span>`;
+
+    // Función para asignar estación a operador
+    async function confirmarAsignacionEstacionOperador() {
+        if (!estacionSeleccionadaAsignacion || !operadorActualModal) {
+            alert('Seleccione una estación');
+            return;
+        }
+
+        // Verificar si la estación ya está asignada a otro operador
+        const operadorConEstaEstacion = datosOperadores.find(op => 
+            op.estacion && op.estacion.id === estacionSeleccionadaAsignacion.id
+        );
+
+        if (operadorConEstaEstacion) {
+            const nombreOperadorActual = `${operadorConEstaEstacion.nombre || ''} ${operadorConEstaEstacion.apellido_paterno || ''} CI: ${operadorConEstaEstacion.carnet}`.trim();
+            const confirmacion = confirm(
+                `Esta estación ya está asignada al operador: ${nombreOperadorActual}\n\n` +
+                `¿Desea asignarla?`
+            );
+            
+            if (!confirmacion) {
+                return;
+            }
         }
         
         try {
-            const fechaObj = new Date(fecha);
-            return fechaObj.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            const payload = {
+                estacion: estacionSeleccionadaAsignacion.id
+            };
+            
+            const response = await fetch(`/api/operadores/${operadorActualModal}/`, {
+                method: "PATCH",
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify(payload),
+                credentials: "include",
             });
-        } catch (e) {
-            return `<span class="text-gray-400 italic">Fecha inválida</span>`;
+            
+            if (response.ok) {
+                alert('Estación asignada correctamente');
+                cerrarModalEstacionOperador();
+                await Promise.all([
+                    cargarDatosOperadores(),
+                ]);
+                
+            } else {
+                throw new Error('Error al asignar estación');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al asignar estación: ' + error.message);
         }
     }
 
-    // Event listeners para los botones
-    document.addEventListener('DOMContentLoaded', function() {
-        // Delegación de eventos para botones dinámicos
-        document.addEventListener('click', function(e) {
-            // Botones de destino
-            if (e.target.classList.contains('btn-eliminar-destino') || 
-                    e.target.closest('.btn-eliminar-destino')) {
-                const button = e.target.classList.contains('btn-eliminar-destino') ? 
-                    e.target : e.target.closest('.btn-eliminar-destino');
-                
-                const estacionId = button.getAttribute('data-id');
-                eliminarDestino(estacionId);
-            }
-        });
-
-        // Cerrar modales al hacer click fuera
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.add('hidden');
-                }
+    // Modificar la función de liberar estación
+    async function liberarEstacionOperador(operadorId, estacionId) {
+        if (!confirm('¿Está seguro de liberar esta estación del operador?\n\nNota: Si el operador tiene un punto de empadronamiento asignado, también será liberado.')) {
+            return;
+        }
+        
+        try {
+            const payload = {
+                estacion: null // Liberar la  estacion
+            };
+        
+            const response = await fetch(`/api/operadores/${operadorId}/`, {
+                method: "PATCH",
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify(payload),
+                credentials: "include",
             });
-        });
-    });
-    // Función para cerrar modal
-    function cerrarModalAsignacion(modalId) {
-        document.getElementById(modalId).classList.add('hidden');
+            
+            if (response.ok) {
+                alert('Estación y punto de empadronamiento liberados correctamente');
+                
+                // Actualizar ambas tablas
+                await Promise.all([
+                    cargarDatosOperadores()
+                ]);
+                
+            } else {
+                throw new Error('Error al liberar estación');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al liberar estación: ' + error.message);
+        }
     }
 
-    // Función para abrir modal de centro de empadronamiento
-    async function abrirModalCentroEmpadronamiento(estacionId, estacionCodigo) {
-        estacionActualIDAsignacion = estacionId;
-        estacionActualCodigoAsignacion = estacionCodigo;
+    // Función abrirModalCentroOperador para verificar si tiene estación
+    async function abrirModalCentroOperador(operadorId, nombreOperador, estacionId) {
+        // Verificar si el operador tiene estación
+        const operador = datosOperadores.find(op => op.id == operadorId);
+        if (!operador || !operador.estacion) {
+            alert('El operador debe tener una estación asignada antes de asignarle un punto de empadronamiento');
+            return;
+        }
         
-        document.getElementById('titulo-modal-centro-empadronamiento').textContent = 
-            `Asignar Punto de Empadronamiento a ${estacionCodigo}`;
-        document.getElementById('centro-seleccionado').classList.add('hidden');
-        document.getElementById('centro-seleccionado').innerHTML = '';
-        document.getElementById('buscador-modal-centros').value = '';
-        document.getElementById('btn-confirmar-centro-empadronamiento').disabled = true;
-        centrosEmpadronamientoSeleccionado = null;
+        operadorActualModal = operadorId;
+        estacionActualModal = estacionId;
         
-        // Renderizar primeros 20 centros
-        renderizarCentrosEmpadronamientoLista(listaCentrosEmpadronamiento.slice(0, 20));
+        document.getElementById('titulo-modal-centro-operador').textContent = 
+            `Asignar Punto de Empadronamiento a ${nombreOperador}`;
+        
+        // Mostrar información de la estación del operador
+        const infoEstacion = operador.estacion ? 
+            `Estación asignada: <b>${operador.estacion.codigo_equipo}</b>` : 
+            'Sin estación asignada';
+        
+        // Limpiar selección anterior
+        centroEmpadronamientoSeleccionado = null;
+        document.getElementById('centro-seleccionado-operador').classList.add('hidden');
+        document.getElementById('buscador-modal-centros-operador').value = '';
+        document.getElementById('btn-confirmar-centro-operador').disabled = true;
+        
+        // Agregar información de la estación al modal
+        const modalBody = document.querySelector('#modal-centro-operador .modal-body');
+        let infoEstacionElement = modalBody.querySelector('.info-estacion-operador');
+        if (!infoEstacionElement) {
+            infoEstacionElement = document.createElement('div');
+            infoEstacionElement.className = 'info-estacion-operador mb-3 p-2 bg-blue-50 rounded text-sm';
+            modalBody.insertBefore(infoEstacionElement, modalBody.firstChild);
+        }
+        infoEstacionElement.innerHTML = `<i class="fas fa-laptop text-blue-500 mr-1"></i> ${infoEstacion}`;
+        
+        // Renderizar centros de empadronamiento
+        renderizarListaCentrosOperador(centrosEmpadronamiento);
         
         // Mostrar modal
-        document.getElementById('modal-centro-empadronamiento').classList.remove('hidden');
+        document.getElementById('modal-centro-operador').classList.remove('hidden');
     }
 
-    // Función para renderizar centros en la lista (máximo 20)
-    function renderizarCentrosEmpadronamientoLista(centros) {
-        const lista = document.getElementById('lista-centros');
+    function renderizarListaCentrosOperador(centros) {
+        const lista = document.getElementById('lista-centros-operador');
         lista.innerHTML = '';
         
         if (centros.length === 0) {
             lista.innerHTML = `
                 <div class="p-4 text-center text-gray-500">
-                    No se encontraron centros de empadronamiento
+                    No hay centros de empadronamiento disponibles
                 </div>
             `;
             return;
@@ -3190,20 +3455,20 @@ function crearCardEnClonacion(item) {
         
         centrosAMostrar.forEach(centro => {
             const item = document.createElement('div');
-            item.className = 'centro-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200';
+            item.className = 'centro-item-operador p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200';
             
             item.innerHTML = `
-                <div class="font-medium">${centro.nombre_ruta} ${centro.punto_de_empadronamiento}</div>
-                <div class="text-sm text-gray-600">Provincia: ${centro.provincia}</div>
-                <div class="text-xs text-gray-500">Municipio: ${centro.municipio}</div>
+                <div class="font-medium">${centro.punto_de_empadronamiento}</div>
+                <div class="text-sm text-gray-600">${centro.nombre_ruta}</div>
+                <div class="text-xs text-gray-500">${centro.municipio}, ${centro.provincia}</div>
             `;
             
-            item.onclick = () => seleccionarCentroEmpadronamiento(centro);
+            item.onclick = () => seleccionarCentroOperador(centro);
             lista.appendChild(item);
         });
         
         // Si hay más de 20 centros, mostrar mensaje
-        if (centros.length > 19) {
+        if (centros.length > 20) {
             const mensaje = document.createElement('div');
             mensaje.className = 'p-2 text-center text-xs text-gray-500 border-t';
             mensaje.textContent = `Mostrando 20 de ${centros.length} centros. Use la búsqueda para encontrar más.`;
@@ -3211,17 +3476,16 @@ function crearCardEnClonacion(item) {
         }
     }
 
-    // Función para seleccionar centro de empadronamiento
-    function seleccionarCentroEmpadronamiento(centro) {
-        centrosEmpadronamientoSeleccionado = centro;
+    function seleccionarCentroOperador(centro) {
+        centroEmpadronamientoSeleccionado = centro;
         
         // Remover selección anterior
-        document.querySelectorAll('.centro-item').forEach(item => {
+        document.querySelectorAll('.centro-item-operador').forEach(item => {
             item.classList.remove('bg-green-50', 'border-l-4', 'border-l-green-500');
         });
         
         // Agregar clase al item seleccionado
-        const selectedItem = Array.from(document.querySelectorAll('.centro-item')).find(item => {
+        const selectedItem = Array.from(document.querySelectorAll('.centro-item-operador')).find(item => {
             return item.textContent.includes(centro.nombre);
         });
         
@@ -3230,475 +3494,286 @@ function crearCardEnClonacion(item) {
         }
         
         // Mostrar centro seleccionado
-        const panelSeleccionado = document.getElementById('centro-seleccionado');
+        const panelSeleccionado = document.getElementById('centro-seleccionado-operador');
         panelSeleccionado.classList.remove('hidden');
         
         panelSeleccionado.innerHTML = `
             <div>
-                <h4 class="font-bold text-lg">${centro.nombre_ruta} ${centro.punto_de_empadronamiento}</h4>
-                <p class="text-sm text-gray-600">Provincia: <b>${centro.provincia}</b></p>
-                <p class="text-sm text-gray-600">Municipio: <b>${centro.municipio}</b></p>
+                <h4 class="font-bold">${centro.nombre_ruta} ${centro.punto_de_empadronamiento}</h4>
+                <p class="text-sm text-gray-600">${centro.nombre}</p>
+                <p class="text-xs text-gray-500">${centro.municipio}, ${centro.provincia}, ${centro.departamento}</p>
             </div>
         `;
         
         // Habilitar botón de asignar
-        const btnAsignar = document.getElementById('btn-confirmar-centro-empadronamiento');
-        btnAsignar.disabled = false;
-        btnAsignar.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
+        document.getElementById('btn-confirmar-centro-operador').disabled = false;
     }
 
-    // Actualizar el event listener para centros de empadronamiento
+    // Función para asignar centro de empadronamiento a operador
+    async function confirmarAsignacionCentroOperador() {
+        if (!centroEmpadronamientoSeleccionado || !operadorActualModal || !estacionActualModal) {
+            alert('Seleccione un centro de empadronamiento');
+            return;
+        }
+        
+        try {
+            const payload = {
+                centro_empadronamiento: centroEmpadronamientoSeleccionado.id
+            };
+            
+            const response = await fetch(`/api/estaciones/${estacionActualModal}/`, {
+                method: "PATCH",
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify(payload),
+                credentials: "include",
+            });
+            
+            if (response.ok) {
+                alert('Punto de empadronamiento asignado correctamente');
+                cerrarModalCentroOperador();
+                cargarDatosOperadores();
+            } else {
+                throw new Error('Error al asignar punto de empadronamiento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al asignar punto de empadronamiento: ' + error.message);
+        }
+    }
+
+    // Función para liberar destino de operador
+    async function liberarDestinoOperador(operadorId, estacionId) {
+        if (!confirm('¿Está seguro de liberar el punto de empadronamiento del operador?')) {
+            return;
+        }
+        console.log(estacionId)
+        try {
+            const payload = {
+                centro_empadronamiento: null
+            };
+            
+            const response = await fetch(`/api/estaciones/${estacionId}/`, {
+                method: "PATCH",
+                headers: {
+                    'Accept': 'application/json',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify(payload),
+                credentials: "include",
+            });
+            
+            if (response.ok) {
+                alert('Punto de empadronamiento liberado correctamente');
+                cargarDatosOperadores();
+            } else {
+                throw new Error('Error al liberar punto de empadronamiento');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al liberar punto de empadronamiento: ' + error.message);
+        }
+    }
+
+    // Funciones para cerrar modales
+    function cerrarModalEstacionOperador() {
+        document.getElementById('modal-estacion-operador').classList.add('hidden');
+    }
+
+    function cerrarModalCentroOperador() {
+        // Limpiar la información de estación
+        const infoEstacionElement = document.querySelector('#modal-centro-operador .info-estacion-operador');
+        if (infoEstacionElement) {
+            infoEstacionElement.remove();
+        }
+        
+        document.getElementById('modal-centro-operador').classList.add('hidden');
+    }
+
+    // Event Listeners para operadores
     document.addEventListener('DOMContentLoaded', function() {
-        // Buscador en tiempo real para centros de empadronamiento
-        document.getElementById('buscador-modal-centros').addEventListener('input', (e) => {
+        
+        // Event listeners para ordenamiento de operadores
+        document.querySelectorAll('.sortable-operador').forEach(header => {
+            header.addEventListener('click', () => {
+                const columna = header.getAttribute('data-sort');
+                ordenarDatosOperadores(columna);
+            });
+        });
+        
+        // Event listener para búsqueda de operadores
+        document.getElementById('buscador-operadores').addEventListener('input', filtrarOperadores);
+        
+        // Event listeners para filtros
+        document.getElementById('filtro-tipo-operador').addEventListener('change', filtrarOperadores);
+        document.getElementById('filtro-con-estacion').addEventListener('change', filtrarOperadores);
+        document.getElementById('filtro-con-llave').addEventListener('change', filtrarOperadores);
+        
+        // Botón de actualizar operadores
+        document.getElementById('btn-refresh-operadores').addEventListener('click', () => {
+            const btn = document.getElementById('btn-refresh-operadores');
+            const icon = btn.querySelector('i');
+            
+            icon.classList.remove('fa-sync-alt');
+            icon.classList.add('fa-spinner', 'loading');
+            
+            cargarDatosOperadores().finally(() => {
+                icon.classList.remove('fa-spinner', 'loading');
+                icon.classList.add('fa-sync-alt');
+            });
+        });
+        
+        // Paginación de operadores
+        document.getElementById('btn-prev-operadores').addEventListener('click', () => {
+            if (paginaActualOperadores > 1) {
+                paginaActualOperadores--;
+                renderizarTablaOperadoresConDatosActuales();
+                actualizarPaginacionOperadores();
+            }
+        });
+        
+        document.getElementById('btn-next-operadores').addEventListener('click', () => {
+            const datosParaPaginacion = datosFiltradosOperadores.length > 0 ? 
+                datosFiltradosOperadores : datosOperadores;
+            const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaOperadores);
+            
+            if (paginaActualOperadores < totalPaginas) {
+                paginaActualOperadores++;
+                renderizarTablaOperadoresConDatosActuales();
+                actualizarPaginacionOperadores();
+            }
+        });
+        
+        // Delegación de eventos para botones dinámicos en tabla de operadores
+        document.addEventListener('click', function(e) {
+            // Botones para asignar estación a operador
+            if (e.target.classList.contains('btn-asignar-estacion-operador') || 
+                e.target.closest('.btn-asignar-estacion-operador')) {
+                const button = e.target.classList.contains('btn-asignar-estacion-operador') ? 
+                    e.target : e.target.closest('.btn-asignar-estacion-operador');
+                
+                const operadorId = button.getAttribute('data-id');
+                const nombreOperador = button.getAttribute('data-nombre');
+                abrirModalEstacionOperador(operadorId, nombreOperador);
+            }
+            
+            // Botones para liberar estación
+            else if (e.target.classList.contains('btn-liberar-estacion') || 
+                    e.target.closest('.btn-liberar-estacion')) {
+                const button = e.target.classList.contains('btn-liberar-estacion') ? 
+                    e.target : e.target.closest('.btn-liberar-estacion');
+                
+                const operadorId = button.getAttribute('data-id');
+                const estacionId = button.getAttribute('data-estacion-id');
+                liberarEstacionOperador(operadorId, estacionId);
+            }
+            
+            // Botones para asignar destino a estacion
+            else if (e.target.classList.contains('btn-asignar-destino-operador') || 
+                e.target.closest('.btn-asignar-destino-operador')) {
+                const button = e.target.classList.contains('btn-asignar-destino-operador') ? 
+                    e.target : e.target.closest('.btn-asignar-destino-operador');
+                
+                // Verificar si está deshabilitado
+                if (button.disabled) {
+                    alert('Primero debe asignar una estación al operador');
+                    return;
+                }
+                
+                const operadorId = button.getAttribute('data-id');
+                const nombreOperador = button.getAttribute('data-nombre');
+                const estacionId = button.getAttribute('data-id-estacion');
+                abrirModalCentroOperador(operadorId, nombreOperador, estacionId);
+            }
+
+            // Botones para liberar destino
+            else if (e.target.classList.contains('btn-liberar-destino-operador') || 
+                    e.target.closest('.btn-liberar-destino-operador')) {
+                const button = e.target.classList.contains('btn-liberar-destino-operador') ? 
+                    e.target : e.target.closest('.btn-liberar-destino-operador');
+                
+                const operadorId = button.getAttribute('data-id');
+                const estacionId = button.getAttribute('data-id-estacion');
+                liberarDestinoOperador(operadorId, estacionId);
+            }
+        });
+        
+        // Buscador en modal de estaciones
+        document.getElementById('buscador-modal-estaciones').addEventListener('input', async (e) => {
             const texto = e.target.value.toLowerCase();
             
             if (texto === '') {
-                // Mostrar primeros 15 centros cuando no hay búsqueda
-                renderizarCentrosEmpadronamientoLista(listaCentrosEmpadronamiento.slice(0, 20));
+                renderizarListaEstaciones(estaciones);
             } else {
-                // Filtrar centros
-                const centrosFiltrados = listaCentrosEmpadronamiento.filter(centro => {
-                    const nombre = centro.nombre_ruta ? centro.nombre_ruta.toLowerCase() : '';
-                    const puntoDeEmpadronamiento = centro.punto_de_empadronamiento ? centro.punto_de_empadronamiento.toLowerCase() : '';
+                const estacionesFiltradas = estaciones.filter(estacion => {
+                    const codigo = estacion.codigo_equipo ? estacion.codigo_equipo.toLowerCase() : '';
+                    const modelo = estacion.modelo ? estacion.modelo.toLowerCase() : '';
+                    const tipo = estacion.tipo_estacion ? estacion.tipo_estacion.toLowerCase() : '';
+                    const nroEstacion = estacion.llave?.nro_estacion ? estacion.llave.nro_estacion.toString() : '';
                     
-                    return nombre.includes(texto) || puntoDeEmpadronamiento.includes(texto);
+                    return codigo.includes(texto) || modelo.includes(texto) || tipo.includes(texto) || nroEstacion.includes(texto);
                 });
-                
-                // Mostrar máximo 20 resultados filtrados
-                renderizarCentrosEmpadronamientoLista(centrosFiltrados.slice(0, 20));
+                renderizarListaEstaciones(estacionesFiltradas);
             }
         });
         
-        // Botón confirmar centro de empadronamiento
-        document.getElementById('btn-confirmar-centro-empadronamiento').addEventListener('click', () => {
-            if (!centrosEmpadronamientoSeleccionado) {
-                alert('Por favor seleccione un centro de empadronamiento');
-                return;
-            }
-            
-            // Guardar página actual
-            const paginaGuardada = paginaActualAsignacion;
-            
-            asignarCentroEmpadronamiento(
-                estacionActualIDAsignacion, 
-                centrosEmpadronamientoSeleccionado.id
-            ).then(() => {
-                // Restaurar página después de la operación
-                if (paginaGuardada) {
-                    cargarDatosAsignacionConPagina(paginaGuardada);
-                }
-            });
-        });
-        
-        // Cerrar modal de centro de empadronamiento
-        document.querySelector('.close-modal-centro-empadronamiento').addEventListener('click', () => {
-            document.getElementById('modal-centro-empadronamiento').classList.add('hidden');
-        });
-        
-        // Cerrar modal al hacer click fuera
-        document.getElementById('modal-centro-empadronamiento').addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.add('hidden');
-            }
-        });
-    });
-  
-    // Actualizar event listener para botones de centro de empadronamiento
-    document.addEventListener('DOMContentLoaded', function() {
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn-asignar-centro-empadronamiento') || 
-                e.target.closest('.btn-asignar-centro-empadronamiento')) {
-                const button = e.target.classList.contains('btn-asignar-centro-empadronamiento') ? 
-                    e.target : e.target.closest('.btn-asignar-centro-empadronamiento');
-                
-                const estacionId = button.getAttribute('data-id');
-                const estacionCodigo = button.getAttribute('data-codigo');
-                
-                abrirModalCentroEmpadronamiento(estacionId, estacionCodigo);
-            }
-        });
-    });
-    
-    // Función para abrir modal de operador
-    async function abrirModalOperador(estacionId, estacionCodigo, operadorId) {
-        estacionActualIDAsignacion = estacionId;
-        const codigoEstacion = estacionCodigo;
-        
-        document.getElementById('titulo-modal-operador').textContent = `Asignar Operador a ${codigoEstacion}`;
-        document.getElementById('operador-seleccionado').classList.add('hidden');
-        document.getElementById('operador-seleccionado').innerHTML = '';
-        document.getElementById('buscador-modal-operador').value = '';
-        document.getElementById('btn-confirmar-operador').disabled = true;
-        operadorSeleccionado = null;
-        
-        // Cargar operadores
-        renderizarOperadores(listaOperadoresCompleta);
-        
-        // Mostrar modal
-        document.getElementById('modal-operador').classList.remove('hidden');
-    }
-
-    // Función para renderizar operadores en la lista
-    function renderizarOperadores(operadores) {
-        const lista = document.getElementById('lista-operadores');
-        lista.innerHTML = '';
-        
-        if (operadores.length === 0) {
-            lista.innerHTML = `
-                <div class="p-4 text-center text-gray-500">
-                    No se encontraron operadores
-                </div>
-            `;
-            return;
-        }
-        
-        operadores.forEach(operador => {
-            const item = document.createElement('div');
-            item.className = 'operador-item p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-200';
-            
-            const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
-            const carnet = operador.carnet || 'Sin carnet';
-            const tipo = operador.tipo_operador || 'N/A';
-            
-            item.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="font-medium">${nombreCompleto}</div>
-                        <div class="text-sm text-gray-600">Carnet: ${carnet}</div>
-                        <div class="text-xs text-gray-500">Tipo: ${tipo}</div>
-                    </div>
-                    <div class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
-                        ${operador.celular || 'N/A'}
-                    </div>
-                </div>
-            `;
-            
-            item.onclick = () => seleccionarOperador(operador);
-            lista.appendChild(item);
-        });
-    }
-
-    // Función para seleccionar operador
-    function seleccionarOperador(operador) {
-        operadorSeleccionado = operador;
-        
-        // Remover selección anterior
-        document.querySelectorAll('.operador-item').forEach(item => {
-            item.classList.remove('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-        });
-        
-        // Agregar clase al item seleccionado
-        const selectedItem = Array.from(document.querySelectorAll('.operador-item')).find(item => {
-            const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
-            return item.textContent.includes(nombreCompleto);
-        });
-        
-        if (selectedItem) {
-            selectedItem.classList.add('bg-blue-50', 'border-l-4', 'border-l-blue-500');
-        }
-        
-        // Mostrar operador seleccionado
-        const panelSeleccionado = document.getElementById('operador-seleccionado');
-        panelSeleccionado.classList.remove('hidden');
-        
-        const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.trim();
-        const carnet = operador.carnet || 'Sin carnet';
-        const tipo = operador.tipo_operador || 'N/A';
-        
-        panelSeleccionado.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-bold text-lg">${nombreCompleto}</h4>
-                    <p class="text-sm text-gray-600">Carnet: <b>${carnet}</b></p>
-                    <p class="text-sm text-gray-600">Tipo: <b>${tipo}</b></p>
-                </div>
-                <div class="text-sm text-gray-500">
-                    ${operador.username || ''}
-                </div>
-            </div>
-        `;
-        
-        // Habilitar botón de asignar
-        const btnAsignar = document.getElementById('btn-confirmar-operador');
-        btnAsignar.disabled = false;
-        btnAsignar.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
-    }
-
-    // Función para asignar estacion a operador
-    async function confirmarAsignacionOperador() {
-        if (!operadorSeleccionado) {
-            alert('Por favor seleccione un operador');
-            return;
-        }
-        const payload = {
-          estacion: estacionActualIDAsignacion 
-        }
-        try {
-            const response = await fetch(`/api/operadores/${operadorSeleccionado.id}/`, {
-            method: "PATCH",
-            headers: {
-              'Accept': 'application/json',
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCookie("csrftoken")
-            },
-              body: JSON.stringify(payload),
-              credentials: "include",
-            });
-            
-            if (response.ok) {
-                alert('Estacion asignada a operador exitosamente');
-                cargarDatosAsignacion();
-                cerrarModalOperador();
-            } else {
-                throw new Error(response.status || 'Error al asignar al operador');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al asignar operador: ' + error.message);
-        }
-    }
-
-    // Función para eliminar estacion de operador
-    async function eliminarOperador(estacionId, operadorId) {
-        const payload = {
-          estacion: null 
-        }
-        try {
-            const response = await fetch(`/api/operadores/${operadorId}/`, {
-            method: "PATCH",
-            headers: {
-              'Accept': 'application/json',
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCookie("csrftoken")
-            },
-              body: JSON.stringify(payload),
-              credentials: "include",
-            });
-      
-            if (response.ok) {
-                alert('Operador eliminado correctamente');
-                cargarDatosAsignacion();
-                cargarOperadores();
-            } else {
-                throw new Error(response.status || 'Error al eliminar estacion de operador');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al eliminar operador: ' + error.message);
-        }
-    }
-
-    // Función para cerrar modal de operador
-    function cerrarModalOperador() {
-        document.getElementById('modal-operador').classList.add('hidden');
-    }
-
-    // Actualizar la función formatearOperador para usar el modal
-    function formatearOperador(item) {
-        if (item.operador && item.operador.nombre) {
-            const nombre = item.operador.nombre || '';
-            const apellidoPaterno = item.operador.apellido_paterno || '';
-            const apellidoMaterno = item.operador.apellido_materno || '';
-            const idOperador = item.operador.id || 0 ;
-            
-            const nombreCompleto = `${nombre} ${apellidoPaterno} ${apellidoMaterno}`.trim();
-            return `
-                <div class="space-y-2">
-                    <span class="text-gray-700 text-sm">${nombreCompleto}</span>
-                    <div class="flex flex-wrap gap-1">
-                        <button class="btn-eliminar-operador px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors" 
-                                data-id="${item.id}" data-operador="${idOperador}" data-codigo-estacion="${item.codigo_equipo}">
-                            <i class="fas fa-user-times mr-1"></i>Eliminar
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        const idOperador = item.operador.id || 0 ;
-        return `
-            <div class="space-y-2">
-                <span class="text-gray-400 italic text-sm">No asignado</span>
-                <div class="flex flex-wrap gap-1">
-                    <button class="btn-asignar-operador px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors" 
-                            data-id="${item.id}" data-operador="${idOperador}" data-codigo-estacion="${item.codigo_equipo}">
-                        <i class="fas fa-user-plus mr-1"></i>Asignar
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    // Actualizar event listeners
-    document.addEventListener('DOMContentLoaded', function() {
-        // Delegación de eventos para botones dinámicos
-        document.addEventListener('click', function(e) {
-            // Botones de operador
-            if (e.target.classList.contains('btn-asignar-operador') || 
-                e.target.closest('.btn-asignar-operador')) {
-                const button = e.target.classList.contains('btn-asignar-operador') ? 
-                    e.target : e.target.closest('.btn-asignar-operador');
-                
-                const estacionId = button.getAttribute('data-id');
-                const codigoEstacion = button.getAttribute('data-codigo-estacion');
-                const operadorId = button.getAttribute('data-operador');
-
-                abrirModalOperador(estacionId, codigoEstacion, operadorId);
-               
-            }
-            
-            else if (e.target.classList.contains('btn-eliminar-operador') || 
-                    e.target.closest('.btn-eliminar-operador')) {
-                const button = e.target.classList.contains('btn-eliminar-operador') ? 
-                    e.target : e.target.closest('.btn-eliminar-operador');
-
-                const estacionId = button.getAttribute('data-id');
-                const operadorId = button.getAttribute('data-operador');
-                if (confirm('¿Está seguro de eliminar el operador de esta estación?')) {
-                    eliminarOperador(estacionId, operadorId);
-                }  
-            }
-        });
-        
-        // Confirmar asignación de operador
-        document.getElementById('btn-confirmar-operador').addEventListener('click', confirmarAsignacionOperador);
-        
-        // Buscador en tiempo real para operadores
-        document.getElementById('buscador-modal-operador').addEventListener('input', (e) => {
+        // Buscador en modal de centros para operador
+        document.getElementById('buscador-modal-centros-operador').addEventListener('input', (e) => {
             const texto = e.target.value.toLowerCase();
-            
-            const operadoresFiltrados = listaOperadoresCompleta.filter(operador => {
-                const nombreCompleto = `${operador.nombre || ''} ${operador.apellido_paterno || ''} ${operador.apellido_materno || ''}`.toLowerCase();
-                const carnet = operador.carnet ? operador.carnet.toLowerCase() : '';
-                const username = operador.username ? operador.username.toLowerCase() : '';
-                const tipo = operador.tipo_operador ? operador.tipo_operador.toLowerCase() : '';
-                
-                return nombreCompleto.includes(texto) ||
-                      carnet.includes(texto) ||
-                      username.includes(texto) ||
-                      tipo.includes(texto);
-            });
-            
-            renderizarOperadores(operadoresFiltrados);
+            if (texto === '') {
+                renderizarListaCentrosOperador(centrosEmpadronamiento)
+            } else {
+                const centrosFiltrados = centrosEmpadronamiento.filter(centro => {
+                    const nombre = centro.nombre ? centro.nombre.toLowerCase() : '';
+                    const punto = centro.punto_de_empadronamiento ? centro.punto_de_empadronamiento.toLowerCase() : '';
+                    const ruta = centro.nombre_ruta ? centro.nombre_ruta.toLowerCase() : '';
+                    const municipio = centro.municipio ? centro.municipio.toLowerCase() : '';
+                    
+                    return nombre.includes(texto) || punto.includes(texto) || ruta.includes(texto) || municipio.includes(texto);
+                });
+                renderizarListaCentrosOperador(centrosFiltrados);
+            }
         });
         
-        // Cerrar modal de operador
-        document.querySelector('.close-modal-operador').addEventListener('click', cerrarModalOperador);
+        // Botones de confirmación en modales
+        document.getElementById('btn-confirmar-estacion-operador').addEventListener('click', confirmarAsignacionEstacionOperador);
+        document.getElementById('btn-confirmar-centro-operador').addEventListener('click', confirmarAsignacionCentroOperador);
         
-        // Cerrar modal al hacer click fuera
-        document.getElementById('modal-operador').addEventListener('click', function(e) {
+        // Botones de cancelación en modales
+        document.getElementById('btn-cancelar-estacion').addEventListener('click', cerrarModalEstacionOperador);
+        document.getElementById('btn-cancelar-centro-operador').addEventListener('click', cerrarModalCentroOperador);
+        
+        // Cerrar modales con X
+        document.querySelector('.close-modal-estacion').addEventListener('click', cerrarModalEstacionOperador);
+        document.querySelector('.close-modal-centro-operador').addEventListener('click', cerrarModalCentroOperador);
+        
+        // Cerrar modales al hacer click fuera
+        document.getElementById('modal-estacion-operador').addEventListener('click', function(e) {
             if (e.target === this) {
-                cerrarModalOperador();
+                cerrarModalEstacionOperador();
             }
+        });
+        
+        document.getElementById('modal-centro-operador').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModalCentroOperador();
+            }
+        });
+        
+        // Cargar datos cuando se active el panel de operadores
+        document.querySelector('.menu-item[data-target="asignacion"]').addEventListener('click', () => {
+            if (datosOperadores.length === 0) {
+                cargarDatosOperadores();
+            }
+            cargarEstacionesDisponibles();
+            cargarCentrosEmpadronamiento();
+            
         });
     });
-
-    // Función para cargar datos manteniendo página específica
-    async function cargarDatosAsignacionConPagina(paginaEspecifica) {
-        // Guardar estado actual
-        const columnaOrdenGuardada = columnaOrdenAsignacion;
-        const ordenAscendenteGuardado = ordenAscendenteAsignacion;
-        
-        try {
-            const response = await fetch('/estaciones-despliegue/');
-            const data = await response.json();
-            
-            if (response.ok) {
-                datosAsignacion = data.data;
-                datosFiltradosAsignacion = [];
-                document.getElementById('total-estaciones-count').textContent = data.total_estaciones_masterizadas;
-                
-                // Restaurar el orden anterior
-                columnaOrdenAsignacion = columnaOrdenGuardada;
-                ordenAscendenteAsignacion = ordenAscendenteGuardado;
-                
-                // Aplicar orden
-                aplicarOrdenAsignacion();
-                
-                // Usar la página específica
-                paginaActualAsignacion = paginaEspecifica;
-                
-                // Verificar que la página sea válida
-                const datosParaPaginacion = datosFiltradosAsignacion.length > 0 ? 
-                    datosFiltradosAsignacion : datosAsignacion;
-                const totalPaginas = Math.ceil(datosParaPaginacion.length / registrosPorPaginaAsignacion);
-                
-                if (paginaActualAsignacion > totalPaginas && totalPaginas > 0) {
-                    paginaActualAsignacion = totalPaginas;
-                } else if (totalPaginas === 0) {
-                    paginaActualAsignacion = 1;
-                }
-                
-                renderizarTablaAsignacionConDatosActuales();
-                actualizarPaginacionAsignacion();
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-        // Función para asignar centro-empadronamiento a estacion
-    async function asignarCentroEmpadronamiento(estacionId, centroEmpadronamientoId)  {
-        const payload = {
-          centro_empadronamiento: centroEmpadronamientoId,
-          fecha_asignacion: new Date().toISOString().split('T')[0]
-        }
-        try {
-            const response = await fetch(`/api/estaciones/${estacionId}/`, {
-            method: "PATCH",
-            headers: {
-              'Accept': 'application/json',
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCookie("csrftoken")
-            },
-              body: JSON.stringify(payload),
-              credentials: "include",
-            });
-            
-            if (response.ok) {
-                alert('Centro de empadronaniento asignado correctamente');
-                cargarDatosAsignacion();
-                cerrarModalAsignacion('modal-centro-empadronamiento');
-                
-            } else {
-                throw new Error(response.status || 'Error al asignar Centro de empadronaniento');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al asignar Centro de empadronaniento: ' + error.message);
-        }
-    }
-
-    // Función para eliminar centro-empadronamiento de la estacion
-    async function eliminarDestino(estacionId) {
-        if (!confirm('¿Está seguro de eliminar el operador de esta estación?')) {
-            return;
-        }
-        const payload = {
-          centro_empadronamiento: null
-        }
-        try {
-            const response = await fetch(`/api/estaciones/${estacionId}/`, {
-            method: "PATCH",
-            headers: {
-              'Accept': 'application/json',
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCookie("csrftoken")
-            },
-              body: JSON.stringify(payload),
-              credentials: "include",
-            });
-      
-            if (response.ok) {
-                alert('Destino liberado correctamente');
-                cargarDatosAsignacion();
-            } else {
-                throw new Error(response.status || 'Error al eliminar destino');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al eliminar destino: ' + error.message);
-        }
-    }
 
     //*************** INFORMACION DE ASIGNACION DE ESTACIONES *********************
     //******************************************************************************

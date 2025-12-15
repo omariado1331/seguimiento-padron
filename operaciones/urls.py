@@ -14,7 +14,8 @@ from .api_views import (
     LlavesSinAsignarView, OperadoresSinEstacionAsignadaView, EstacionesCambioFaseConLlaveViewSet,
     HistorialMasterizacionViewSet, HistorialMasterViewSet, EstacionesMasterizadasOrdenadasViewSet,
     MegacentroViewSet, ListaCentrosEmpadronamientoViewSet, InfoOperadorViewSet,
-    ExportarReporteDespliegueEstacionesExcelViewSet, HistorialReportesDiariosOperadorViewSet
+    ExportarReporteDespliegueEstacionesExcelViewSet, HistorialReportesDiariosOperadorViewSet,
+    OperadoresEstacionViewSet, InfoEstacionesMasterizadasViewSet
 )
 from . import views
 
@@ -64,4 +65,7 @@ urlpatterns = [
     path('exportar-reporte-despliegue-estaciones/', ExportarReporteDespliegueEstacionesExcelViewSet.as_view(), name='exportar-reporte-despliegue-estaciones'),
     path('info-operador/<int:operador_id>/', InfoOperadorViewSet.as_view(), name='info_operador'),
     path('api/operadores/<int:operador_id>/reportes-diarios/', HistorialReportesDiariosOperadorViewSet.as_view(), name='historial-reportes-diarios'),
+    path('api/lista-operadores-estaciones/', OperadoresEstacionViewSet.as_view(), name='lista operadores y estacion'),
+    path('api/info-estaciones/', InfoEstacionesMasterizadasViewSet.as_view(), name='lista estaciones masterizadas'),
+
 ]

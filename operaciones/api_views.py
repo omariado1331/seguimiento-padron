@@ -740,6 +740,7 @@ class HistorialReportesDiariosOperadorViewSet(APIView):
             for reporte in reportes:
                 # Información básica del reporte
                 registro = {
+                    "id_reporte": reporte.id,
                     "codigo_estacion": reporte.estacion.codigo_equipo if reporte.estacion else None,
                     "nro_estacion": reporte.estacion.llave.nro_estacion if reporte.estacion and reporte.estacion.llave else None,
                     "fecha_reporte": reporte.fecha_reporte.strftime('%Y-%m-%d') if reporte.fecha_reporte else None,

@@ -369,6 +369,7 @@ class Operador(models.Model):
     direccion = models.CharField(max_length=200, blank=True, null=True)
     correo = models.EmailField(unique=True, null=True, blank=True)
     celular = models.CharField(max_length=15, unique=True, null=True, blank=True)
+    entrega_backup = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
